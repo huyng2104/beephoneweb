@@ -6,12 +6,29 @@ use App\Http\Controllers\AdminControllers\BrandController;
 use App\Http\Controllers\AdminControllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
+// Client
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/admin', function () {
-    return view('admin.dashboard.index');
+
+
+
+
+// Admin
+Route::prefix('admin')->name('admin.')->group(function () {
+
+
+    Route::get('/', function () {
+        return view('admin.dashboard.index');
+    })->name('dashboard');
+
+    Route::prefix('vouchers')->name('vouchers.')->group(function(){
+        Route::get('/',function(){
+            return view('admin.vouchers.index');
+        })->name('index');
+    });
+
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {
