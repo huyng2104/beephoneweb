@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminControllers\CategoryFilterController;
 use App\Http\Controllers\AdminControllers\BrandController;
 use App\Http\Controllers\AdminControllers\ProductController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\UserController;
 
 // Client
 Route::get('/', function () {
@@ -12,23 +13,22 @@ Route::get('/', function () {
 });
 
 
-
-
-
 // Admin
 Route::prefix('admin')->name('admin.')->group(function () {
 
-
+    // Dashboard
     Route::get('/', function () {
         return view('admin.dashboard.index');
     })->name('dashboard');
 
+    // Vouchers
     Route::prefix('vouchers')->name('vouchers.')->group(function(){
         Route::get('/',function(){
             return view('admin.vouchers.index');
         })->name('index');
     });
 
+<<<<<<< Updated upstream
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -51,3 +51,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('products', [ProductController::class, 'store'])
         ->name('products.store');
 });
+=======
+    // Users
+    Route::prefix('users')->name('users.')->group(function(){
+
+        Route::get('/', [UserController::class, 'index'])->name('index');
+
+        Route::get('/create', [UserController::class, 'create'])->name('create');
+
+        Route::get('/{user}', [UserController::class, 'show'])->name('show');
+
+        Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+
+    });
+
+});
+>>>>>>> Stashed changes
