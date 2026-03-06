@@ -4,6 +4,8 @@ use App\Http\Controllers\AdminControllers\CategoryController;
 use App\Http\Controllers\AdminControllers\CategoryFilterController;
 use App\Http\Controllers\AdminControllers\BrandController;
 use App\Http\Controllers\AdminControllers\ProductController;
+use App\Http\Controllers\VoucherController;
+use App\Models\Voucher;
 use Illuminate\Support\Facades\Route;
 
 // Client
@@ -22,13 +24,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/', function () {
         return view('admin.dashboard.index');
     })->name('dashboard');
-
-    Route::prefix('vouchers')->name('vouchers.')->group(function(){
-        Route::get('/',function(){
-            return view('admin.vouchers.index');
-        })->name('index');
-    });
-
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -50,4 +45,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->name('products.create');
     Route::post('products', [ProductController::class, 'store'])
         ->name('products.store');
+
+    // Vouchers
+    Route::resource('vouchers', VoucherController::class);
+
+    Route::post('vouchers/{id}/restore', [VoucherController::class, 'restore'])
+        ->name('vouchers.restore');
 });
