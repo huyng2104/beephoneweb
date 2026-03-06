@@ -4,7 +4,7 @@ use App\Http\Controllers\AdminControllers\CategoryController;
 use App\Http\Controllers\AdminControllers\CategoryFilterController;
 use App\Http\Controllers\AdminControllers\BrandController;
 use App\Http\Controllers\AdminControllers\ProductController;
-use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\AdminControllers\VoucherController;
 use App\Models\Voucher;
 use Illuminate\Support\Facades\Route;
 
