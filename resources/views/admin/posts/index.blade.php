@@ -106,7 +106,7 @@ font-weight: 500;
                                 <p class="text-sm font-bold leading-normal tracking-[0.015em]">Danh sách bài viết</p>
                             </a>
                             <a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-[#8a8060] dark:text-[#b5ae98] pb-[13px] pt-4 hover:text-primary transition-colors"
-                                href="">
+                                href="{{ route('admin.post-categories.index') }}">
                                 <p class="text-sm font-bold leading-normal tracking-[0.015em]">Quản lý danh mục</p>
                             </a>
                             <a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-[#8a8060] dark:text-[#b5ae98] pb-[13px] pt-4 hover:text-primary transition-colors"

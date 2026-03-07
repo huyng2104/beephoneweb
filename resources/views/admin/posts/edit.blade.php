@@ -309,4 +309,5 @@
 
             }
         </script>
-    @endsection
+    </form>
+@endsection

@@ -21,4 +21,5 @@ Route::prefix('admin')->name('admin.')->group(function () {
     })->name('dashboard');
 
     Route::resource('posts', PostController::class)->except(['show']);
+    Route::resource('post-categories', PostCategoryController::class)->except(['show']);
 });

@@ -151,7 +151,7 @@
                                     <span class="material-symbols-outlined text-sm">send</span> Thiết lập hiển thị
                                 </h3>
                                 <div class="space-y-4">
-                                {{-- <div class="flex items-center justify-between">
+                                    {{-- <div class="flex items-center justify-between">
                                     <span class="text-sm font-medium text-[#181611] dark:text-zinc-300">Công khai bài
                                         viết</span>
                                     <label class="relative inline-flex items-center cursor-pointer">
@@ -161,104 +161,105 @@
                                         </div>
                                     </label>
                                 </div> --}}
-                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center justify-between">
 
-                                    <span class="text-sm font-medium text-[#181611] dark:text-zinc-300">
-                                        Công khai bài viết
-                                    </span>
+                                        <span class="text-sm font-medium text-[#181611] dark:text-zinc-300">
+                                            Công khai bài viết
+                                        </span>
 
-                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <label class="relative inline-flex items-center cursor-pointer">
 
-                                        <!-- hidden để gửi 0 nếu không check -->
-                                        <input type="hidden" name="status" value="0">
+                                            <!-- hidden để gửi 0 nếu không check -->
+                                            <input type="hidden" name="status" value="0">
 
-                                        <input type="checkbox" name="status" value="1" checked class="sr-only peer">
+                                            <input type="checkbox" name="status" value="1" checked
+                                                class="sr-only peer">
 
-                                        <div
-                                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary">
-                                        </div>
+                                            <div
+                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary">
+                                            </div>
 
-                                    </label>
+                                        </label>
 
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm font-medium text-[#181611] dark:text-zinc-300">Bài viết nổi
-                                        bật</span>
-                                    <input
-                                        class="w-5 h-5 text-primary bg-zinc-100 border-[#e6e3db] rounded focus:ring-primary focus:ring-2"
-                                        type="checkbox" />
-                                </div>
-                                <div class="pt-4 border-t border-[#f5f3f0] dark:border-zinc-800 flex flex-col gap-2">
-                                    <p class="text-xs text-[#8a8060]"><span class="font-bold">Lần cuối lưu:</span> 1
-                                        phút
-                                        trước</p>
-                                    <p class="text-xs text-[#8a8060]"><span class="font-bold">Tác giả:</span> Admin Bee
-                                        Phone</p>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Categories Card -->
-                        <div
-                            class="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-[#e6e3db] dark:border-zinc-800 shadow-sm">
-                            <h3 class="text-[#181611] dark:text-zinc-100 text-base font-bold mb-4">Danh mục</h3>
-                            <select
-                                class="form-select w-full rounded-lg border-[#e6e3db] dark:border-zinc-700 dark:bg-zinc-800 text-sm h-11 focus:border-primary focus:ring-primary"
-                                name="post_categories_id" class="form-control">
-
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}">
-                                        {{ $category->name }}
-                                    </option>
-                                @endforeach
-
-                            </select>
-                            <button class="mt-3 text-primary text-xs font-bold hover:underline flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[14px]">add_circle</span> Thêm danh mục mới
-                            </button>
-                        </div>
-                        <!-- Featured Image Card -->
-                        <div
-                            class="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-[#e6e3db] dark:border-zinc-800 shadow-sm">
-                            <h3 class="text-[#181611] dark:text-zinc-100 text-base font-bold mb-4">Ảnh đại diện</h3>
-                            <div class="mb-3">
-                                <input type="file" name="thumbnail" id="thumbnail" hidden>
-                                <div class="relative group cursor-pointer"
-                                    onclick="document.getElementById('thumbnail').click()">
-                                    <div
-                                        class="w-full aspect-video rounded-lg bg-zinc-100 dark:bg-zinc-800 border-2 border-dashed border-[#e6e3db] dark:border-zinc-700 flex flex-col items-center justify-center overflow-hidden transition-all hover:border-primary/50">
-
-                                        <img id="previewImage"
-                                            class="absolute inset-0 w-full h-full object-cover opacity-80 hidden">
-
-                                        <div class="relative z-10 flex flex-col items-center gap-2 p-4 text-center">
-
-                                            <span class="material-symbols-outlined text-primary text-3xl">image</span>
-
-                                            <p class="text-xs font-medium text-[#181611] dark:text-zinc-300">
-                                                Nhấp để thay đổi ảnh
-                                            </p>
-                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-[#181611] dark:text-zinc-300">Bài viết nổi
+                                            bật</span>
+                                        <input
+                                            class="w-5 h-5 text-primary bg-zinc-100 border-[#e6e3db] rounded focus:ring-primary focus:ring-2"
+                                            type="checkbox" />
+                                    </div>
+                                    <div class="pt-4 border-t border-[#f5f3f0] dark:border-zinc-800 flex flex-col gap-2">
+                                        <p class="text-xs text-[#8a8060]"><span class="font-bold">Lần cuối lưu:</span> 1
+                                            phút
+                                            trước</p>
+                                        <p class="text-xs text-[#8a8060]"><span class="font-bold">Tác giả:</span> Admin Bee
+                                            Phone</p>
                                     </div>
                                 </div>
                             </div>
-                            <p class="mt-2 text-[10px] text-[#8a8060] text-center italic">Định dạng JPG, PNG, WEBP. Tối
-                                đa
-                                2MB. Tỷ lệ 16:9.</p>
-                        </div>
-                        <!-- Danger Zone -->
-                        <div class="flex justify-center p-4">
-                            <button
-                                class="text-red-500 text-xs font-medium hover:text-red-600 flex items-center gap-1 transition-colors">
-                                <span class="material-symbols-outlined text-[16px]">delete</span> Xóa bài viết này
-                            </button>
+                            <!-- Categories Card -->
+                            <div
+                                class="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-[#e6e3db] dark:border-zinc-800 shadow-sm">
+                                <h3 class="text-[#181611] dark:text-zinc-100 text-base font-bold mb-4">Danh mục</h3>
+                                <select
+                                    class="form-select w-full rounded-lg border-[#e6e3db] dark:border-zinc-700 dark:bg-zinc-800 text-sm h-11 focus:border-primary focus:ring-primary"
+                                    name="post_categories_id" class="form-control">
+
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->id }}">
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
+
+                                </select>
+                                <button class="mt-3 text-primary text-xs font-bold hover:underline flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">add_circle</span> Thêm danh mục mới
+                                </button>
+                            </div>
+                            <!-- Featured Image Card -->
+                            <div
+                                class="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-[#e6e3db] dark:border-zinc-800 shadow-sm">
+                                <h3 class="text-[#181611] dark:text-zinc-100 text-base font-bold mb-4">Ảnh đại diện</h3>
+                                <div class="mb-3">
+                                    <input type="file" name="thumbnail" id="thumbnail" hidden>
+                                    <div class="relative group cursor-pointer"
+                                        onclick="document.getElementById('thumbnail').click()">
+                                        <div
+                                            class="w-full aspect-video rounded-lg bg-zinc-100 dark:bg-zinc-800 border-2 border-dashed border-[#e6e3db] dark:border-zinc-700 flex flex-col items-center justify-center overflow-hidden transition-all hover:border-primary/50">
+
+                                            <img id="previewImage"
+                                                class="absolute inset-0 w-full h-full object-cover opacity-80 hidden">
+
+                                            <div class="relative z-10 flex flex-col items-center gap-2 p-4 text-center">
+
+                                                <span class="material-symbols-outlined text-primary text-3xl">image</span>
+
+                                                <p class="text-xs font-medium text-[#181611] dark:text-zinc-300">
+                                                    Nhấp để thay đổi ảnh
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="mt-2 text-[10px] text-[#8a8060] text-center italic">Định dạng JPG, PNG, WEBP. Tối
+                                    đa
+                                    2MB. Tỷ lệ 16:9.</p>
+                            </div>
+                            <!-- Danger Zone -->
+                            <div class="flex justify-center p-4">
+                                <button
+                                    class="text-red-500 text-xs font-medium hover:text-red-600 flex items-center gap-1 transition-colors">
+                                    <span class="material-symbols-outlined text-[16px]">delete</span> Xóa bài viết này
+                                </button>
+                            </div>
                         </div>
                     </div>
-            </div>
-            </main>
-            <footer
-                class="bg-white dark:bg-zinc-900 border-t border-[#e6e3db] dark:border-zinc-800 py-6 text-center text-xs text-[#8a8060]">
-                <p>© 2024 Bee Phone Admin. All rights reserved.</p>
-            </footer>
+                </main>
+                <footer
+                    class="bg-white dark:bg-zinc-900 border-t border-[#e6e3db] dark:border-zinc-800 py-6 text-center text-xs text-[#8a8060]">
+                    <p>© 2024 Bee Phone Admin. All rights reserved.</p>
+                </footer>
             </div>
         </body>
 
