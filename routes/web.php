@@ -22,6 +22,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     })->name('dashboard');
 
     // Vouchers
+    // Vouchers
     Route::prefix('vouchers')->name('vouchers.')->group(function(){
         Route::get('/',function(){
             return view('admin.vouchers.index');
@@ -67,3 +68,5 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 });
 >>>>>>> Stashed changes
+
+});
