@@ -1,4 +1,5 @@
-<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col fixed h-full z-50">
+<aside
+    class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col fixed h-full z-50">
     <div class="p-6 flex items-center gap-3">
         <div class="bg-primary rounded-lg p-1.5 flex items-center justify-center">
             <span class="material-symbols-outlined text-background-dark font-bold">smartphone</span>
@@ -50,6 +51,11 @@
             href="#">
             <span class="material-symbols-outlined">group</span>
             <span>Khách hàng</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium transition-colors"
+            href="{{route('admin.vouchers.index')}}">
+            <span class="material-symbols-outlined">confirmation_number</span>
+            <span>Voucher</span>
         </a>
 
         <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">

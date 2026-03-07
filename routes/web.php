@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminControllers\BrandController;
 use App\Http\Controllers\AdminControllers\ProductController;
 use App\Http\Controllers\AdminControllers\AttributeController;
 use App\Http\Controllers\AdminControllers\AttributeValueController;
+use App\Http\Controllers\AdminControllers\VoucherController;
 
 /*
 |--------------------------------------------------------------------------
@@ -87,4 +88,8 @@ Route::get('/attributes/{id}/get-values', [\App\Http\Controllers\AdminController
 
     // Resource Sản phẩm
     Route::resource('products', App\Http\Controllers\AdminControllers\ProductController::class);
+
+    // Vouchers
+    Route::resource('vouchers', VoucherController::class);
+    Route::post('restore',[VoucherController::class,'restore'])->name('restore');
 });
