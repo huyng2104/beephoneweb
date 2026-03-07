@@ -90,6 +90,11 @@ Route::get('/attributes/{id}/get-values', [\App\Http\Controllers\AdminController
     Route::resource('products', App\Http\Controllers\AdminControllers\ProductController::class);
 
     // Vouchers
-    Route::resource('vouchers', VoucherController::class);
-    Route::post('restore',[VoucherController::class,'restore'])->name('restore');
+    // Nên đặt custom route TRƯỚC resource route để tránh xung đột
+// 1. Thêm {id} vào đường dẫn để nhận $voucher->id từ view
+// 2. Đổi tên route thành admin.vouchers.restore
+// Bỏ chữ 'admin.' đi, chỉ giữ lại 'vouchers.restore'
+Route::post('vouchers/{id}/restore', [VoucherController::class, 'restore'])->name('vouchers.restore');
+
+Route::resource('vouchers', VoucherController::class);
 });
