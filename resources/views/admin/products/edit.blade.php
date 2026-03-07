@@ -122,27 +122,38 @@
 
                                     <div id="tab-variations" class="tab-content hidden">
                                         <div class="bg-blue-50 text-blue-700 p-3 rounded-lg text-xs mb-5 border border-blue-100 font-medium">
-                                            Lưu ý: Nếu bro thay đổi thuộc tính, hãy bấm nút "Tạo lại biến thể" để cập nhật danh sách mới. Các dữ liệu biến thể cũ sẽ bị thay thế.
+                                            Lưu ý: Nếu bro thay đổi thuộc tính, hãy bấm nút "Đi" để cập nhật danh sách mới. Các dữ liệu biến thể chưa lưu sẽ bị ảnh hưởng.
                                         </div>
                                         <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200 mb-6">
                                             <select id="variation-action" class="flex-1 text-sm border-slate-200 rounded py-2 px-3 font-bold cursor-pointer">
-                                                <option value="">-- Hành động biến thể --</option>
-                                                <option value="generate">Xóa sạch & Tạo lại tất cả tổ hợp</option>
+                                                <option value="add_missing" selected>Thêm biến thể mới (Giữ nguyên cái cũ)</option>
+                                                <option value="generate">Xóa sạch & Tạo lại tất cả (Nguy hiểm)</option>
                                             </select>
                                             <button type="button" id="btn-do-variation" class="bg-primary text-slate-900 px-5 py-2 rounded text-sm font-bold shadow-sm">Đi</button>
                                         </div>
                                         <div id="variations-wrapper" class="space-y-3">
                                             @foreach($product->variants as $index => $variant)
-                                                <div class="border border-slate-200 rounded-lg overflow-hidden bg-white variation-item shadow-sm">
+                                                <div class="border border-slate-200 rounded-lg overflow-hidden bg-white variation-item shadow-sm mt-3">
                                                     <div class="bg-slate-50 p-3 flex justify-between items-center border-b border-slate-200 cursor-pointer" onclick="$(this).next().slideToggle()">
                                                         <div class="flex items-center gap-3">
                                                             <span class="material-symbols-outlined text-slate-400">drag_indicator</span>
-                                                            <strong class="text-xs text-primary uppercase">
-                                                                #{{ $index + 1 }} — 
-                                                                @foreach($variant->attributeValues as $val)
-                                                                    {{ $val->value }}{{ !$loop->last ? ' - ' : '' }}
-                                                                @endforeach
-                                                            </strong>
+                                                           <strong class="text-xs text-primary uppercase">
+    #{{ $index + 1 }} — 
+    @php
+        // Ép sắp xếp bằng trọng số cho PHP
+        $sortedVals = $variant->attributeValues->sortBy(function($val) {
+            $name = mb_strtolower($val->attribute->name ?? ''); // Lấy tên thuộc tính
+            if (str_contains($name, 'màu')) return 1;
+            if (str_contains($name, 'ram')) return 2;
+            if (str_contains($name, 'dung lượng') || str_contains($name, 'rom')) return 3;
+            return 99; // Các thuộc tính khác
+        });
+    @endphp
+    
+    @foreach($sortedVals as $val)
+        {{ $val->value }}{{ !$loop->last ? ' - ' : '' }}
+    @endforeach
+</strong>
                                                             {{-- Lưu lại các ID thuộc tính để update --}}
                                                             @foreach($variant->attributeValues as $val)
                                                                 <input type="hidden" name="variations[{{ $index }}][attributes][{{ $val->attribute_id }}]" value="{{ $val->id }}">
@@ -341,42 +352,126 @@
             $('.select2-edit').select2({ width: '100%', placeholder: 'Chọn giá trị...' });
         }
 
-        // --- 5. Logic Tạo Biến thể (Tổ hợp) ---
+        // --- 5. Logic Tạo Biến thể (Tổ hợp) Thông Minh ---
         $('#btn-do-variation').click(function() {
-            if ($('#variation-action').val() !== 'generate') return;
+            let action = $('#variation-action').val();
             
             let attrGroups = [];
             $('.var-checkbox-wrapper input:checked').each(function() {
                 let block = $(this).closest('[id^="attr-block-"]');
-                let vals = block.find('select').select2('data');
+                let attrId = block.find('input[type="hidden"]').val();
+                let attrName = block.find('strong').text().trim().toLowerCase(); // Lấy tên thuộc tính (Màu sắc, Ram...)
+                let vals = block.find('select').select2('data');       
+                
                 if (vals.length) {
-                    attrGroups.push(vals.map(v => ({ attrId: block.find('input[type="hidden"]').val(), valId: v.id, valName: v.text })));
+                    attrGroups.push(vals.map(v => ({ 
+                        attrId: attrId, 
+                        valId: v.id, 
+                        valName: v.text,
+                        attrName: attrName // Lưu lại tên để lát nữa xét trọng số
+                    })));
                 }
             });
 
-            if (!attrGroups.length) return alert('Tick chọn "Dùng cho biến thể" ở tab Thuộc tính trước nhé!');
+            if (!attrGroups.length) return alert('Bro phải tick "Dùng cho biến thể" ở tab Thuộc tính và chọn ít nhất 1 giá trị đã nhé!');
+
+            // HÀM ĐỊNH NGHĨA TRỌNG SỐ ƯU TIÊN JS
+            function getPriority(name) {
+                if (name.includes('màu')) return 1;
+                if (name.includes('ram')) return 2;
+                if (name.includes('dung lượng') || name.includes('rom')) return 3;
+                return 99;
+            }
+
+            // Ép sắp xếp mảng thuộc tính trước khi trộn tổ hợp
+            attrGroups.sort((a, b) => getPriority(a[0].attrName) - getPriority(b[0].attrName));
 
             let combos = cartesian(attrGroups);
-            let wrapper = $('#variations-wrapper').empty();
+            let wrapper = $('#variations-wrapper');
+            // ... (Phần code bên dưới giữ nguyên)
 
-            combos.forEach((combo, i) => {
-                let title = combo.map(c => c.valName).join(' - ');
-                let hiddens = combo.map(c => `<input type="hidden" name="variations[${i}][attributes][${c.attrId}]" value="${c.valId}">`).join('');
-                
-                wrapper.append(`
-                    <div class="border border-slate-200 rounded-lg bg-white variation-item">
-                        <div class="bg-slate-50 p-2 flex justify-between items-center cursor-pointer" onclick="$(this).next().slideToggle()">
-                            <span class="text-xs font-bold text-primary">#${i+1} — ${title} ${hiddens}</span>
-                            <button type="button" class="text-red-500 text-[10px]" onclick="$(this).closest('.variation-item').remove()">Xóa</button>
-                        </div>
-                        <div class="p-3 grid grid-cols-2 md:grid-cols-4 gap-3" style="display:none">
-                            <input type="text" name="variations[${i}][sku]" placeholder="SKU" class="text-xs border-slate-200 rounded p-1">
-                            <input type="number" name="variations[${i}][price]" placeholder="Giá" class="text-xs border-slate-200 rounded p-1">
-                            <input type="number" name="variations[${i}][sale_price]" placeholder="Giá KM" class="text-xs border-slate-200 rounded p-1">
-                            <input type="number" name="variations[${i}][stock]" placeholder="Kho" value="0" class="text-xs border-slate-200 rounded p-1">
-                        </div>
-                    </div>`);
+            // Xử lý nếu user muốn xóa hết
+            if (action === 'generate') {
+                if(!confirm('CẢNH BÁO: Hành động này sẽ xóa toàn bộ biến thể đang có bên dưới. Bro chắc chứ?')) return;
+                wrapper.empty();
+            }
+
+            // Thu thập "Chữ ký" của các biến thể ĐÃ TỒN TẠI
+            let existingSignatures = [];
+            $('.variation-item').each(function() {
+                let sigParts = [];
+                $(this).find('input[type="hidden"][name*="[attributes]"]').each(function() {
+                    let match = $(this).attr('name').match(/\[attributes\]\[(\d+)\]/);
+                    if (match) {
+                        sigParts.push(match[1] + '-' + $(this).val()); 
+                    }
+                });
+                sigParts.sort();
+                existingSignatures.push(sigParts.join('|'));
             });
+
+            let addedCount = 0;
+
+            combos.forEach((combo) => {
+                let comboSigParts = combo.map(c => c.attrId + '-' + c.valId);
+                comboSigParts.sort();
+                let signature = comboSigParts.join('|');
+
+                // BỎ QUA NẾU TỔ HỢP ĐÃ TỒN TẠI
+                if (action === 'add_missing' && existingSignatures.includes(signature)) {
+                    return; 
+                }
+
+                let title = combo.map(c => c.valName).join(' - ');
+                // ID ngẫu nhiên để mảng PHP không bị trùng Index
+                let uniqueIdx = 'new_' + Date.now() + Math.floor(Math.random() * 1000); 
+                
+                let hiddens = combo.map(c => `<input type="hidden" name="variations[${uniqueIdx}][attributes][${c.attrId}]" value="${c.valId}">`).join('');
+                
+                let html = `
+                    <div class="border border-green-300 rounded-lg overflow-hidden bg-green-50/20 variation-item shadow-sm mt-3">
+                        <div class="bg-slate-50 p-3 flex justify-between items-center border-b border-slate-200 cursor-pointer" onclick="$(this).next().slideToggle()">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-slate-400">drag_indicator</span>
+                                <strong class="text-xs text-green-600 uppercase">
+                                    #MỚI — ${title}
+                                </strong>
+                                ${hiddens}
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <button type="button" class="text-red-500 text-[10px] font-bold uppercase" onclick="$(this).closest('.variation-item').remove()">Xóa</button>
+                                <span class="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
+                            </div>
+                        </div>
+                        <div class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4 bg-white" style="display:none;">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">SKU</label>
+                                <input type="text" name="variations[${uniqueIdx}][sku]" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giá bán (₫)</label>
+                                <input type="number" name="variations[${uniqueIdx}][price]" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giá KM</label>
+                                <input type="number" name="variations[${uniqueIdx}][sale_price]" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kho</label>
+                                <input type="number" name="variations[${uniqueIdx}][stock]" value="0" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
+                            </div>
+                        </div>
+                    </div>`;
+                
+                wrapper.append(html);
+                addedCount++;
+            });
+
+            if (action === 'add_missing' && addedCount === 0) {
+                alert('Tất cả các tổ hợp này đều đã tồn tại, không có biến thể nào mới được tạo thêm!');
+            } else if (addedCount > 0) {
+                alert(`Đã thêm thành công ${addedCount} biến thể mới. Bấm mở rộng để nhập giá và tồn kho nhé!`);
+            }
         });
 
         function cartesian(a) { return a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat()))); }
