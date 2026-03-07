@@ -158,7 +158,7 @@
                                             @foreach ($voucher->products as $product)
                                                 <span
                                                     class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[11px] font-bold">
-                                                    {{ $products->name }}
+                                                    {{ $product->name }}
                                                 </span>
                                             @endforeach
                                         </div>
