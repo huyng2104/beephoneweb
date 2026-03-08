@@ -7,19 +7,16 @@ use App\Http\Controllers\AdminControllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\UserController;
 
-// Client
 Route::get('/', function () {
     return view('welcome');
 });
 
-
-// Admin
 Route::prefix('admin')->name('admin.')->group(function () {
 
-    // Dashboard
     Route::get('/', function () {
         return view('admin.dashboard.index');
     })->name('dashboard');
+
 
     // Vouchers
     Route::prefix('vouchers')->name('vouchers.')->group(function(){
@@ -28,7 +25,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         })->name('index');
     });
 
-<<<<<<< Updated upstream
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -51,19 +47,28 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('products', [ProductController::class, 'store'])
         ->name('products.store');
 });
-=======
-    // Users
     Route::prefix('users')->name('users.')->group(function(){
 
         Route::get('/', [UserController::class, 'index'])->name('index');
 
         Route::get('/create', [UserController::class, 'create'])->name('create');
 
+        Route::post('/', [UserController::class, 'store'])->name('store');
+
+        Route::get('/trash', [UserController::class, 'trash'])->name('trash');
+
         Route::get('/{user}', [UserController::class, 'show'])->name('show');
 
         Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
 
+        Route::put('/{user}', [UserController::class, 'update'])->name('update');
+
+        Route::post('/{user}/lock', [UserController::class, 'toggleLock'])->name('lock');
+
+        Route::post('/{user}/restore', [UserController::class, 'restore'])->name('restore');
+
+        Route::delete('/{user}/force-delete', [UserController::class, 'forceDelete'])->name('forceDelete');
+
+        Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
     });
 
-});
->>>>>>> Stashed changes

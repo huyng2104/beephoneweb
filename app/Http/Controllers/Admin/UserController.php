@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
-use Illuminate\Routing\Controller;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use App\Models\ActivityLog;
 
 class UserController extends Controller
 {
@@ -59,17 +61,59 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
             'password' => 'nullable|string|min:6|confirmed',
-            'role' => 'nullable|string',
         ]);
 
-        if (!empty($validated['password'])) {
-            $validated['password'] = bcrypt($validated['password']);
-        } else {
+        if ($request->has('role')) {
+            $validated['role'] = $request->input('role');
+        }
+
+        if (empty($validated['password'])) {
             unset($validated['password']);
         }
 
         $user->update($validated);
 
+
         return redirect('/admin/users')->with('success', 'Cập nhật người dùng thành công');
     }
+
+    public function toggleLock(User $user)
+    {
+        $user->is_locked = ! $user->is_locked;
+        $user->save();
+
+        return redirect()->back()->with('success', 'Cập nhật trạng thái khóa tài khoản thành công');
+    }
+    public function trash()
+    {
+    $users = User::onlyTrashed()->get();
+
+    return view('admin.users.trash', compact('users'));
+    }
+    public function restore($id)
+    {
+    $user = User::onlyTrashed()->findOrFail($id);
+
+    $user->restore();
+
+    return redirect()->back()->with('success','Khôi phục thành công');
+    }
+    public function forceDelete($id)
+{
+    $user = User::onlyTrashed()->findOrFail($id);
+
+    $user->forceDelete();
+
+    return redirect()->back()->with('success','Đã xóa vĩnh viễn');
+}
+public function destroy($id)
+{
+    $user = User::findOrFail($id);
+
+    $user->delete();
+
+    return redirect()
+        ->route('admin.users.index')
+        ->with('success','Đã chuyển user vào thùng rác');
+}
 }
