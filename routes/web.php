@@ -33,6 +33,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // ĐÃ FIX: Chuyển Users vào trong group admin. Dùng resource để tự động tạo name admin.users.*
     Route::resource('users', UserController::class);
+    Route::post('user/{id}/block',[UserController::class,'block'])->name('user.block');
+    Route::post('user/{id}/unblock',[UserController::class,'unBlock'])->name('user.unblock');
+    Route::post('user/{id}/reset',[UserController::class,'resetPw'])->name('resetPw');
 
     // 1. Quản lý Danh mục & Thương hiệu
     Route::resource('categories', CategoryController::class)->except(['show']);
@@ -58,7 +61,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('attributes/{attribute}/values/trash', [AttributeValueController::class, 'trash'])->name('attributes.values.trash');
     Route::post('attribute-values/{id}/restore', [AttributeValueController::class, 'restore'])->name('attributes.values.restore');
     Route::delete('attribute-values/{id}/force-delete', [AttributeValueController::class, 'forceDelete'])->name('attributes.values.force_delete');
-    
+
     Route::get('attributes/{attribute}/values', [AttributeValueController::class, 'index'])->name('attributes.values.index');
     Route::post('attributes/{attribute}/values', [AttributeValueController::class, 'store'])->name('attributes.values.store');
     Route::get('attributes/{attribute}/values/{attribute_value}/edit', [AttributeValueController::class, 'edit'])->name('attributes.values.edit');

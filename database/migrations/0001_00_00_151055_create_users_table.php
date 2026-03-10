@@ -15,9 +15,16 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('phone')->nullable();
+            $table->enum('gender',['male','female','other'])->nullable();
+            $table->date('birthday')->nullable();
+            $table->string('avatar')->nullable();
+            $table->longText('address')->nullable();
+            $table->enum('status',['inactive','active','banned'])->default('inactive');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            
+            $table->foreignId('role_id')->nullable()->constrained();
+            $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();
         });

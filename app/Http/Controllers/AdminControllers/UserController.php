@@ -2,86 +2,221 @@
 
 namespace App\Http\Controllers\AdminControllers;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
-use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
-
+use App\Helpers\FileHelper;
+use App\Http\Requests\UpdateUserRequest;
+use App\Models\Permission;
+use App\Models\Role;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 class UserController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        $users = User::paginate(15);
-        return view('admin.users.index', compact('users'));
+        $query = User::orderBy('id', 'desc');
+        $users = $query->paginate(10);
+        $totalStaff = User::whereHas('role', function ($query) {
+            $query->where('name', 'staff');
+        })->count();
+        $totalBanned = User::where('status', 'banned')->count();
+        return view('admin.users.index')->with([
+            'users' => $users,
+            'totalStaff' => $totalStaff,
+            'totalBanned' => $totalBanned
+        ]);
     }
 
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
-        $roles = ['user', 'employee', 'admin'];
-        return view('admin.users.create', compact('roles'));
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:191',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
-            'phone' => 'nullable|string|max:20',
-            'role' => 'nullable|string',
+        $roles = Role::select('id', 'name')->get();
+        $permissions = Permission::all();
+        return view('admin.users.create')->with([
+            'roles' => $roles,
+            'permissions' => $permissions
         ]);
-
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'phone' => $validated['phone'] ?? null,
-            'role' => $validated['role'] ?? 'user',
-        ]);
-
-        return redirect('/admin/users')->with('success', 'Tạo người dùng thành công');
     }
 
-    public function show(User $user)
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreUserRequest $request)
     {
-        return view('admin.users.show', compact('user'));
-    }
 
-    public function edit(User $user)
-    {
-        $roles = ['user', 'employee', 'admin'];
-        return view('admin.users.edit', compact('user', 'roles'));
-    }
+        $path_avatar = null;
 
-    public function update(Request $request, User $user)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:191',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:20',
-            'password' => 'nullable|string|min:6|confirmed',
-            'role' => 'nullable|string',
-        ]);
-
-        if (!empty($validated['password'])) {
-            $validated['password'] = bcrypt($validated['password']);
-        } else {
-            unset($validated['password']);
+        if ($request->hasFile('avatar')) {
+            $path_avatar = FileHelper::upload($request->file('avatar'), 'avatar');
         }
 
-        $user->update($validated);
+        $role = Role::find($request->role);
+        $user_permissions = $role->name == 'staff'
+            ? ($request->permissions ?? [])
+            : [];
 
-        return redirect('/admin/users')->with('success', 'Cập nhật người dùng thành công');
+        $data = [
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'phone'    => $request->phone,
+            'avatar'   => $path_avatar ?? null,
+            'status'   => $request->status == 1 ? 'active' : 'inactive',
+            'password' => Hash::make($request->password),
+            'role_id'  => $request->role,
+
+            // Bổ sung thêm các trường mới tại đây
+            'gender'   => $request->gender,   // Giới tính
+            'birthday'      => $request->dob,      // Ngày tháng năm sinh (Date of Birth)
+            'address'  => $request->address,  // Địa chỉ
+        ];
+
+        try {
+            DB::transaction(function () use ($data, $user_permissions) {
+                $user = User::create($data);
+                $user->permissions()->sync($user_permissions);
+            });
+
+            return redirect()->route('admin.users.index')->with([
+                'success' => 'Thêm người dùng thành công!'
+            ]);
+        } catch (\Exception $e) {
+            if ($path_avatar) {
+                FileHelper::delete($path_avatar);
+            }
+
+            return back()->withInput()->with([
+                'error' => 'Lỗi thêm vào cơ sở dữ liệu. Vui lòng thử lại!'
+            ]);
+        }
     }
 
-    // THÊM HÀM NÀY VÀO ĐÂY LÀ HẾT LỖI
-    public function destroy(User $user)
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
     {
-        if (auth()->id() === $user->id) {
-            return redirect('/admin/users')->with('error', 'Bạn không thể tự xóa tài khoản của chính mình!');
+        $user = User::findOrFail($id);
+        return view('admin.users.show')->with([
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        $roles = Role::select('id', 'name')->get();
+        $user = User::findOrFail($id);
+        $permissions = Permission::all();
+        return view('admin.users.edit')->with([
+            'roles' => $roles,
+            'user' => $user,
+            'permissions' => $permissions
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateUserRequest $request, string $id)
+    {
+        $user = User::findOrFail($id);
+        $old_avatar = $user->avatar;
+        $path_avatar = $user->avatar;
+        if ($request->hasFile('avatar')) {
+            $path_avatar = FileHelper::upload($request->file('avatar'), 'avatar');
         }
 
+        $role = Role::find($request->role);
+        $user_permissions = ($role && $role->name == 'staff')
+            ? ($request->permissions ?? [])
+            : [];
+
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'avatar' => $path_avatar,
+            'status' => $request->status == 1 ? 'active' : 'inactive',
+            'role_id' => $request->role,
+            'gender'   => $request->gender,   // Giới tính
+            'birthday'      => $request->dob,      // Ngày tháng năm sinh (Date of Birth)
+            'address'  => $request->address,  // Địa chỉ
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        try {
+            DB::transaction(function () use ($user, $data, $user_permissions) {
+
+                $user->update($data);
+                $user->permissions()->sync($user_permissions);
+            });
+
+            if ($request->hasFile('avatar') && $old_avatar) {
+                FileHelper::delete($old_avatar);
+            }
+
+            return redirect()->route('admin.users.index')->with([
+                'success' => 'Cập nhật người dùng thành công!'
+            ]);
+        } catch (\Exception $e) {
+
+            if ($request->hasFile('avatar') && $path_avatar) {
+                FileHelper::delete($path_avatar);
+            }
+
+            return back()->with([
+                'error' => 'Lỗi cập nhật vào db'
+            ]);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $user = User::findOrFail($id);
         $user->delete();
-
-        return redirect('/admin/users')->with('success', 'Xóa người dùng thành công');
+        return back()->with('success', 'Đã xóa người dùng');
+    }
+    public function block($id)
+    {
+        $user = User::findOrFail($id);
+        $user->update([
+            'status' => 'banned'
+        ]);
+        return back()->with('success', 'Đã chặn người dùng');
+    }
+    public function unBlock($id)
+    {
+        $user = User::findOrFail($id);
+        $user->update([
+            'status' => 'active'
+        ]);
+        return back()->with('success', 'Đã khôi phục người dùng');
+    }
+    public function resetPw($id){
+        $user = User::findOrFail($id);
+        $password = Str::random(8);
+        $user->update([
+            'password' => $password
+        ]);
+        return back()->with([
+            'success' => 'Đã khôi phục mật khẩu',
+            'new_password' => $password
+        ]);
     }
 }
