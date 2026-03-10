@@ -40,8 +40,8 @@
             <span>Thương hiệu</span>
         </a>
 
-        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium transition-colors"
-            href="#">
+        <a class="{{ request()->routeIs('admin.orders.*') ? 'sidebar-item-active bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            href="{{ route('admin.orders.index') }}">
             <span class="material-symbols-outlined">shopping_cart</span>
             <span>Đơn hàng</span>
         </a>
