@@ -69,15 +69,27 @@
     </nav>
 
     <div class="p-4 bg-slate-50 dark:bg-slate-900 m-4 rounded-xl border border-slate-100 dark:border-slate-800">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-slate-300 overflow-hidden"
-                data-alt="Avatar của {{ auth()->check() ? auth()->user()->name : 'Quản trị viên' }}"
-                style="background-image: url('{{ auth()->check() && auth()->user()->avatar ? auth()->user()->avatar : 'https://lh3.googleusercontent.com/aida-public/AB6AXuCQ9FLwed6hUAodxd9ykvBX9jnJPa0SIZOAFTt7JD5S5S8LXWLFY62U-5aeNRvaZQetgkhn0Y2YgXmLc89xuKY4atiMN4hOXt6_aM2ursKgGi8pl6Gigoe6gbYZw7-1MfbjHkiROQCGnnfsRHNqbFp0QA_5PHl55Z81GnnMVM0tKXWUQDVpKrueckovvrx3oJwLl0Z1RvjLR5tvPWPMlZX24Up9_TbdPxlcAdiZW0lhBSt-Iyb0xrrtvxktfM33K4G9JbPO05fOiBwn' }}'); background-size: cover;">
-            </div>
-            <div class="overflow-hidden">
-                <p class="text-sm font-semibold truncate">{{ auth()->check() ? auth()->user()->name : 'Admin' }}</p>
-                <p class="text-xs text-slate-500 truncate">Quản trị viên</p>
-            </div>
+        <div class="flex items-center gap-3 w-full">
+            @auth
+                {{-- 1. Ảnh Avatar --}}
+                <div class="w-10 h-10 rounded-full bg-slate-300 overflow-hidden shrink-0"
+                    data-alt="Avatar của {{ Auth::user()->name }}"
+                    style="background-image: url('{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) }}'); background-size: cover; background-position: center;">
+                </div>
+
+                {{-- 2. Thông tin User --}}
+                <div class="overflow-hidden flex-1">
+                    <p class="text-sm font-semibold truncate text-slate-800">{{ Auth::user()->name }}</p>
+                    <p class="text-xs text-slate-500 truncate">{{ Auth::user()->role->name_role }}</p>
+                </div>
+
+                {{-- 3. Nút Đăng xuất --}}
+                <a href="{{ route('logout') }}"
+                    class="ml-auto flex items-center justify-center w-8 h-8 rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                    title="Đăng xuất">
+                    <span class="material-symbols-outlined" style="font-size: 20px;">logout</span>
+                </a>
+            @endauth
         </div>
     </div>
 </aside>

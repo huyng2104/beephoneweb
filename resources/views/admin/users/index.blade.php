@@ -6,38 +6,93 @@
     <main class="flex-1 flex flex-col overflow-hidden">
         <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3">
 
-            @if (session('success'))
-                <div class="toast-message transform transition-all duration-300 translate-x-0 flex items-center w-full max-w-sm p-4 bg-white dark:bg-slate-800 border-l-4 border-green-500 rounded-lg shadow-lg"
-                    role="alert">
-                    <div
-                        class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800/30 dark:text-green-300">
-                        <span class="material-symbols-outlined text-xl">check_circle</span>
-                    </div>
-                    <div class="ml-3 text-sm font-medium text-slate-700 dark:text-slate-300">
-                        {{ session('success') }}
-                    </div>
-                    <button type="button" onclick="this.parentElement.remove()"
-                        class="ml-auto -mx-1.5 -my-1.5 bg-white dark:bg-slate-800 text-slate-400 hover:text-slate-900 rounded-lg focus:ring-2 focus:ring-slate-300 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 inline-flex items-center justify-center h-8 w-8 transition-colors">
-                        <span class="material-symbols-outlined text-lg">close</span>
-                    </button>
-                </div>
-            @endif
+            @if (session('success') || session('error') || $errors->any())
 
-            @if (session('error'))
-                <div class="toast-message transform transition-all duration-300 translate-x-0 flex items-center w-full max-w-sm p-4 bg-white dark:bg-slate-800 border-l-4 border-red-500 rounded-lg shadow-lg"
-                    role="alert">
-                    <div
-                        class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800/30 dark:text-red-300">
-                        <span class="material-symbols-outlined text-xl">error</span>
+                <div id="custom-sweet-alert"
+                    class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+
+                    <div id="alert-box"
+                        class="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl transform transition-all duration-300 scale-75 opacity-0 flex flex-col items-center text-center">
+
+                        @if (session('success'))
+                            <div
+                                class="w-20 h-20 bg-green-100 dark:bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mb-5 animate-[bounce_1s_ease-in-out]">
+                                <span class="material-symbols-outlined text-5xl">check_circle</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-2">Thành công!</h3>
+                            <p class="text-slate-600 dark:text-slate-400 mb-6 font-medium">{{ session('success') }}</p>
+
+                            <button onclick="closeAlert()"
+                                class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-xl transition-all active:scale-95 shadow-lg shadow-green-500/30">
+                                Tuyệt vời
+                            </button>
+                        @endif
+
+                        @if (session('error') || $errors->any())
+                            <div
+                                class="w-20 h-20 bg-red-100 dark:bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-5 animate-[pulse_1s_ease-in-out]">
+                                <span class="material-symbols-outlined text-5xl">warning</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-2">Ôi hỏng!</h3>
+                            <p class="text-slate-600 dark:text-slate-400 mb-6 font-medium">
+                                @if (session('error'))
+                                    {{ session('error') }}
+                                @else
+                                    Thông tin nhập vào chưa chính xác. Vui lòng kiểm tra lại!
+                                @endif
+                            </p>
+
+                            <button onclick="closeAlert()"
+                                class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl transition-all active:scale-95 shadow-lg shadow-red-500/30">
+                                Đóng lại
+                            </button>
+                        @endif
+
                     </div>
-                    <div class="ml-3 text-sm font-medium text-slate-700 dark:text-slate-300">
-                        {{ session('error') }}
-                    </div>
-                    <button type="button" onclick="this.parentElement.remove()"
-                        class="ml-auto -mx-1.5 -my-1.5 bg-white dark:bg-slate-800 text-slate-400 hover:text-slate-900 rounded-lg focus:ring-2 focus:ring-slate-300 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 inline-flex items-center justify-center h-8 w-8 transition-colors">
-                        <span class="material-symbols-outlined text-lg">close</span>
-                    </button>
                 </div>
+
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        const overlay = document.getElementById('custom-sweet-alert');
+                        const alertBox = document.getElementById('alert-box');
+
+                        if (overlay && alertBox) {
+                            // 1. Hiệu ứng "Pop-up" mượt mà ngay khi trang vừa tải xong
+                            requestAnimationFrame(() => {
+                                overlay.classList.remove('opacity-0');
+                                overlay.classList.add('opacity-100');
+
+                                alertBox.classList.remove('scale-75', 'opacity-0');
+                                alertBox.classList.add('scale-100', 'opacity-100');
+                            });
+
+                            // 2. Tự động đóng sau 5 giây (5000ms)
+                            setTimeout(() => {
+                                closeAlert();
+                            }, 5000);
+                        }
+                    });
+
+                    // Hàm đóng thông báo (dùng cho nút bấm và setTimeout)
+                    function closeAlert() {
+                        const overlay = document.getElementById('custom-sweet-alert');
+                        const alertBox = document.getElementById('alert-box');
+
+                        if (overlay && alertBox) {
+                            // Đảo ngược hiệu ứng: Thu nhỏ và mờ dần
+                            overlay.classList.remove('opacity-100');
+                            overlay.classList.add('opacity-0');
+
+                            alertBox.classList.remove('scale-100', 'opacity-100');
+                            alertBox.classList.add('scale-75', 'opacity-0');
+
+                            // Đợi 300ms cho hiệu ứng CSS chạy xong rồi mới xóa hẳn khỏi mã HTML
+                            setTimeout(() => {
+                                overlay.remove();
+                            }, 300);
+                        }
+                    }
+                </script>
             @endif
 
         </div>
@@ -152,8 +207,9 @@
                                         <div class="flex items-center gap-3">
                                             <div class="size-10 rounded-full bg-slate-200 overflow-hidden flex-shrink-0">
                                                 <img class="w-full h-full object-cover"
-                                                    data-alt="Ảnh đại diện người dùng Nguyễn Văn A"
-                                                    src="{{ Storage::url($user->avatar) }}" />
+                                                    data-alt="Ảnh đại diện người dùng {{ $user->name }}"
+                                                    src="{{ $user->avatar ? Storage::url($user->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=cbd5e1&color=1e293b' }}"
+                                                    alt="Avatar" />
                                             </div>
                                             <div>
                                                 <p class="text-sm font-bold text-slate-900 dark:text-slate-100">

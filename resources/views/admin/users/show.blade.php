@@ -9,18 +9,29 @@
             <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
                 <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
                     <div class="relative group">
-                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-32 h-32 ring-4 ring-primary/30 ring-offset-2 ring-offset-white dark:ring-offset-slate-900 shadow-lg overflow-hidden flex items-center justify-center"
-                            data-alt="Ảnh chân dung người dùng {{ $user->name }}"
-                            style="background-image: url('{{ $user->avatar ? Storage::url($user->avatar) : asset('assets/images/default-avatar.png') }}'); border-radius: 50%;">
+                        {{-- Khối logic lấy 2 chữ cái đầu của Tên (Hỗ trợ tiếng Việt có dấu) --}}
+                        @php
+                            $words = explode(' ', trim($user->name));
+                            $initials = mb_substr($words[0], 0, 1, 'UTF-8'); // Chữ cái của họ/từ đầu tiên
+                            if (count($words) > 1) {
+                                $initials .= mb_substr(end($words), 0, 1, 'UTF-8'); // Chữ cái của tên/từ cuối cùng
+                            }
+                            $initials = mb_strtoupper($initials, 'UTF-8'); // Viết hoa toàn bộ (vd: vt -> VT)
+                        @endphp
+
+                        {{-- Đã thay cụm 'ring-4 ring-primary...' thành 'border-4 border-black' --}}
+                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-32 h-32  shadow-lg overflow-hidden flex items-center justify-center relative"
+                            data-alt="Ảnh chân dung người dùng {{ $user->name }}" {{-- Chỉ load ảnh nền khi user thực sự có avatar --}}
+                            @if ($user->avatar) style="background-image: url('{{ Storage::url($user->avatar) }}');" @endif>
+
+                            {{-- Nếu KHÔNG có avatar, hiển thị khối chữ cái --}}
                             @if (!$user->avatar)
                                 <div
-                                    class="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-700 rounded-full text-primary text-4xl font-extrabold shadow-inner">
-                                    {{ strtoupper(substr($user->name, 0, 1)) }}
+                                    class="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white text-4xl  shadow-inner">
+                                    {{ $initials }}
                                 </div>
                             @endif
                         </div>
-
-
                     </div>
                     <div class="flex flex-col justify-center text-center sm:text-left">
                         <div class="flex items-center justify-center sm:justify-start gap-3">
@@ -227,8 +238,7 @@
         </div>
     </main>
     @if (session('new_password'))
-        <div id="password-modal"
-            class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] p-4">
+        <div id="password-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] p-4">
 
             <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 text-center border border-gray-100">
 
