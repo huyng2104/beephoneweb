@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+
 class User extends Authenticatable  implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -67,7 +68,8 @@ class User extends Authenticatable  implements MustVerifyEmail
     {
         return $this->belongsToMany(Permission::class, 'user_permissions');
     }
-    public function activityLogs(){
+    public function activityLogs()
+    {
         return $this->hasMany(ActivityLog::class);
     }
     public function getUserStatusAttribute()
@@ -79,5 +81,19 @@ class User extends Authenticatable  implements MustVerifyEmail
             return 'Hoạt động';
         }
         return 'Bị khóa';
+    }
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            activity_log('user.create', 'Tạo người dùng', $user);
+        });
+
+        static::updated(function ($user) {
+            activity_log('user.update', 'Cập nhật người dùng', $user);
+        });
+
+        static::deleted(function ($user) {
+            activity_log('user.delete', 'Xóa người dùng', $user);
+        });
     }
 }

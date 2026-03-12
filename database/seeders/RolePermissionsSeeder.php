@@ -20,16 +20,11 @@ class RolePermissionsSeeder extends Seeder
                 'product.view',
                 'product.create',
                 'product.update',
-
                 'category.view',
-
                 'brand.view',
-
                 'order.view',
                 'order.update',
-
                 'customer.view',
-
                 'voucher.view'
             ])
             ->pluck('id');

@@ -198,9 +198,8 @@
                                 @enderror
                             </div>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="allStore" name="status"
-                                    {{ old('status', $voucher->status) == 1 ? 'checked' : '' }} value="1"
-                                    class="accent-black">
+                                <input type="checkbox" id="allStore" name="status" value="1"
+                                    {{ old('status', $voucher->status) == 1 ? 'checked' : '' }} class="accent-black">
                                 <span class="font-semibold">Trạng thái hoạt động</span>
                             </label>
                             <div class="md:col-span-2 space-y-4">
