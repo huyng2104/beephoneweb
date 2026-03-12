@@ -105,29 +105,21 @@
                     <h3 class="text-xl font-bold leading-tight mb-4 flex items-center gap-2 text-slate-800">
                         <span class="material-symbols-outlined text-primary">memory</span> Thông số kỹ thuật
                     </h3>
-                    <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
                         <table class="w-full text-left text-sm text-slate-600">
                             <tbody class="divide-y divide-slate-200">
-                                <tr class="bg-white">
-                                    <th class="py-3 px-4 font-semibold w-1/3 bg-slate-50">Màn hình</th>
-                                    <td class="py-3 px-4">6.7" Super Retina XDR OLED, 120Hz</td>
-                                </tr>
-                                <tr class="bg-white">
-                                    <th class="py-3 px-4 font-semibold bg-slate-50">Hệ điều hành</th>
-                                    <td class="py-3 px-4">iOS 17</td>
-                                </tr>
-                                <tr class="bg-white">
-                                    <th class="py-3 px-4 font-semibold bg-slate-50">Chip (CPU)</th>
-                                    <td class="py-3 px-4">Apple A17 Pro 6 nhân</td>
-                                </tr>
-                                <tr class="bg-white">
-                                    <th class="py-3 px-4 font-semibold bg-slate-50">RAM</th>
-                                    <td class="py-3 px-4">8 GB</td>
-                                </tr>
-                                <tr class="bg-white">
-                                    <th class="py-3 px-4 font-semibold bg-slate-50">Pin, Sạc</th>
-                                    <td class="py-3 px-4">4422 mAh, Sạc nhanh 20W</td>
-                                </tr>
+                                @if($product->specifications && is_array($product->specifications) && count($product->specifications) > 0)
+                                    @foreach($product->specifications as $key => $value)
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                            <th class="py-3 px-4 font-semibold w-1/3 bg-slate-50/50 border-r border-slate-100">{{ $key }}</th>
+                                            <td class="py-3 px-4 font-medium text-slate-800">{{ $value }}</td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td class="py-6 px-4 text-center text-slate-400 italic">Sản phẩm này chưa được cập nhật thông số kỹ thuật.</td>
+                                    </tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -244,7 +236,7 @@
                     </h3>
                     <div class="prose prose-slate max-w-none bg-slate-50 p-6 rounded-xl border border-slate-200 text-sm">
                         @if($product->description)
-                            {!! nl2br(e($product->description)) !!}
+                            {!! $product->description !!}
                         @else
                             <p class="text-slate-400 italic">Chưa có thông tin mô tả chi tiết cho sản phẩm này.</p>
                         @endif

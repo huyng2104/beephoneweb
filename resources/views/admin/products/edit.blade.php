@@ -43,14 +43,67 @@
                     <div class="lg:col-span-8 space-y-6">
                         
                         <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                            <label class="block text-sm font-bold text-slate-700 mb-3">Tên sản phẩm <span class="text-red-500">*</span></label>
-                            <input name="name" value="{{ old('name', $product->name) }}" required 
-                                   class="w-full text-xl font-bold border-slate-200 rounded-lg focus:border-primary focus:ring-primary py-3 px-4 bg-slate-50/50" type="text"/>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-bold text-slate-700 mb-3">Tên sản phẩm <span class="text-red-500">*</span></label>
+                                    <input name="name" value="{{ old('name', $product->name) }}" required class="w-full text-xl font-bold border-slate-200 rounded-lg focus:border-primary focus:ring-primary py-3 px-4 bg-slate-50/50" type="text"/>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-3">Mã SP (SKU gốc)</label>
+                                    <input name="sku" value="{{ old('sku', $product->sku) }}" class="w-full text-xl font-bold border-slate-200 rounded-lg focus:border-primary focus:ring-primary py-3 px-4 bg-slate-50/50" type="text" placeholder="VD: IP-15-PRM"/>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
                             <label class="block text-sm font-bold text-slate-700 mb-4">Mô tả sản phẩm</label>
-                            <textarea name="description" class="w-full border border-slate-200 rounded-lg min-h-[200px] p-4 text-slate-800 text-sm bg-slate-50 focus:ring-primary">{{ old('description', $product->description) }}</textarea>
+                            <div class="border border-slate-200 rounded-lg overflow-hidden">
+                                <textarea id="description-editor" name="description" class="w-full border-none focus:ring-0 min-h-[250px] p-4 text-slate-800 leading-relaxed text-sm bg-white" placeholder="Bắt đầu viết mô tả chi tiết tại đây...">{{ old('description', $product->description ?? '') }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-6 mb-6">
+                            <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">
+                                    <span class="material-symbols-outlined text-base align-middle mr-1">memory</span> Thông số kỹ thuật
+                                </h4>
+                                <button type="button" id="btn-add-spec" class="text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300 px-3 py-1.5 rounded transition-colors shadow-sm">
+                                    + Thêm dòng mới
+                                </button>
+                            </div>
+                            <div class="p-5">
+                                <div class="bg-blue-50 text-blue-700 p-3 rounded-lg text-xs mb-5 border border-blue-100 font-medium">
+                                    Mỗi thông số chỉ được chọn 1 lần. Đã sửa lỗi: Giờ bro có thể nhập liệu cho ô Giá trị bình thường.
+                                </div>
+                                
+                                <div id="specs-wrapper" class="space-y-3">
+                                  @php
+                                        $existingSpecs = old('specifications', isset($product) && $product->specifications ? $product->specifications : []);
+                                        // Đã bỏ RAM & ROM
+                                        $fixedKeys = ['Màn hình', 'Hệ điều hành', 'Camera trước', 'Camera sau', 'Chip xử lý (CPU)', 'Dung lượng pin', 'Sạc nhanh', 'Cổng kết nối', 'Kích thước & Trọng lượng'];
+                                    @endphp
+
+                                    @if(!empty($existingSpecs))
+                                        @foreach($existingSpecs as $key => $value)
+                                            <div class="flex items-center gap-3 spec-row">
+                                                <span class="material-symbols-outlined text-slate-300 cursor-move">drag_indicator</span>
+                                                <select name="spec_keys[]" class="w-1/3 text-sm border-slate-200 rounded focus:ring-primary py-2 px-3 bg-slate-50 spec-key-select" required>
+                                                    <option value="" disabled>-- Chọn thông số --</option>
+                                                    @foreach($fixedKeys as $fk)
+                                                        <option value="{{ $fk }}" {{ $key == $fk ? 'selected' : '' }}>{{ $fk }}</option>
+                                                    @endforeach
+                                                </select>
+                                                
+                                                <input type="text" name="spec_values[]" value="{{ $value }}" placeholder="Nhập giá trị (VD: 8GB)..." class="flex-1 text-sm border-slate-200 rounded focus:ring-primary py-2 px-3 bg-slate-50" required>
+                                                
+                                                <button type="button" class="btn-remove-spec text-red-500 hover:text-red-700 p-2 transition-colors" title="Xóa dòng này">
+                                                    <span class="material-symbols-outlined text-lg">delete</span>
+                                                </button>
+                                            </div>
+                                        @endforeach
+                                    @endif
+                                </div>
+                            </div>
                         </div>
 
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden" id="product-data-container">
@@ -97,11 +150,7 @@
 
                                     <div id="tab-inventory" class="tab-content hidden space-y-5">
                                         <div class="flex items-center gap-4">
-                                            <label class="w-1/3 text-sm font-bold text-slate-700 text-right">Mã sản phẩm (SKU)</label>
-                                            <input type="text" name="sku" value="{{ old('sku', $product->sku) }}" class="flex-1 text-sm border-slate-200 rounded-lg py-2.5 px-3 bg-slate-50"/>
-                                        </div>
-                                        <div class="flex items-center gap-4">
-                                            <label class="w-1/3 text-sm font-bold text-slate-700 text-right">Tồn kho</label>
+                                            <label class="w-1/3 text-sm font-bold text-slate-700 text-right">Tồn kho chung</label>
                                             <input type="number" name="stock" value="{{ old('stock', $product->stock) }}" class="w-32 text-sm border-slate-200 rounded-lg py-2.5 px-3 bg-slate-50"/>
                                         </div>
                                     </div>
@@ -116,8 +165,7 @@
                                             </select>
                                             <button type="button" id="btn-add-attribute" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded text-sm font-bold transition-colors">Thêm</button>
                                         </div>
-                                        <div id="attributes-wrapper" class="space-y-4">
-                                            </div>
+                                        <div id="attributes-wrapper" class="space-y-4"></div>
                                     </div>
 
                                     <div id="tab-variations" class="tab-content hidden">
@@ -131,37 +179,48 @@
                                             </select>
                                             <button type="button" id="btn-do-variation" class="bg-primary text-slate-900 px-5 py-2 rounded text-sm font-bold shadow-sm">Đi</button>
                                         </div>
+
+                                        <div id="bulk-update-variations" class="bg-emerald-50 border border-emerald-200 p-4 rounded-lg mb-6 shadow-sm" style="display: {{ $product->variants->count() > 0 ? 'block' : 'none' }};">
+                                            <h5 class="font-bold text-sm text-emerald-800 mb-3 flex items-center gap-2">
+                                                <span class="material-symbols-outlined text-lg">bolt</span> Cập nhật nhanh cho TẤT CẢ biến thể
+                                            </h5>
+                                            <div class="flex flex-col md:flex-row items-center gap-3">
+                                                <input type="number" id="bulk-price" class="flex-1 w-full text-sm border-emerald-200 rounded py-2 px-3 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Giá thường chung (₫)...">
+                                                <input type="number" id="bulk-sale-price" class="flex-1 w-full text-sm border-emerald-200 rounded py-2 px-3 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Giá KM chung (₫)...">
+                                                <input type="number" id="bulk-stock" class="w-full md:w-32 text-sm border-emerald-200 rounded py-2 px-3 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Tồn kho...">
+                                                <button type="button" id="btn-apply-bulk" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded text-sm font-bold transition-all shadow-sm whitespace-nowrap">
+                                                    Áp dụng tất cả
+                                                </button>
+                                            </div>
+                                        </div>
                                         <div id="variations-wrapper" class="space-y-3">
                                             @foreach($product->variants as $index => $variant)
                                                 <div class="border border-slate-200 rounded-lg overflow-hidden bg-white variation-item shadow-sm mt-3">
                                                     <div class="bg-slate-50 p-3 flex justify-between items-center border-b border-slate-200 cursor-pointer" onclick="$(this).next().slideToggle()">
                                                         <div class="flex items-center gap-3">
                                                             <span class="material-symbols-outlined text-slate-400">drag_indicator</span>
-                                                           <strong class="text-xs text-primary uppercase">
-    #{{ $index + 1 }} — 
-    @php
-        // Ép sắp xếp bằng trọng số cho PHP
-        $sortedVals = $variant->attributeValues->sortBy(function($val) {
-            $name = mb_strtolower($val->attribute->name ?? ''); // Lấy tên thuộc tính
-            if (str_contains($name, 'màu')) return 1;
-            if (str_contains($name, 'ram')) return 2;
-            if (str_contains($name, 'dung lượng') || str_contains($name, 'rom')) return 3;
-            return 99; // Các thuộc tính khác
-        });
-    @endphp
-    
-    @foreach($sortedVals as $val)
-        {{ $val->value }}{{ !$loop->last ? ' - ' : '' }}
-    @endforeach
-</strong>
-                                                            {{-- Lưu lại các ID thuộc tính để update --}}
+                                                            <strong class="text-xs text-primary uppercase">
+                                                                #{{ $index + 1 }} — 
+                                                                @php
+                                                                    $sortedVals = $variant->attributeValues->sortBy(function($val) {
+                                                                        $name = mb_strtolower($val->attribute->name ?? '');
+                                                                        if (str_contains($name, 'màu')) return 1;
+                                                                        if (str_contains($name, 'ram')) return 2;
+                                                                        if (str_contains($name, 'dung lượng') || str_contains($name, 'rom')) return 3;
+                                                                        return 99;
+                                                                    });
+                                                                @endphp
+                                                                
+                                                                @foreach($sortedVals as $val)
+                                                                    {{ $val->value }}{{ !$loop->last ? ' - ' : '' }}
+                                                                @endforeach
+                                                            </strong>
                                                             @foreach($variant->attributeValues as $val)
                                                                 <input type="hidden" name="variations[{{ $index }}][attributes][{{ $val->attribute_id }}]" value="{{ $val->id }}">
                                                             @endforeach
                                                         </div>
                                                         <div class="flex items-center gap-4">
                                                             <button type="button" class="text-red-500 text-[10px] font-bold uppercase" onclick="$(this).closest('.variation-item').remove()">Xóa</button>
-                                                            <span class="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
                                                         </div>
                                                     </div>
                                                     <div class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4 bg-white" style="display:none;">
@@ -207,7 +266,10 @@
                                         <option value="inactive" {{ old('status', $product->status) == 'inactive' ? 'selected' : '' }}>Lưu bản nháp</option>
                                     </select>
                                 </div>
-                                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                                 <h4 class="font-black text-sm uppercase text-slate-700">Danh mục <span class="text-red-500">*</span></h4>
                             </div>
@@ -217,7 +279,6 @@
                                         <label class="flex items-center gap-2.5 text-sm cursor-pointer group">
                                             <input name="category_ids[]" value="{{ $category->id }}" type="checkbox" 
                                                 class="rounded border-slate-300 text-primary focus:ring-primary"
-                                                {{-- Kiểm tra nếu ID danh mục nằm trong danh sách danh mục của sản phẩm thì tích chọn --}}
                                                 {{ in_array($category->id, $product->categories->pluck('id')->toArray()) ? 'checked' : '' }}>
                                             <span class="group-hover:text-primary transition-colors font-medium text-slate-600">{{ $category->name }}</span>
                                         </label>
@@ -228,15 +289,18 @@
                                 @enderror
                             </div>
                         </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Thương hiệu</label>
-                                    <select name="brand_id" class="w-full text-sm border-slate-200 rounded py-2 bg-slate-50">
-                                        <option value="">-- Không có --</option>
-                                        @foreach($brands as $brand)
-                                            <option value="{{ $brand->id }}" {{ old('brand_id', $product->brand_id) == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Thương hiệu</h4>
+                            </div>
+                            <div class="p-5">
+                                <select name="brand_id" class="w-full text-sm border-slate-200 rounded py-2 bg-slate-50">
+                                    <option value="">-- Không có --</option>
+                                    @foreach($brands as $brand)
+                                        <option value="{{ $brand->id }}" {{ old('brand_id', $product->brand_id) == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
@@ -263,44 +327,58 @@
 </div>
 
 <style>
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f8f9fa; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
     .active-tab { border-left: 3px solid #f4c025; background-color: rgba(244, 192, 37, 0.08); color: #000 !important; }
+    .tox-notifications-container { display: none !important; }
 </style>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // --- 1. Tabs Logic ---
+        // --- TABS LOGIC ---
         const tabBtns = document.querySelectorAll('.tab-btn');
         const tabContents = document.querySelectorAll('.tab-content');
 
         function switchTab(targetId) {
             tabContents.forEach(content => content.classList.add('hidden'));
             tabBtns.forEach(btn => btn.classList.remove('active-tab', 'text-black'));
-            
             document.getElementById(targetId).classList.remove('hidden');
             document.querySelector(`[data-target="${targetId}"]`).classList.add('active-tab', 'text-black');
         }
-
         tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.getAttribute('data-target'))));
 
-        // --- 2. Product Type Toggle ---
+        // --- PRODUCT TYPE TOGGLE ---
         const productType = document.getElementById('product_type');
         const tabVarBtn = document.getElementById('btn-tab-variations');
+        const tabGeneral = document.querySelector('[data-target="tab-general"]');
+        const tabInventory = document.querySelector('[data-target="tab-inventory"]');
 
-        productType.addEventListener('change', function() {
-            if(this.value === 'variable') {
+        function toggleProductTabs() {
+            if(productType.value === 'variable') {
                 tabVarBtn.classList.remove('hidden');
-                $('.var-checkbox-wrapper').show();
+                $('.var-checkbox-wrapper').css('display', 'flex');
+                tabGeneral.classList.add('hidden');
+                tabInventory.classList.add('hidden');
+                switchTab('tab-attributes'); 
             } else {
                 tabVarBtn.classList.add('hidden');
                 $('.var-checkbox-wrapper').hide();
+                tabGeneral.classList.remove('hidden');
+                tabInventory.classList.remove('hidden');
                 switchTab('tab-general');
             }
-        });
+        }
+        productType.addEventListener('change', toggleProductTabs);
+        toggleProductTabs();
 
-        // --- 3. Preview Image ---
+        // --- PREVIEW IMAGE ---
         $('#input-thumbnail').change(function() {
             if (this.files && this.files[0]) {
                 let reader = new FileReader();
@@ -308,17 +386,95 @@
                 reader.readAsDataURL(this.files[0]);
             }
         });
+        
+        // --- TINYMCE ---
+        tinymce.init({
+            selector: '#description-editor',
+            height: 500,
+            plugins: [ 'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'help', 'wordcount' ],
+            toolbar: 'undo redo | blocks | bold italic textcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | table | removeformat | code',
+            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; color: #334155; }',
+            paste_data_images: true, branding: false, promotion: false
+        });
     });
 
     $(document).ready(function() {
         const baseUrl = '/admin';
 
-        // --- 4. Logic Thêm Thuộc tính ---
+        // ==========================================
+        // LOGIC CHỐNG TRÙNG LẶP THÔNG SỐ (SPECS)
+        // ==========================================
+        const fixedSpecKeys = ['Màn hình', 'Hệ điều hành', 'Camera trước', 'Camera sau', 'Chip xử lý (CPU)', 'Dung lượng pin', 'Sạc nhanh'];
+
+        function getSpecOptionsHtml(selectedValue = '') {
+            let html = '';
+            fixedSpecKeys.forEach(key => {
+                html += `<option value="${key}" ${key === selectedValue ? 'selected' : ''}>${key}</option>`;
+            });
+            return html;
+        }
+
+        function updateAvailableSpecs() {
+            let selectedSpecs = [];
+            $('.spec-key-select').each(function() {
+                if ($(this).val()) selectedSpecs.push($(this).val());
+            });
+
+            $('.spec-key-select').each(function() {
+                let currentVal = $(this).val();
+                $(this).find('option').each(function() {
+                    if ($(this).val() !== currentVal && selectedSpecs.includes($(this).val())) {
+                        $(this).attr('disabled', true).hide();
+                    } else {
+                        $(this).removeAttr('disabled').show();
+                    }
+                });
+            });
+        }
+
+        $('#btn-add-spec').click(function() {
+            let currentRows = $('.spec-row').length;
+            if (currentRows >= fixedSpecKeys.length) {
+                alert('Đã thêm đủ tất cả các thông số quan trọng rồi!');
+                return;
+            }
+
+            let newRow = `
+                <div class="flex items-center gap-3 spec-row mt-3">
+                    <span class="material-symbols-outlined text-slate-300 cursor-move">drag_indicator</span>
+                    <select name="spec_keys[]" class="w-1/3 text-sm border-slate-200 rounded focus:ring-primary focus:border-primary py-2 px-3 bg-slate-50 cursor-pointer spec-key-select" required>
+                        <option value="" disabled selected>-- Chọn thông số --</option>
+                        ${getSpecOptionsHtml()}
+                    </select>
+                    <input type="text" name="spec_values[]" placeholder="Nhập giá trị (VD: 8GB, 5000mAh...)" class="flex-1 text-sm border-slate-200 rounded focus:ring-primary focus:border-primary py-2 px-3 bg-slate-50" required>
+                    <button type="button" class="btn-remove-spec text-red-500 hover:text-red-700 p-2 transition-colors" title="Xóa dòng này">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                </div>
+            `;
+            $('#specs-wrapper').append(newRow);
+            updateAvailableSpecs(); // Cập nhật lại dropdown ngay lập tức
+        });
+
+        $(document).on('click', '.btn-remove-spec', function() {
+            $(this).closest('.spec-row').remove();
+            updateAvailableSpecs(); // Trả lại Option cho dropdown khác
+        });
+
+        $(document).on('change', '.spec-key-select', function() {
+            updateAvailableSpecs(); // Khóa Option ở các dòng khác
+        });
+
+        // Chạy lần đầu để khóa các option đã được chọn sẵn từ DB
+        updateAvailableSpecs();
+
+        // ==========================================
+        // LOGIC ATTRIBUTES & VARIATIONS
+        // ==========================================
         $('#btn-add-attribute').click(function() {
             let select = $('#attribute-selector');
             let id = select.val();
             let name = select.find('option:selected').data('name');
-
             if (!id || $(`#attr-block-${id}`).length > 0) return;
 
             $.get(`${baseUrl}/attributes/${id}/get-values`, function(res) {
@@ -352,30 +508,22 @@
             $('.select2-edit').select2({ width: '100%', placeholder: 'Chọn giá trị...' });
         }
 
-        // --- 5. Logic Tạo Biến thể (Tổ hợp) Thông Minh ---
         $('#btn-do-variation').click(function() {
             let action = $('#variation-action').val();
-            
             let attrGroups = [];
             $('.var-checkbox-wrapper input:checked').each(function() {
                 let block = $(this).closest('[id^="attr-block-"]');
                 let attrId = block.find('input[type="hidden"]').val();
-                let attrName = block.find('strong').text().trim().toLowerCase(); // Lấy tên thuộc tính (Màu sắc, Ram...)
+                let attrName = block.find('strong').text().trim().toLowerCase(); 
                 let vals = block.find('select').select2('data');       
                 
                 if (vals.length) {
-                    attrGroups.push(vals.map(v => ({ 
-                        attrId: attrId, 
-                        valId: v.id, 
-                        valName: v.text,
-                        attrName: attrName // Lưu lại tên để lát nữa xét trọng số
-                    })));
+                    attrGroups.push(vals.map(v => ({ attrId: attrId, valId: v.id, valName: v.text, attrName: attrName })));
                 }
             });
 
             if (!attrGroups.length) return alert('Bro phải tick "Dùng cho biến thể" ở tab Thuộc tính và chọn ít nhất 1 giá trị đã nhé!');
 
-            // HÀM ĐỊNH NGHĨA TRỌNG SỐ ƯU TIÊN JS
             function getPriority(name) {
                 if (name.includes('màu')) return 1;
                 if (name.includes('ram')) return 2;
@@ -383,28 +531,24 @@
                 return 99;
             }
 
-            // Ép sắp xếp mảng thuộc tính trước khi trộn tổ hợp
             attrGroups.sort((a, b) => getPriority(a[0].attrName) - getPriority(b[0].attrName));
 
             let combos = cartesian(attrGroups);
             let wrapper = $('#variations-wrapper');
-            // ... (Phần code bên dưới giữ nguyên)
 
-            // Xử lý nếu user muốn xóa hết
             if (action === 'generate') {
                 if(!confirm('CẢNH BÁO: Hành động này sẽ xóa toàn bộ biến thể đang có bên dưới. Bro chắc chứ?')) return;
                 wrapper.empty();
             }
 
-            // Thu thập "Chữ ký" của các biến thể ĐÃ TỒN TẠI
+            $('#bulk-update-variations').fadeIn();
+
             let existingSignatures = [];
             $('.variation-item').each(function() {
                 let sigParts = [];
                 $(this).find('input[type="hidden"][name*="[attributes]"]').each(function() {
                     let match = $(this).attr('name').match(/\[attributes\]\[(\d+)\]/);
-                    if (match) {
-                        sigParts.push(match[1] + '-' + $(this).val()); 
-                    }
+                    if (match) sigParts.push(match[1] + '-' + $(this).val()); 
                 });
                 sigParts.sort();
                 existingSignatures.push(sigParts.join('|'));
@@ -417,15 +561,10 @@
                 comboSigParts.sort();
                 let signature = comboSigParts.join('|');
 
-                // BỎ QUA NẾU TỔ HỢP ĐÃ TỒN TẠI
-                if (action === 'add_missing' && existingSignatures.includes(signature)) {
-                    return; 
-                }
+                if (action === 'add_missing' && existingSignatures.includes(signature)) return; 
 
                 let title = combo.map(c => c.valName).join(' - ');
-                // ID ngẫu nhiên để mảng PHP không bị trùng Index
                 let uniqueIdx = 'new_' + Date.now() + Math.floor(Math.random() * 1000); 
-                
                 let hiddens = combo.map(c => `<input type="hidden" name="variations[${uniqueIdx}][attributes][${c.attrId}]" value="${c.valId}">`).join('');
                 
                 let html = `
@@ -433,14 +572,11 @@
                         <div class="bg-slate-50 p-3 flex justify-between items-center border-b border-slate-200 cursor-pointer" onclick="$(this).next().slideToggle()">
                             <div class="flex items-center gap-3">
                                 <span class="material-symbols-outlined text-slate-400">drag_indicator</span>
-                                <strong class="text-xs text-green-600 uppercase">
-                                    #MỚI — ${title}
-                                </strong>
+                                <strong class="text-xs text-green-600 uppercase">#MỚI — ${title}</strong>
                                 ${hiddens}
                             </div>
                             <div class="flex items-center gap-4">
                                 <button type="button" class="text-red-500 text-[10px] font-bold uppercase" onclick="$(this).closest('.variation-item').remove()">Xóa</button>
-                                <span class="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
                             </div>
                         </div>
                         <div class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4 bg-white" style="display:none;">
@@ -471,10 +607,32 @@
                 alert('Tất cả các tổ hợp này đều đã tồn tại, không có biến thể nào mới được tạo thêm!');
             } else if (addedCount > 0) {
                 alert(`Đã thêm thành công ${addedCount} biến thể mới. Bấm mở rộng để nhập giá và tồn kho nhé!`);
-            }
+            } 
         });
 
         function cartesian(a) { return a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat()))); }
+
+        $('#btn-apply-bulk').click(function() {
+            let variationsCount = $('#variations-wrapper .variation-item').length;
+            if (variationsCount === 0) return alert('Bro chưa có biến thể nào để cập nhật cả!');
+
+            let bulkPrice = $('#bulk-price').val();
+            let bulkSalePrice = $('#bulk-sale-price').val();
+            let bulkStock = $('#bulk-stock').val();
+
+            if (!bulkPrice && !bulkSalePrice && !bulkStock) return alert('Bro hãy nhập ít nhất 1 giá trị để áp dụng nhé!');
+
+            if (confirm(`Bro có chắc chắn muốn áp dụng các mức giá/kho này cho toàn bộ ${variationsCount} biến thể không?`)) {
+                $('#variations-wrapper .variation-item').each(function() {
+                    if (bulkPrice !== '') $(this).find('input[name$="[price]"]').val(bulkPrice);
+                    if (bulkSalePrice !== '') $(this).find('input[name$="[sale_price]"]').val(bulkSalePrice);
+                    if (bulkStock !== '') $(this).find('input[name$="[stock]"]').val(bulkStock);
+                });
+                
+                $('#bulk-price, #bulk-sale-price, #bulk-stock').val('');
+                alert('Cập nhật hàng loạt thành công! 🎉');
+            }
+        });
     });
 </script>
 @endsection

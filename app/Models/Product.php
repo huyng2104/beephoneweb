@@ -14,7 +14,11 @@ class Product extends Model
 
     protected $fillable = [
     'name', 'slug', 'description', 'type', 'price', 'sale_price', 
-    'sku', 'stock', 'status', 'is_featured', 'brand_id', 'thumbnail'
+    'sku', 'stock', 'status', 'is_featured', 'brand_id', 'thumbnail','specifications'
+];
+protected $casts = [
+    // ... các casts cũ nếu có
+    'specifications' => 'array', // Ép kiểu tự động cực kỳ quan trọng
 ];
 
     // Sản phẩm thuộc 1 Thương hiệu

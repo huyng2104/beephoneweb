@@ -1,31 +1,35 @@
 @extends('admin.layouts.app')
 
 @section('content')
-<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 font-display">
+<div class="w-full p-4 sm:p-8 space-y-6 font-display">
     
-   <div class="mb-8 flex justify-between items-end">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Quản lý Thuộc tính Sản phẩm</h1>
-            <p class="text-gray-500 dark:text-gray-400">Thiết lập các thuộc tính cho sản phẩm bổ sung, chẳng hạn như kích thước hoặc màu sắc.</p>
+    <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
+        <div class="flex flex-wrap justify-between items-end gap-4">
+            <div class="flex flex-col gap-1">
+                <p class="text-slate-900 dark:text-white text-3xl leading-tight font-bold">Quản lý Thuộc tính Sản phẩm</p>
+                <p class="text-slate-500 text-sm">Thiết lập các thuộc tính cho sản phẩm bổ sung, chẳng hạn như kích thước hoặc màu sắc.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('admin.attributes.trash') }}" class="flex items-center justify-center rounded-lg h-11 px-5 bg-white border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-bold hover:text-red-600 hover:border-red-200 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all shadow-sm gap-2">
+                    <span class="material-symbols-outlined text-[20px]">delete</span> Thùng rác
+                    @php $trashCount = \App\Models\Attribute::onlyTrashed()->count(); @endphp
+                    @if($trashCount > 0)
+                        <span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-[10px]">{{ $trashCount }}</span>
+                    @endif
+                </a>
+            </div>
         </div>
-        <a href="{{ route('admin.attributes.trash') }}" class="flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-lg text-sm font-bold text-gray-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm">
-            <span class="material-symbols-outlined text-[18px]">delete</span> Thùng rác
-            @php $trashCount = \App\Models\Attribute::onlyTrashed()->count(); @endphp
-            @if($trashCount > 0)
-                <span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-[10px]">{{ $trashCount }}</span>
-            @endif
-        </a>
     </div>
 
     @if(session('success'))
-        <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm font-semibold flex items-center gap-2">
-            <span class="material-symbols-outlined text-green-600 text-lg">check_circle</span>
+        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-semibold flex items-center gap-2">
+            <span class="material-symbols-outlined text-emerald-600 text-lg">check_circle</span>
             {{ session('success') }}
         </div>
     @endif
 
     @if($errors->any())
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-semibold">
+        <div class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-semibold">
             <ul class="list-disc pl-5 space-y-1">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
