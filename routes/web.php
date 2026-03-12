@@ -62,7 +62,7 @@ Route::post('/email/verification-notification', function (Request $request) {
 // ==========================================
 // HỆ THỐNG ADMIN
 // ==========================================
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:admin,staff', 'can:order.view'])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
 
         // Bảng điều khiển

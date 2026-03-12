@@ -124,20 +124,6 @@ class VoucherController extends Controller
      */
     public function update(StoreVoucherRequest $request, string $id)
     {
-        $data = [
-            'name' => $request->name,
-            'code' => str_replace(' ', '', $request->code),
-            'discount_type' => $request->discount_type,
-            'discount_value' => $request->discount_value,
-            'max_discount' => $request->max_discount,
-            'min_order_value' => $request->min_order_value,
-            'usage_limit' => $request->usage_limit,
-            'usage_limit_per_user' => $request->usage_limit_per_user,
-            'description' => $request->description,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'status' => $request->status ?? 0,
-        ];
         try {
 
             DB::transaction(function () use ($request, $id) {
