@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -31,6 +32,12 @@ class BrandController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validateBrand($request);
+
+        if ($request->hasFile('logo_file')) {
+            $path = $request->file('logo_file')->store('brands', 'public');
+            $data['logo_url'] = Storage::url($path);
+        }
+
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['slug'] = $this->generateUniqueSlug($data['slug'] ?: $data['name']);
 
@@ -51,6 +58,16 @@ class BrandController extends Controller
     public function update(Request $request, Brand $brand): RedirectResponse
     {
         $data = $this->validateBrand($request, $brand->id);
+
+        if ($request->hasFile('logo_file')) {
+            if ($brand->logo_url && Str::startsWith($brand->logo_url, '/storage/')) {
+                Storage::disk('public')->delete(Str::after($brand->logo_url, '/storage/'));
+            }
+
+            $path = $request->file('logo_file')->store('brands', 'public');
+            $data['logo_url'] = Storage::url($path);
+        }
+
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['slug'] = $this->generateUniqueSlug($data['slug'] ?: $data['name'], $brand->id);
 
@@ -75,7 +92,7 @@ class BrandController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'slug' => ['nullable', 'string', 'max:180'],
-            'logo_url' => ['nullable', 'url', 'max:255'],
+            'logo_file' => ['nullable', 'image', 'max:2048'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
         ]);
