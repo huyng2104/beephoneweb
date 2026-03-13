@@ -14,6 +14,8 @@ use App\Http\Controllers\AdminControllers\UserController;
 use App\Http\Controllers\AdminControllers\OrderController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
+use App\Http\Controllers\AdminControllers\PostController;
+use App\Http\Controllers\AdminControllers\PostCategoryController;
 use Illuminate\Support\Facades\Auth;
 /*
 |--------------------------------------------------------------------------
@@ -135,5 +137,11 @@ Route::middleware(['auth', 'verified', 'role:admin,staff', 'can:order.view'])->g
             ->name('orders.return.confirm');
         Route::get('orders/{order}/print-pdf', [OrderController::class, 'printPdf'])
             ->name('orders.print.pdf');
+
+        // 8. Quản lý bài viết
+        Route::resource('posts', PostController::class);
+        Route::resource('post-categories', PostCategoryController::class);
+
+        Route::post('posts/upload', [PostController::class, 'upload'])->name('posts.upload');
     });
 });
