@@ -96,4 +96,9 @@ class User extends Authenticatable  implements MustVerifyEmail
             activity_log('user.delete', 'Xóa người dùng', $user);
         });
     }
+    // Một User có 1 Ví tiền
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
 }

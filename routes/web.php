@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\AdminControllers\WalletController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -142,5 +143,11 @@ Route::middleware(['auth', 'verified', 'role:admin,staff', 'can:order.view'])->g
         Route::resource('post-categories', PostCategoryController::class);
 
         Route::post('posts/upload', [PostController::class, 'upload'])->name('posts.upload');
+
+       
+    // Quản lý Ví tiền
+    Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');
+    Route::post('/wallets/update-balance', [WalletController::class, 'updateBalance'])->name('wallets.update');
+    Route::get('/wallets/{id}/history', [WalletController::class, 'history'])->name('wallets.history');
     });
 });
