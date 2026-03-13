@@ -133,6 +133,13 @@
             <span>Bài viết</span>
         </a>
 
+  <a class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.wallets.*') ? 'bg-bee text-white shadow-lg shadow-bee/30' : 'text-slate-600 dark:text-slate-400 hover:bg-bee/10 hover:text-bee' }}"
+   href="{{ route('admin.wallets.index') }}">
+    <span class="material-symbols-outlined transition-transform group-hover:scale-110">
+        account_balance_wallet
+    </span>
+    <span class="font-medium">Quản lý ví</span>
+</a>
 
         <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
             <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium transition-colors"
