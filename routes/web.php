@@ -11,7 +11,7 @@ use App\Http\Controllers\AdminControllers\AttributeValueController;
 use App\Http\Controllers\AuthControllers\AuthController;
 use App\Http\Controllers\AdminControllers\VoucherController;
 use App\Http\Controllers\AdminControllers\UserController;
-use App\Http\Controllers\OrderController;
+use App\Http\Controllers\AdminControllers\OrderController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

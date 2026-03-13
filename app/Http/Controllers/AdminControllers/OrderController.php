@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\AdminControllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
@@ -48,6 +48,8 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
+        $order->load('items');
+
         $statusLabels = Order::statusLabels();
         $returnStatusLabels = Order::returnStatusLabels();
 

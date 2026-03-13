@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Database\Seeder;
 
 class OrderSeeder extends Seeder
@@ -17,7 +18,7 @@ class OrderSeeder extends Seeder
 
         for ($i = 1; $i <= 10; $i++) {
             $phone = '0' . rand(900000000, 999999999);
-            Order::create([
+            $order = Order::create([
                 'order_code' => 'ORD' . str_pad($i, 6, '0', STR_PAD_LEFT),
                 'user_id' => rand(1, 5),
                 'customer_name' => 'Khách hàng ' . $i,
@@ -36,6 +37,24 @@ class OrderSeeder extends Seeder
                 'note' => 'Ghi chú đơn hàng ' . $i,
                 'ordered_at' => now()->subDays(rand(1, 30)),
             ]);
+
+            // Create 1-3 order items for each order
+            $itemCount = rand(1, 3);
+            for ($j = 1; $j <= $itemCount; $j++) {
+                $quantity = rand(1, 5);
+                $unitPrice = rand(100000, 1000000);
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => null,
+                    'product_name' => 'Sản phẩm ' . $j,
+                    'product_sku' => 'SKU-' . $i . '-' . $j,
+                    'thumbnail' => null,
+                    'unit_price' => $unitPrice,
+                    'quantity' => $quantity,
+                    'line_total' => $unitPrice * $quantity,
+                ]);
+            }
         }
     }
 }

@@ -103,6 +103,56 @@
                 @endif
             </div>
             @endif
+
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6 space-y-4">
+                <div class="flex items-center justify-between gap-3">
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">Sản phẩm đã mua</h2>
+                    <span class="text-xs text-slate-500">{{ $order->items->sum('quantity') }} sản phẩm</span>
+                </div>
+
+                @if ($order->items->isNotEmpty())
+                <div class="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-800">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold">Sản phẩm</th>
+                                <th class="px-4 py-3 text-left font-semibold">SKU</th>
+                                <th class="px-4 py-3 text-right font-semibold">Đơn giá</th>
+                                <th class="px-4 py-3 text-right font-semibold">SL</th>
+                                <th class="px-4 py-3 text-right font-semibold">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            @foreach ($order->items as $item)
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-3 min-w-[220px]">
+                                        <div class="size-10 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center">
+                                            @if ($item->thumbnail)
+                                            <img src="{{ $item->thumbnail }}" alt="{{ $item->product_name }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                                            <span class="material-symbols-outlined text-slate-400 text-[18px] hidden">inventory_2</span>
+                                            @else
+                                            <span class="material-symbols-outlined text-slate-400 text-[18px]">inventory_2</span>
+                                            @endif
+                                        </div>
+                                        <span class="font-semibold text-slate-900 dark:text-white">{{ $item->product_name }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ $item->product_sku ?: '-' }}</td>
+                                <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ number_format($item->unit_price) }} ₫</td>
+                                <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $item->quantity }}</td>
+                                <td class="px-4 py-3 text-right font-semibold text-slate-900 dark:text-white">{{ number_format($item->line_total) }} ₫</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div class="p-4 rounded-lg border border-dashed border-slate-200 dark:border-slate-700 text-sm text-slate-500">
+                    Đơn hàng này chưa có dữ liệu chi tiết sản phẩm.
+                </div>
+                @endif
+            </div>
         </div>
 
         <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6 space-y-5 h-fit lg:sticky lg:top-20">
