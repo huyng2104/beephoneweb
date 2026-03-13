@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminControllers\CategoryController;
 use App\Http\Controllers\AdminControllers\CategoryFilterController;
 use App\Http\Controllers\AdminControllers\BrandController;
-use App\Http\Controllers\AdminControllers\OrderController;
 use App\Http\Controllers\AdminControllers\ProductController;
 use App\Http\Controllers\AdminControllers\AttributeController;
 use App\Http\Controllers\AdminControllers\AttributeValueController;
