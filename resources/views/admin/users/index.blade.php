@@ -201,98 +201,105 @@
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                             <!-- Row 1 -->
                             @foreach ($users as $index => $user)
-                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                                    <td class="px-6 py-4 text-sm font-medium text-slate-400">{{ $index + 1 }}</td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="size-10 rounded-full bg-slate-200 overflow-hidden flex-shrink-0">
-                                                <img class="w-full h-full object-cover"
-                                                    data-alt="Ảnh đại diện người dùng {{ $user->name }}"
-                                                    src="{{ $user->avatar ? Storage::url($user->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=cbd5e1&color=1e293b' }}"
-                                                    alt="Avatar" />
+                                @if (Auth::user()->id != $user->id)
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                        <td class="px-6 py-4 text-sm font-medium text-slate-400">{{ $index + 1 }}</td>
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="size-10 rounded-full bg-slate-200 overflow-hidden flex-shrink-0">
+                                                    <img class="w-full h-full object-cover"
+                                                        data-alt="Ảnh đại diện người dùng {{ $user->name }}"
+                                                        src="{{ $user->avatar ? Storage::url($user->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=cbd5e1&color=1e293b' }}"
+                                                        alt="Avatar" />
+                                                </div>
+                                                <div>
+                                                    <p class="text-sm font-bold text-slate-900 dark:text-slate-100">
+                                                        {{ $user->name }}</p>
+                                                    <p class="text-xs text-slate-500">{{ $user->email }}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p class="text-sm font-bold text-slate-900 dark:text-slate-100">
-                                                    {{ $user->name }}</p>
-                                                <p class="text-xs text-slate-500">{{ $user->email }}</p>
+                                        </td>
+                                        @php
+                                            $role_color = match ($user->role->name) {
+                                                'staff' => 'blue',
+                                                'admin' => 'purple',
+                                                default => 'slate',
+                                            };
+                                        @endphp
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-2.5 py-1 rounded-full text-xs font-bold bg-{{ $role_color }}-100 text-{{ $role_color }}-700 dark:bg-{{ $role_color }}-900/30 dark:text-{{ $role_color }}-400">{{ $user->role->name }}</span>
+                                        </td>
+                                        @php
+                                            $status_color = match ($user->user_status) {
+                                                'Chưa kích hoạt' => 'yellow',
+                                                'Bị khóa' => 'red',
+                                                default => 'green',
+                                            };
+                                        @endphp
+                                        <td class="px-6 py-4">
+                                            <div
+                                                class="flex items-center gap-1.5 text-{{ $status_color }}-600 dark:text-{{ $status_color }}-500">
+                                                <span class="size-1.5 rounded-full bg-{{ $status_color }}-500"></span>
+                                                <span class="text-xs font-bold">{{ $user->user_status }}</span>
                                             </div>
-                                        </div>
-                                    </td>
-                                    @php
-                                        $role_color = match ($user->role->name) {
-                                            'staff' => 'blue',
-                                            'admin' => 'purple',
-                                            default => 'slate',
-                                        };
-                                    @endphp
-                                    <td class="px-6 py-4">
-                                        <span
-                                            class="px-2.5 py-1 rounded-full text-xs font-bold bg-{{ $role_color }}-100 text-{{ $role_color }}-700 dark:bg-{{ $role_color }}-900/30 dark:text-{{ $role_color }}-400">{{ $user->role->name }}</span>
-                                    </td>
-                                    @php
-                                        $status_color = match ($user->user_status) {
-                                            'Chưa kích hoạt' => 'yellow',
-                                            'Bị khóa' => 'red',
-                                            default => 'green',
-                                        };
-                                    @endphp
-                                    <td class="px-6 py-4">
-                                        <div
-                                            class="flex items-center gap-1.5 text-{{ $status_color }}-600 dark:text-{{ $status_color }}-500">
-                                            <span class="size-1.5 rounded-full bg-{{ $status_color }}-500"></span>
-                                            <span class="text-xs font-bold">{{ $user->user_status }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-slate-500">{{ $user->created_at->format('d/m/Y') }}
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <div class="flex justify-end gap-2">
-                                            <a href="{{ route('admin.users.show', $user->id) }}">
-                                                <button class="p-2 text-slate-400 hover:text-blue-500 transition-colors"
-                                                    title="Xem chi tiết">
-                                                    <span class="material-symbols-outlined text-lg">visibility</span>
-                                                </button>
-                                            </a>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-slate-500">
+                                            {{ $user->created_at->format('d/m/Y') }}
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <div class="flex justify-end gap-2">
+                                                <a href="{{ route('admin.users.show', $user->id) }}">
+                                                    <button class="p-2 text-slate-400 hover:text-blue-500 transition-colors"
+                                                        title="Xem chi tiết">
+                                                        <span class="material-symbols-outlined text-lg">visibility</span>
+                                                    </button>
+                                                </a>
 
-                                            <a href="{{ route('admin.users.edit', $user->id) }}">
-                                                <button class="p-2 text-slate-400 hover:text-primary transition-colors"
-                                                    title="Chỉnh sửa">
-                                                    <span class="material-symbols-outlined text-lg">edit</span>
-                                                </button>
-                                            </a>
+                                                <a href="{{ route('admin.users.edit', $user->id) }}">
+                                                    <button class="p-2 text-slate-400 hover:text-primary transition-colors"
+                                                        title="Chỉnh sửa">
+                                                        <span class="material-symbols-outlined text-lg">edit</span>
+                                                    </button>
+                                                </a>
 
-                                            @if ($user->status == 'banned')
-                                                <form action="{{ route('admin.user.unblock', $user->id) }}" method="POST">
+                                                @if ($user->status == 'banned')
+                                                    <form action="{{ route('admin.user.unblock', $user->id) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        <button onclick="return(confirm('Khôi phục người dùng'))"
+                                                            class="p-2 text-slate-400 hover:text-green-500 transition-colors"
+                                                            title="Khôi phục tài khoản">
+                                                            <span class="material-symbols-outlined text-lg">restore</span>
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <form action="{{ route('admin.user.block', $user->id) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        <button onclick="return(confirm('Chặn người dùng'))"
+                                                            class="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                                                            title="Khóa tài khoản">
+                                                            <span class="material-symbols-outlined text-lg">block</span>
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                <form action="{{ route('admin.users.destroy', $user->id) }}"
+                                                    method="post">
                                                     @csrf
-                                                    <button onclick="return(confirm('Khôi phục người dùng'))"
-                                                        class="p-2 text-slate-400 hover:text-green-500 transition-colors"
-                                                        title="Khôi phục tài khoản">
-                                                        <span class="material-symbols-outlined text-lg">restore</span>
+                                                    @method('delete')
+                                                    <button onclick="return(confirm('Xóa người dùng'))"
+                                                        class="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                                                        title="Xóa tài khoản">
+                                                        <span class="material-symbols-outlined text-lg">delete</span>
                                                     </button>
                                                 </form>
-                                            @else
-                                                <form action="{{ route('admin.user.block', $user->id) }}" method="POST">
-                                                    @csrf
-                                                    <button onclick="return(confirm('Chặn người dùng'))"
-                                                        class="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                                                        title="Khóa tài khoản">
-                                                        <span class="material-symbols-outlined text-lg">block</span>
-                                                    </button>
-                                                </form>
-                                            @endif
-
-                                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="post">
-                                                @csrf
-                                                @method('delete')
-                                                <button onclick="return(confirm('Xóa người dùng'))"
-                                                    class="p-2 text-slate-400 hover:text-red-600 transition-colors"
-                                                    title="Xóa tài khoản">
-                                                    <span class="material-symbols-outlined text-lg">delete</span>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endif
                             @endforeach
 
                         </tbody>

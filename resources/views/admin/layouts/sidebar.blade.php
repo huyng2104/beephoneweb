@@ -153,10 +153,12 @@
         <div class="flex items-center gap-3 w-full">
             @auth
                 {{-- 1. Ảnh Avatar --}}
-                <div class="w-10 h-10 rounded-full bg-slate-300 overflow-hidden shrink-0"
-                    data-alt="Avatar của {{ Auth::user()->name }}"
-                    style="background-image: url('{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) }}'); background-size: cover; background-position: center;">
-                </div>
+                <a href="{{ route('admin.users.show', Auth::user()->id) }}">
+                    <div class="w-10 h-10 rounded-full bg-slate-300 overflow-hidden shrink-0"
+                        data-alt="Avatar của {{ Auth::user()->name }}"
+                        style="background-image: url('{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) }}'); background-size: cover; background-position: center;">
+                    </div>
+                </a>
 
                 {{-- 2. Thông tin User --}}
                 <div class="overflow-hidden flex-1">

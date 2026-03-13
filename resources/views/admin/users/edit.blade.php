@@ -61,12 +61,16 @@
                                     <select name="role" id="role" onchange="togglePermissions()"
                                         class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
 
-                                        @foreach ($roles as $role)
-                                            <option value="{{ $role->id }}"
-                                                {{ old('role', $user->role_id ?? '') == $role->id ? 'selected' : '' }}>
-                                                {{ $role->name }}
-                                            </option>
-                                        @endforeach
+                                        @if (Auth::user()->id != $user->id && Auth::user()->role->name == 'admin')
+                                            @foreach ($roles as $role)
+                                                <option value="{{ $role->id }}"
+                                                    {{ old('role', $user->role_id ?? '') == $role->id ? 'selected' : '' }}>
+                                                    {{ $role->name }}
+                                                </option>
+                                            @endforeach
+                                        @else
+                                            <option value="{{ $user->role->id }}">{{ $user->role->name }}</option>
+                                        @endif
 
                                     </select>
 
@@ -190,7 +194,7 @@
                             <button
                                 class="px-8 py-2.5 rounded-lg bg-primary text-slate-900 font-bold hover:shadow-lg hover:shadow-primary/20 transition-all flex items-center gap-2">
                                 <span class="material-symbols-outlined">person_add</span>
-                                Thêm người dùng
+                                Cập nhập người dùng
                             </button>
                         </div>
                     </div>
@@ -237,7 +241,7 @@
                                 <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Hoạt động</span>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input name="status" type="checkbox" value="1" class="sr-only peer"
-                                        {{ old('status',$user->status == 'active') ? 'checked' : '' }}>
+                                        {{ old('status', $user->status == 'active') ? 'checked' : '' }}>
                                     <div
                                         class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary">
                                     </div>

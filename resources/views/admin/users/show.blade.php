@@ -63,25 +63,27 @@
                         <span>Chỉnh sửa</span>
                     </button>
                 </a>
-                @if ($user->status == 'banned')
-                    <form action="{{ route('admin.user.unblock', $user->id) }}" method="POST">
-                        @csrf
-                        <button onclick="return(confirm('Bạn có muốn mở khóa không'))"
-                            class="flex items-center justify-center gap-2 rounded-lg h-11 px-6 bg-slate-100 dark:bg-slate-800 text-red-600 text-sm font-bold hover:bg-red-50 transition-colors border border-transparent hover:border-red-200">
-                            <span class="material-symbols-outlined text-lg">block</span>
-                            <span>Mở khóa tài khoản</span>
-                        </button>
-                    </form>
-                @else
-                    <form action="{{ route('admin.user.block', $user->id) }}"
-                        onclick="return(confirm('Bạn có muốn khóa không'))" method="post">
-                        @csrf
-                        <button
-                            class="flex items-center justify-center gap-2 rounded-lg h-11 px-6 bg-slate-100 dark:bg-slate-800 text-red-600 text-sm font-bold hover:bg-red-50 transition-colors border border-transparent hover:border-red-200">
-                            <span class="material-symbols-outlined text-lg">block</span>
-                            <span>Khóa tài khoản</span>
-                        </button>
-                    </form>
+                @if (Auth::user()->id != $user->id)
+                    @if ($user->status == 'banned')
+                        <form action="{{ route('admin.user.unblock', $user->id) }}" method="POST">
+                            @csrf
+                            <button onclick="return(confirm('Bạn có muốn mở khóa không'))"
+                                class="flex items-center justify-center gap-2 rounded-lg h-11 px-6 bg-slate-100 dark:bg-slate-800 text-red-600 text-sm font-bold hover:bg-red-50 transition-colors border border-transparent hover:border-red-200">
+                                <span class="material-symbols-outlined text-lg">block</span>
+                                <span>Mở khóa tài khoản</span>
+                            </button>
+                        </form>
+                    @else
+                        <form action="{{ route('admin.user.block', $user->id) }}"
+                            onclick="return(confirm('Bạn có muốn khóa không'))" method="post">
+                            @csrf
+                            <button
+                                class="flex items-center justify-center gap-2 rounded-lg h-11 px-6 bg-slate-100 dark:bg-slate-800 text-red-600 text-sm font-bold hover:bg-red-50 transition-colors border border-transparent hover:border-red-200">
+                                <span class="material-symbols-outlined text-lg">block</span>
+                                <span>Khóa tài khoản</span>
+                            </button>
+                        </form>
+                    @endif
                 @endif
                 <form action="{{ route('admin.resetPw', $user->id) }}" method="POST">
                     @csrf
