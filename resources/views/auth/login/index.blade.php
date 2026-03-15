@@ -45,7 +45,7 @@
 </head>
 
 <body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display">
-    @if (session('success') || session('error') || $errors->any())
+    @if (session('success') || session('error') )
 
         <div id="custom-sweet-alert"
             class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
@@ -67,7 +67,7 @@
                     </button>
                 @endif
 
-                @if (session('error') || $errors->any())
+                @if (session('error') )
                     <div
                         class="w-20 h-20 bg-red-100 dark:bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-5 animate-[pulse_1s_ease-in-out]">
                         <span class="material-symbols-outlined text-5xl">warning</span>
@@ -223,7 +223,7 @@
                         <div class="relative">
                             <span
                                 class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">mail</span>
-                            <input name="email"
+                            <input name="email" value="{{old('email')}}"
                                 class="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-slate-900 dark:text-white"
                                 placeholder="example@email.com" type="text" />
 
@@ -235,7 +235,7 @@
                     <div class="space-y-2">
                         <div class="flex justify-between items-center">
                             <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Mật khẩu</label>
-                            <a class="text-xs font-bold text-primary hover:underline" href="#">Quên mật khẩu?</a>
+                            <a class="text-xs font-bold text-primary hover:underline" href="{{route('reset-password')}}">Quên mật khẩu?</a>
                         </div>
                         <div class="relative">
                             <span

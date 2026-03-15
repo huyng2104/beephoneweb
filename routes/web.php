@@ -26,7 +26,7 @@ use App\Http\Controllers\AdminControllers\WalletController;
 // Client
 Route::get('/', function () {
     return view('welcome');
-})->middleware('verified')->name('/');
+})->middleware('check.verified')->name('/');
 
 // Trang Đăng Nhập / Đăng ký
 Route::get('login', [AuthController::class, 'login'])->name('login');
@@ -34,16 +34,20 @@ Route::get('register', [AuthController::class, 'register'])->name('register');
 Route::post('login/post', [AuthController::class, 'postLogin'])->name('login.post');
 Route::post('register/post', [AuthController::class, 'postRegister'])->name('register.post');
 Route::get('logout', [AuthController::class, 'logOut'])->name('logout');
-
+// Quên mật khẩu
+Route::get('reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
+Route::post('post-reset-password', [AuthController::class, 'postResetPassword'])->name('post-reset-password');
+Route::get('verify-code', [AuthController::class, 'verify_code'])->name('verify-code');
+Route::post('check-otp', [AuthController::class, 'check_otp'])->name('check_otp');
 // Kiểm tra xác thực email chưa
 Route::get('/email/verify', function () {
-    if (Auth::user()->hasVerifiedEmail()) {
+    if (Auth::user() && Auth::user()->hasVerifiedEmail()) {
         return redirect()->route('/')->with([
             'success' => 'Đăng nhập thành công'
         ]);
     }
     return view('auth.verify_email.index');
-})->middleware('auth')->name('verification.notice');
+})->name('verification.notice');
 
 // Xác thực email
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
@@ -144,10 +148,10 @@ Route::middleware(['auth', 'verified', 'role:admin,staff', 'can:order.view'])->g
 
         Route::post('posts/upload', [PostController::class, 'upload'])->name('posts.upload');
 
-       
-    // Quản lý Ví tiền
-    Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');
-    Route::post('/wallets/update-balance', [WalletController::class, 'updateBalance'])->name('wallets.update');
-    Route::get('/wallets/{id}/history', [WalletController::class, 'history'])->name('wallets.history');
+
+        // Quản lý Ví tiền
+        Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');
+        Route::post('/wallets/update-balance', [WalletController::class, 'updateBalance'])->name('wallets.update');
+        Route::get('/wallets/{id}/history', [WalletController::class, 'history'])->name('wallets.history');
     });
 });

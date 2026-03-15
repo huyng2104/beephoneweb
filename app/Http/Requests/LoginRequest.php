@@ -26,9 +26,7 @@ class LoginRequest extends FormRequest
             'email.required'    => 'Vui lòng nhập địa chỉ email.',
             'email.email'       => 'Email không đúng định dạng.',
             'email.max'         => 'Email không được vượt quá 255 ký tự.',
-            // Thêm câu thông báo lỗi cho rule exists
             'email.exists'      => 'Tài khoản email này chưa được đăng ký.',
-
             'password.required' => 'Vui lòng nhập mật khẩu.',
             'password.string'   => 'Mật khẩu không hợp lệ.',
             'password.min'      => 'Mật khẩu phải có ít nhất 6 ký tự.',
