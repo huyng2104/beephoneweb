@@ -18,6 +18,10 @@
                     <span class="material-symbols-outlined mr-2 text-[20px]">add_circle</span>
                     Thêm Danh mục mới
                 </a>
+                <a href="{{ route('admin.categories.trash') }}" class="ml-2 inline-flex items-center justify-center rounded-lg h-11 px-4 border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <span class="material-symbols-outlined mr-2 text-[18px]">delete_outline</span>
+                    Thùng rác
+                </a>
                 @endif
             </div>
         </div>
@@ -49,7 +53,7 @@
                 Gán thuộc tính lọc
             </button>
             @endif
-            <a href="{{ route('admin.categories.index', ['mode' => 'brands']) }}" class="flex items-center gap-2 border-b-2 py-4 px-6 font-bold text-sm leading-tight transition-colors {{ $viewMode === 'brands' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-primary' }}">
+            <a href="{{ route('admin.brands.index') }}" class="flex items-center gap-2 border-b-2 py-4 px-6 font-bold text-sm leading-tight transition-colors">
                 <span class="material-symbols-outlined text-[20px]">verified</span>
                 Quản lý Thương hiệu
             </a>

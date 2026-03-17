@@ -87,6 +87,38 @@ class BrandController extends Controller
             ->with('status', 'Đã xóa thương hiệu.');
     }
 
+    public function trash(): View
+    {
+        $brands = Brand::onlyTrashed()
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.categories.brands.trash', [
+            'brands' => $brands,
+        ]);
+    }
+
+    public function restore(int $id): RedirectResponse
+    {
+        $brand = Brand::onlyTrashed()->findOrFail($id);
+        $brand->restore();
+
+        return redirect()
+            ->route('admin.brands.index')
+            ->with('status', 'Đã phục hồi thương hiệu.');
+    }
+
+    public function forceDelete(int $id): RedirectResponse
+    {
+        $brand = Brand::onlyTrashed()->findOrFail($id);
+        $brand->forceDelete();
+
+        return redirect()
+            ->route('admin.brands.index')
+            ->with('status', 'Đã xóa vĩnh viễn thương hiệu.');
+    }
+
     private function validateBrand(Request $request, ?int $ignoreId = null): array
     {
         return $request->validate([

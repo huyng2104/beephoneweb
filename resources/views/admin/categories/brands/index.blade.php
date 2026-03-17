@@ -11,6 +11,9 @@
                 <a href="{{ route('admin.categories.index') }}" class="flex items-center justify-center rounded-lg h-11 px-5 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     Danh mục
                 </a>
+                <a href="{{ route('admin.brands.trash') }}" class="flex items-center justify-center rounded-lg h-11 px-4 border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    Thùng rác
+                </a>
                 <a href="{{ route('admin.brands.create') }}" class="flex items-center justify-center rounded-lg h-11 px-5 bg-primary text-black text-sm font-bold hover:brightness-105 transition-all shadow-sm">
                     <span class="material-symbols-outlined mr-2 text-[20px]">add_circle</span>
                     Thêm thương hiệu

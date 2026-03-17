@@ -30,6 +30,7 @@ use App\Http\Controllers\AdminControllers\WalletController;
 |--------------------------------------------------------------------------
 */
 
+<<<<<<< HEAD
 // ==========================================
 // HỆ THỐNG CLIENT (Public)
 // ==========================================
@@ -57,6 +58,25 @@ Route::get('verify-code', [AuthController::class, 'verify_code'])->name('verify-
 Route::post('check-otp', [AuthController::class, 'check_otp'])->name('check_otp');
 
 // Kiểm tra xác thực email chưa (Đã gộp fix lỗi của team và route home của mình)
+=======
+// Client
+Route::get('/', function () {
+    return view('welcome');
+})->name('/');
+
+// Trang Đăng Nhập / Đăng ký - TẠM BỊ KHÓA
+// Route::get('login', [AuthController::class, 'login'])->name('login');
+// Route::get('register', [AuthController::class, 'register'])->name('register');
+// Route::post('login/post', [AuthController::class, 'postLogin'])->name('login.post');
+// Route::post('register/post', [AuthController::class, 'postRegister'])->name('register.post');
+Route::get('logout', [AuthController::class, 'logOut'])->name('logout');
+// Quên mật khẩu - TẠM BỊ KHÓA
+// Route::get('reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
+// Route::post('post-reset-password', [AuthController::class, 'postResetPassword'])->name('post-reset-password');
+// Route::get('verify-code', [AuthController::class, 'verify_code'])->name('verify-code');
+// Route::post('check-otp', [AuthController::class, 'check_otp'])->name('check_otp');
+// Kiểm tra xác thực email chưa
+>>>>>>> huy
 Route::get('/email/verify', function () {
     if (Auth::user() && Auth::user()->hasVerifiedEmail()) {
         return redirect()->route('home')->with([
@@ -84,8 +104,12 @@ Route::post('/email/verification-notification', function (Request $request) {
 // ==========================================
 // HỆ THỐNG ADMIN
 // ==========================================
+<<<<<<< HEAD
 Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
     
+=======
+Route::middleware(['auth', 'role:admin,staff', 'can:order.view'])->group(function () {
+>>>>>>> huy
     Route::prefix('admin')->name('admin.')->group(function () {
 
         // Bảng điều khiển
@@ -100,7 +124,17 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::post('user/{id}/reset', [UserController::class, 'resetPw'])->name('resetPw');
 
         // 1. Quản lý Danh mục & Thương hiệu
+        Route::get('categories/trash', [CategoryController::class, 'trash'])->name('categories.trash');
+        Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+        Route::delete('categories/{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('categories.force_delete');
+        Route::get('categories/trash', [CategoryController::class, 'trash'])->name('categories.trash');
+        Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+        Route::delete('categories/{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('categories.force_delete');
         Route::resource('categories', CategoryController::class)->except(['show']);
+
+        Route::get('brands/trash', [BrandController::class, 'trash'])->name('brands.trash');
+        Route::post('brands/{id}/restore', [BrandController::class, 'restore'])->name('brands.restore');
+        Route::delete('brands/{id}/force-delete', [BrandController::class, 'forceDelete'])->name('brands.force_delete');
         Route::resource('brands', BrandController::class)->except(['show']);
 
         // 2. Quản lý Bộ lọc theo Danh mục
