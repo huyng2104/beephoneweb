@@ -33,12 +33,16 @@ use App\Http\Controllers\AdminControllers\WalletController;
 // ==========================================
 // HỆ THỐNG CLIENT (Public)
 // ==========================================
-// Trang chủ
-Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Chi tiết sản phẩm & Danh sách sản phẩm
-Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
-Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
+Route::middleware('check.verified')->group(function(){
+    // Trang chủ
+    Route::get('/', [HomeController::class, 'index'])->name('home');
+
+    // Chi tiết sản phẩm & Danh sách sản phẩm
+    Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
+    Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
+});
+
 
 
 // ==========================================
@@ -55,6 +59,9 @@ Route::get('reset-password', [AuthController::class, 'resetPassword'])->name('re
 Route::post('post-reset-password', [AuthController::class, 'postResetPassword'])->name('post-reset-password');
 Route::get('verify-code', [AuthController::class, 'verify_code'])->name('verify-code');
 Route::post('check-otp', [AuthController::class, 'check_otp'])->name('check_otp');
+
+
+
 
 // ==========================================
 // XÁC THỰC EMAIL
@@ -84,12 +91,19 @@ Route::post('/email/verification-notification', function (Request $request) {
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 
+
+
+
 // ==========================================
 // HỆ THỐNG ADMIN
 // ==========================================
+
+
 // ĐÃ FIX: Chỉ dùng quyền admin/staff ở ngoài cùng, quyền order.view để riêng vào nhóm đơn hàng
+
+
 Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
-    
+
     Route::prefix('admin')->name('admin.')->group(function () {
 
         // Bảng điều khiển
