@@ -73,7 +73,7 @@
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                 <a class="w-full sm:w-auto px-8 py-3 bg-primary hover:bg-yellow-500 text-slate-900 font-bold rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
-                    href="{{ route('/') }}">
+                    href="">
                     <span class="material-symbols-outlined">home</span>
                     Quay lại trang chủ
                 </a>
