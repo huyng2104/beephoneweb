@@ -30,7 +30,6 @@ use App\Http\Controllers\AdminControllers\WalletController;
 |--------------------------------------------------------------------------
 */
 
-<<<<<<< HEAD
 // ==========================================
 // HỆ THỐNG CLIENT (Public)
 // ==========================================
@@ -41,42 +40,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
 Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
 
-
-// ==========================================
-// ĐĂNG NHẬP / ĐĂNG KÝ / XÁC THỰC EMAIL / QUÊN MẬT KHẨU
-// ==========================================
-Route::get('login', [AuthController::class, 'login'])->name('login');
-Route::get('register', [AuthController::class, 'register'])->name('register');
-Route::post('login/post', [AuthController::class, 'postLogin'])->name('login.post');
-Route::post('register/post', [AuthController::class, 'postRegister'])->name('register.post');
+// Đăng xuất
 Route::get('logout', [AuthController::class, 'logOut'])->name('logout');
 
-// Quên mật khẩu (Code mới của team)
-Route::get('reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
-Route::post('post-reset-password', [AuthController::class, 'postResetPassword'])->name('post-reset-password');
-Route::get('verify-code', [AuthController::class, 'verify_code'])->name('verify-code');
-Route::post('check-otp', [AuthController::class, 'check_otp'])->name('check_otp');
-
-// Kiểm tra xác thực email chưa (Đã gộp fix lỗi của team và route home của mình)
-=======
-// Client
-Route::get('/', function () {
-    return view('welcome');
-})->name('/');
-
-// Trang Đăng Nhập / Đăng ký - TẠM BỊ KHÓA
-// Route::get('login', [AuthController::class, 'login'])->name('login');
-// Route::get('register', [AuthController::class, 'register'])->name('register');
-// Route::post('login/post', [AuthController::class, 'postLogin'])->name('login.post');
-// Route::post('register/post', [AuthController::class, 'postRegister'])->name('register.post');
-Route::get('logout', [AuthController::class, 'logOut'])->name('logout');
-// Quên mật khẩu - TẠM BỊ KHÓA
-// Route::get('reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
-// Route::post('post-reset-password', [AuthController::class, 'postResetPassword'])->name('post-reset-password');
-// Route::get('verify-code', [AuthController::class, 'verify_code'])->name('verify-code');
-// Route::post('check-otp', [AuthController::class, 'check_otp'])->name('check_otp');
-// Kiểm tra xác thực email chưa
->>>>>>> huy
 Route::get('/email/verify', function () {
     if (Auth::user() && Auth::user()->hasVerifiedEmail()) {
         return redirect()->route('home')->with([
@@ -104,12 +70,7 @@ Route::post('/email/verification-notification', function (Request $request) {
 // ==========================================
 // HỆ THỐNG ADMIN
 // ==========================================
-<<<<<<< HEAD
-Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
-    
-=======
-Route::middleware(['auth', 'role:admin,staff', 'can:order.view'])->group(function () {
->>>>>>> huy
+Route::middleware(['auth', 'verified', 'role:admin,staff', 'can:order.view'])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
 
         // Bảng điều khiển
@@ -167,7 +128,7 @@ Route::middleware(['auth', 'role:admin,staff', 'can:order.view'])->group(functio
         Route::delete('products/{id}/force-delete', [AdminProductController::class, 'forceDelete'])->name('products.force_delete');
         Route::get('products/create', [AdminProductController::class, 'create'])->name('products.create');
         Route::post('products', [AdminProductController::class, 'store'])->name('products.store');
-        Route::resource('products', AdminProductController::class)->except(['create', 'store']); 
+        Route::resource('products', AdminProductController::class)->except(['create', 'store']);
 
         // 6. Quản lý Vouchers
         Route::post('vouchers/{id}/restore', [VoucherController::class, 'restore'])->name('vouchers.restore');
@@ -192,6 +153,5 @@ Route::middleware(['auth', 'role:admin,staff', 'can:order.view'])->group(functio
         Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');
         Route::post('/wallets/update-balance', [WalletController::class, 'updateBalance'])->name('wallets.update');
         Route::get('/wallets/{id}/history', [WalletController::class, 'history'])->name('wallets.history');
-        
     });
 });
