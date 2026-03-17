@@ -24,41 +24,6 @@
             </div>
         @endif
 
-        <div class="mb-6 overflow-hidden rounded-2xl bg-[#0f141a] text-white shadow-[0_15px_45px_-25px_rgba(15,20,26,0.85)]">
-            <div class="grid gap-6 px-5 py-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-6">
-                <div class="flex flex-col justify-center">
-                    <div class="flex items-end gap-2">
-                        <span class="text-5xl font-black leading-none">{{ number_format($averageRating, 1) }}</span>
-                        <span class="pb-1 text-2xl font-bold text-slate-300">/5</span>
-                    </div>
-                    <div class="mt-3 flex items-center gap-0.5 text-primary">
-                        @for($i = 1; $i <= 5; $i++)
-                            <span class="material-symbols-outlined text-[22px]">star</span>
-                        @endfor
-                    </div>
-                    <p class="mt-2 text-lg font-medium text-slate-200">{{ $totalRatings }} luot danh gia</p>
-                </div>
-
-                <div class="flex flex-col justify-center gap-3">
-                    @foreach($ratingBreakdown as $star => $count)
-                        @php
-                            $percent = $totalRatings > 0 ? round(($count / $totalRatings) * 100, 2) : 0;
-                        @endphp
-                        <div class="grid grid-cols-[30px_minmax(0,1fr)_84px] items-center gap-3">
-                            <div class="flex items-center gap-1 text-base font-bold text-white">
-                                <span>{{ $star }}</span>
-                                <span class="material-symbols-outlined text-primary text-[18px]">star</span>
-                            </div>
-                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-800">
-                                <div class="h-full rounded-full bg-red-500 transition-all duration-300" style="width: {{ $percent }}%"></div>
-                            </div>
-                            <div class="text-right text-sm text-slate-300">{{ $count }} danh gia</div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
         <div class="bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
