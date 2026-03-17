@@ -197,4 +197,35 @@
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Kiểm tra nếu có lỗi từ session
+    @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Ối! Không đủ tiền',
+            text: '{{ session('error') }}',
+            confirmButtonText: 'Đã hiểu',
+            confirmButtonColor: '#FFC107', // Màu vàng Bee
+            background: '#fff',
+            borderRadius: '2rem',
+            customClass: {
+                title: 'font-black text-slate-800',
+                confirmButton: 'rounded-xl font-bold uppercase tracking-widest px-8 py-3'
+            }
+        });
+    @endif
+
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Thành công!',
+            text: '{{ session('success') }}',
+            timer: 2000,
+            showConfirmButton: false,
+            borderRadius: '2rem'
+        });
+    @endif
+</script>
 @endsection
