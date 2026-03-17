@@ -42,17 +42,8 @@
                 <span class="material-symbols-outlined text-[20px]">account_tree</span>
                 Cấu trúc Danh mục
             </a>
-            @if ($firstCategoryForFilterTab)
-            <a href="{{ route('admin.categories.index', ['mode' => 'filters', 'category_id' => $firstCategoryForFilterTab]) }}" class="flex items-center gap-2 border-b-2 py-4 px-6 font-bold text-sm leading-tight transition-colors {{ $viewMode === 'filters' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-primary' }}">
-                <span class="material-symbols-outlined text-[20px]">tune</span>
-                Gán thuộc tính lọc
-            </a>
-            @else
-            <button type="button" class="flex items-center gap-2 border-b-2 border-transparent text-slate-300 py-4 px-6 font-bold text-sm leading-tight cursor-not-allowed" disabled>
-                <span class="material-symbols-outlined text-[20px]">tune</span>
-                Gán thuộc tính lọc
-            </button>
-            @endif
+      
+            
             <a href="{{ route('admin.brands.index') }}" class="flex items-center gap-2 border-b-2 py-4 px-6 font-bold text-sm leading-tight transition-colors">
                 <span class="material-symbols-outlined text-[20px]">verified</span>
                 Quản lý Thương hiệu
