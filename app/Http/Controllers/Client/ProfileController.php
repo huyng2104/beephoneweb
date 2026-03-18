@@ -14,7 +14,7 @@ class ProfileController extends Controller
     public function index()
     {
         $user = Auth::user();
-        if(!$user){
+        if (!$user) {
             return abort(404);
         }
         return view('client.profiles.index')->with([
@@ -70,9 +70,10 @@ class ProfileController extends Controller
         //
     }
 
-    public function user_wallet(){
+    public function user_wallet()
+    {
         $user = Auth::user();
-        if(!$user){
+        if (!$user || $user->wallet == null) {
             return abort(404);
         }
         return view('client.profiles.wallet')->with([
