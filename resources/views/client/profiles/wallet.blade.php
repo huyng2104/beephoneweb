@@ -1,6 +1,7 @@
 @extends('client.profiles.layouts.app')
 
 @section('profile_content')
+    @include('popup_notify.index')
     <main class="flex-1 space-y-6" data-purpose="wallet-main-content">
         <!-- Wallet Title -->
         <section>
@@ -31,7 +32,7 @@
                             </svg>
                             Nạp tiền
                         </button>
-                        <button
+                        <button onclick="openWithdrawModal()"
                             class="bg-transparent border border-gray-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-white/10 transition-colors">
                             Rút tiền
                         </button>
@@ -58,6 +59,7 @@
                             <th class="px-6 py-4 font-bold">Số tiền</th>
                             <th class="px-6 py-4 font-bold">Trạng thái</th>
                             <th class="px-6 py-4 font-bold text-right">Chi tiết</th>
+                            <th class="px-6 py-4 font-bold text-right">Hành Động</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -82,10 +84,10 @@
                                     </td>
                                     @if ($transaction->type == 'deposit' || $transaction->type == 'refund')
                                         <td class="px-6 py-4 font-bold text-green-600 text-sm">
-                                        + {{ number_format($transaction->amount, 0, ',', '.') }}đ</td>
+                                            + {{ number_format($transaction->amount, 0, ',', '.') }}đ</td>
                                     @else
                                         <td class="px-6 py-4 font-bold  text-sm">
-                                        - {{ number_format($transaction->amount, 0, ',', '.') }}đ</td>
+                                            - {{ number_format($transaction->amount, 0, ',', '.') }}đ</td>
                                     @endif
                                     @php
                                         $status_color = match ($transaction->status_transaction) {
@@ -117,6 +119,27 @@
                                                     clip-rule="evenodd" />
                                             </svg>
                                         </button>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
+
+                                        @if ($transaction->type === 'withdraw' && $transaction->status === 'pending')
+                                            <form action="{{route('wallet.withdrawal.cancelled',$transaction->id)}}" method="POST"
+                                                onsubmit="return confirm('Bạn có chắc chắn muốn hủy lệnh rút tiền này? Số tiền sẽ được hoàn lại vào ví của bạn ngay lập tức.');">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="bg-red-500/10 text-red-500 border border-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-lg transition-colors">
+                                                    Hủy lệnh
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        @if ($transaction->type === 'deposit' && $transaction->status === 'failed')
+                                            <a
+                                                class="bg-blue-500/10 text-blue-500 border border-blue-500 hover:bg-blue-500 hover:text-white px-3 py-1.5 rounded-lg transition-colors block text-center">
+                                                Thanh toán lại
+                                            </a>
+                                        @endif
+
                                     </td>
                                 </tr>
                             @endforeach
@@ -255,7 +278,74 @@
             </form>
         </div>
     </div>
+    {{-- Popup Rút tiền --}}
+    <div id="withdrawModal"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
 
+        <div
+            class="bg-white dark:bg-[#221e10] border border-gray-200 dark:border-white/10 w-full max-w-md rounded-2xl shadow-2xl transform scale-95 transition-transform duration-300 p-6 relative mx-4">
+
+            <button onclick="closeWithdrawModal()"
+                class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">account_balance</span>
+                Tạo lệnh rút tiền
+            </h3>
+
+            <form action="{{ route('wallet.withdrawal') }}" method="POST" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Số tiền muốn rút (VNĐ)
+                        *</label>
+                    <div class="relative">
+                        <input type="number" name="amount" required min="50000"
+                            class="w-full h-11 pl-4 pr-12 rounded-lg border border-gray-300 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                            placeholder="VD: 500000">
+                        <span
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">VNĐ</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1 mt-1">Tối thiểu: 50.000 VNĐ</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ngân hàng thụ hưởng
+                        *</label>
+                    <input type="text" name="bank_name" required
+                        class="w-full h-11 px-4 rounded-lg border border-gray-300 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        placeholder="VD: Vietcombank, MB Bank...">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Số tài khoản *</label>
+                    <input type="text" name="account_number" required
+                        class="w-full h-11 px-4 rounded-lg border border-gray-300 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        placeholder="Nhập số tài khoản...">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tên chủ tài khoản
+                        *</label>
+                    <input type="text" name="account_name" required
+                        class="w-full h-11 px-4 rounded-lg border border-gray-300 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all uppercase"
+                        placeholder="NGUYEN VAN A">
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-gray-100 dark:border-white/10">
+                    <button type="button" onclick="closeWithdrawModal()"
+                        class="flex-1 py-2.5 rounded-lg border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                        Hủy bỏ
+                    </button>
+                    <button type="submit"
+                        class="flex-1 py-2.5 rounded-lg bg-primary text-black font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30">
+                        Xác nhận rút
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 @push('js')
     <script>
@@ -293,5 +383,40 @@
             // Xóa giá trị đã nhập đi
             document.getElementById('amount').value = '';
         }
+    </script>
+    <script>
+        const modal = document.getElementById('withdrawModal');
+        const modalContent = modal.querySelector('div'); // Lấy cái thẻ div chứa nội dung bên trong
+
+        function openWithdrawModal() {
+            // Xóa class hidden để modal hiện ra
+            modal.classList.remove('hidden');
+
+            // Thêm một chút delay nhỏ để hiệu ứng fade-in và scale hoạt động mượt
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeWithdrawModal() {
+            // Bắt đầu hiệu ứng fade-out và scale nhỏ lại
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+
+            // Đợi hiệu ứng chạy xong (300ms) thì mới ẩn hẳn modal đi
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // (Tùy chọn) Bấm ra ngoài khoảng đen để đóng modal
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeWithdrawModal();
+            }
+        });
     </script>
 @endpush

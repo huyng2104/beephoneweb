@@ -25,6 +25,10 @@ class WalletTransaction extends Model
     {
         return $this->belongsTo(Wallet::class);
     }
+    public function withdrawal_requests()
+    {
+        return $this->hasMany(WithdrawalRequest::class);
+    }
     public function getTypeTransactionAttribute()
     {
         return match ($this->type) {
@@ -34,8 +38,9 @@ class WalletTransaction extends Model
             default    => '<span class="text-blue-600 font-medium text-sm">+ Hoàn tiền</span>',
         };
     }
-    public function getStatusTransactionAttribute(){
-        return match($this->status){
+    public function getStatusTransactionAttribute()
+    {
+        return match ($this->status) {
             'pending' => 'Đang chờ',
             'completed' => 'Thành công',
             'failed' => 'Thất bại',
