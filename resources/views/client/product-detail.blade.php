@@ -25,8 +25,13 @@
     }
     .toast-notification.show { right: 20px; }
 
-    .btn-disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+    .btn-disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); pointer-events: none; }
 </style>
+
+<div class="toast-notification z-[100]">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span id="toast-message">Đã thêm vào giỏ hàng!</span>
+</div>
 
 <main class="max-w-[1440px] mx-auto px-4 md:px-10 lg:px-20 py-8 lg:py-12 relative min-h-screen">
     <nav class="flex text-sm text-gray-500 dark:text-gray-400 mb-6" aria-label="Breadcrumb">
@@ -275,6 +280,7 @@
         const basePrice = {{ $product->price ?? 0 }};
         const baseSalePrice = {{ $product->sale_price ?? 0 }};
         const baseStock = {{ $product->stock ?? 0 }};
+        const csrfToken = '{{ csrf_token() }}';
         
         const variantsList = @json($variantsJS ?? []);
         
@@ -312,13 +318,11 @@
                 stockStatusEl.className = 'text-xs text-green-600 bg-green-100 dark:bg-green-500/20 dark:text-green-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
                 btnBuyNow.classList.remove('btn-disabled');
                 btnAddCart.classList.remove('btn-disabled');
-                btnBuyNow.disabled = false; btnAddCart.disabled = false;
             } else {
                 stockStatusEl.textContent = 'Hết hàng';
                 stockStatusEl.className = 'text-xs text-red-600 bg-red-100 dark:bg-red-500/20 dark:text-red-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
                 btnBuyNow.classList.add('btn-disabled');
                 btnAddCart.classList.add('btn-disabled');
-                btnBuyNow.disabled = true; btnAddCart.disabled = true;
             }
 
             if (image && image !== mainImage.src) {
@@ -386,7 +390,6 @@
                     
                     btnBuyNow.classList.add('btn-disabled');
                     btnAddCart.classList.add('btn-disabled');
-                    btnBuyNow.disabled = true; btnAddCart.disabled = true;
                 }
             }
 
@@ -410,6 +413,66 @@
                 else alert('Bạn đã chọn tối đa số lượng trong kho rồi!');
             });
         }
+
+        // --- AJAX XỬ LÝ MUA HÀNG ---
+        function handleAddToCart(isBuyNow = false) {
+            const productId = document.querySelector('input[name="product_id"]').value;
+            const variantId = document.querySelector('input[name="variant_id"]').value;
+            const quantity = document.getElementById('input-qty').value;
+
+            // Đổi giao diện nút đang tải
+            const btn = isBuyNow ? btnBuyNow : btnAddCart;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin">refresh</span> ĐANG XỬ LÝ...`;
+            btn.classList.add('pointer-events-none', 'opacity-70');
+
+            fetch('{{ route("client.cart.add") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    variant_id: variantId,
+                    quantity: quantity
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove('pointer-events-none', 'opacity-70');
+
+                if (data.success) {
+                    if (isBuyNow) {
+                        // Nếu Mua ngay -> Bơm sang giỏ hàng luôn
+                        window.location.href = "{{ route('client.cart.index') }}";
+                    } else {
+                        // Hiện toast báo thành công
+                        const toast = document.querySelector('.toast-notification');
+                        if(toast) {
+                            toast.classList.add('show');
+                            setTimeout(() => toast.classList.remove('show'), 3000);
+                        }
+                        
+                        // Nhảy số giỏ hàng trên Header
+                        const cartBadges = document.querySelectorAll('.bg-primary.text-black.rounded-full');
+                        cartBadges.forEach(badge => badge.innerText = data.cart_count);
+                    }
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(err => {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove('pointer-events-none', 'opacity-70');
+                alert('Có lỗi xảy ra, vui lòng thử lại!');
+            });
+        }
+
+        // Gắn sự kiện cho 2 nút
+        if(btnAddCart) btnAddCart.addEventListener('click', (e) => { e.preventDefault(); handleAddToCart(false); });
+        if(btnBuyNow) btnBuyNow.addEventListener('click', (e) => { e.preventDefault(); handleAddToCart(true); });
 
         // --- XEM THÊM NỘI DUNG ---
         const contentDiv = document.getElementById('product-content');

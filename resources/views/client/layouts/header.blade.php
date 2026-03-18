@@ -103,12 +103,12 @@
                     </a>
                 @endauth
 
-                <a href="#"
+                <a href="{{ route('client.cart.index') }}"
                     class="flex items-center justify-center rounded-lg h-10 w-10 bg-[#f5f3f0] dark:bg-white/5 hover:bg-primary transition-colors group relative">
                     <span
                         class="material-symbols-outlined text-[#181611] dark:text-white group-hover:text-black">shopping_cart</span>
                     <span
-                        class="absolute -top-1 -right-1 bg-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full text-black leading-none">3</span>
+                        class="absolute -top-1 -right-1 bg-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full text-black leading-none">0</span>
                 </a>
 
             </div>

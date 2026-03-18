@@ -183,9 +183,19 @@
                                             />
                                             <span class="text-xs font-bold text-gray-500 dark:text-gray-400 group-hover/check:text-primary transition-colors">So sánh</span>
                                         </label>
-                                        <button class="bg-[#f5f3f0] dark:bg-white/10 text-[#181611] dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-colors">
-                                            <span class="material-symbols-outlined">add_shopping_cart</span>
-                                        </button>
+
+                                        @if($isVariable)
+                                            <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" 
+                                               class="bg-[#f5f3f0] dark:bg-white/10 text-[#181611] dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-colors shrink-0" title="Chọn phiên bản">
+                                                <span class="material-symbols-outlined">tune</span>
+                                            </a>
+                                        @else
+                                            <button class="btn-add-cart-quick bg-[#f5f3f0] dark:bg-white/10 text-[#181611] dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-colors shrink-0" 
+                                                    data-product-id="{{ $product->id }}" title="Thêm vào giỏ">
+                                                <span class="material-symbols-outlined">add_shopping_cart</span>
+                                            </button>
+                                        @endif
+
                                     </div>
                                 </div>
                             </div>
@@ -248,6 +258,64 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- LOGIC THÊM GIỎ HÀNG NHANH ---
+        const csrfToken = '{{ csrf_token() }}';
+        
+        document.querySelectorAll('.btn-add-cart-quick').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const productId = this.getAttribute('data-product-id');
+                const originalHtml = this.innerHTML;
+                
+                this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>';
+                this.classList.add('pointer-events-none', 'opacity-70');
+
+                fetch('{{ route("client.cart.add") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        variant_id: '', // Bỏ trống vì đây là SP thường
+                        quantity: 1
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    this.innerHTML = '<span class="material-symbols-outlined text-[20px]">check</span>';
+                    this.classList.remove('pointer-events-none', 'opacity-70');
+                    this.classList.replace('bg-[#f5f3f0]', 'bg-green-500'); 
+                    this.classList.replace('dark:bg-white/10', 'dark:bg-green-600');
+                    this.classList.remove('text-[#181611]', 'dark:text-white');
+                    this.classList.add('text-white');
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalHtml;
+                        this.classList.replace('bg-green-500', 'bg-[#f5f3f0]');
+                        this.classList.replace('dark:bg-green-600', 'dark:bg-white/10');
+                        this.classList.add('text-[#181611]', 'dark:text-white');
+                        this.classList.remove('text-white');
+                    }, 2000);
+
+                    if (data.success) {
+                        const cartBadges = document.querySelectorAll('.bg-primary.text-black.rounded-full');
+                        cartBadges.forEach(badge => badge.innerText = data.cart_count);
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    this.innerHTML = originalHtml;
+                    this.classList.remove('pointer-events-none', 'opacity-70');
+                    alert('Có lỗi xảy ra, vui lòng thử lại!');
+                });
+            });
+        });
+
         // --- LOGIC LỌC ---
         const filterForm = document.getElementById('filter-form');
         document.querySelectorAll('.filter-trigger').forEach(trigger => {

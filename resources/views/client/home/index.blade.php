@@ -139,16 +139,25 @@
                         </p>
                         
                         <div class="flex items-end justify-between mt-auto">
-                            <div class="flex flex-col">
-                                @if($isVariable) 
-                                    <span class="text-[10px] text-gray-400 font-bold leading-none mb-1 uppercase tracking-wider">Giá từ</span> 
-                                @endif
-                                <span class="text-xl font-bold text-red-500">{{ number_format($displayPrice, 0, ',', '.') }}₫</span>
-                            </div>
-                            <button class="bg-black dark:bg-primary text-white dark:text-black w-10 h-10 rounded-lg flex items-center justify-center hover:scale-105 transition-transform shrink-0 shadow-md">
-                                <span class="material-symbols-outlined">add_shopping_cart</span>
-                            </button>
-                        </div>
+    <div class="flex flex-col">
+        @if($isVariable) 
+            <span class="text-[10px] text-gray-400 font-bold leading-none mb-1 uppercase tracking-wider">Giá từ</span> 
+        @endif
+        <span class="text-xl font-bold text-red-500">{{ number_format($displayPrice, 0, ',', '.') }}₫</span>
+    </div>
+    
+    @if($isVariable)
+        <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" 
+           class="bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-colors shrink-0 shadow-sm" title="Chọn phiên bản">
+            <span class="material-symbols-outlined">tune</span>
+        </a>
+    @else
+        <button class="btn-add-cart-quick bg-black dark:bg-primary text-white dark:text-black w-10 h-10 rounded-lg flex items-center justify-center hover:scale-105 transition-transform shrink-0 shadow-md" 
+                data-product-id="{{ $product->id }}" title="Thêm vào giỏ">
+            <span class="material-symbols-outlined">add_shopping_cart</span>
+        </button>
+    @endif
+</div>
                     </div>
                 @endforeach
 
@@ -266,4 +275,65 @@
             </div>
         </section>
     </main>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Lấy token bảo mật của Laravel
+    const csrfToken = '{{ csrf_token() }}';
+
+    // Bắt sự kiện cho tất cả các nút "Thêm vào giỏ nhanh"
+    document.querySelectorAll('.btn-add-cart-quick').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const productId = this.getAttribute('data-product-id');
+            const originalHtml = this.innerHTML;
+            
+            // Hiệu ứng xoay xoay đang load
+            this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>';
+            this.classList.add('pointer-events-none', 'opacity-70');
+
+            // Gửi AJAX lên CartController
+            fetch('{{ route("client.cart.add") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    variant_id: '', // Bỏ trống vì đây là SP thường
+                    quantity: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Phục hồi lại nút
+                this.innerHTML = '<span class="material-symbols-outlined text-[20px]">check</span>';
+                this.classList.remove('pointer-events-none', 'opacity-70');
+                this.classList.replace('bg-black', 'bg-green-500'); // Đổi màu xanh lá báo thành công
+                
+                setTimeout(() => {
+                    this.innerHTML = originalHtml;
+                    this.classList.replace('bg-green-500', 'bg-black');
+                }, 2000);
+
+                if (data.success) {
+                    // Update số lượng giỏ hàng trên Header (Nếu có class này)
+                    const cartBadges = document.querySelectorAll('.bg-primary.text-black.rounded-full');
+                    cartBadges.forEach(badge => badge.innerText = data.cart_count);
+                    
+                    alert('Đã thêm sản phẩm vào giỏ hàng!');
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                this.innerHTML = originalHtml;
+                this.classList.remove('pointer-events-none', 'opacity-70');
+                alert('Có lỗi xảy ra, vui lòng thử lại!');
+            });
+        });
+    });
+});
+</script>
 @endsection

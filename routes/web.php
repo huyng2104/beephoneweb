@@ -26,7 +26,7 @@ use App\Http\Controllers\AdminControllers\WalletController;
 use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\WalletController as ClientWalletController;
-
+use App\Http\Controllers\Client\CartController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -56,6 +56,14 @@ Route::middleware('check.verified')->group(function(){
     // Rút ví
     Route::post('/wallet/withdrawal',[ClientWalletController::class,'withdrawalPost'])->name('wallet.withdrawal');
     Route::post('/wallet/withdrawal/cancelled/{id}',[ClientWalletController::class,'withdrawalCancelled'])->name('wallet.withdrawal.cancelled');
+    // QUẢN LÝ GIỎ HÀNG
+    Route::post('/cart/add', [CartController::class, 'add'])->name('client.cart.add');
+    Route::get('/cart/count', [CartController::class, 'count'])->name('client.cart.count');
+
+    // THÊM 3 DÒNG NÀY:
+    Route::get('/gio-hang', [CartController::class, 'index'])->name('client.cart.index');
+    Route::post('/cart/update', [CartController::class, 'update'])->name('client.cart.update');
+    Route::post('/cart/remove', [CartController::class, 'remove'])->name('client.cart.remove');
 });
 
 
