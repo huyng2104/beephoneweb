@@ -9,6 +9,7 @@ use App\Models\Brand;
 use App\Models\Attribute;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -27,9 +28,11 @@ class ProductController extends Controller
         return view('admin.products.create', compact('categories', 'brands', 'attributes'));
     }
 
+    // ==========================================
+    // HÀM STORE (TẠO SẢN PHẨM MỚI + ẢNH BIẾN THỂ)
+    // ==========================================
     public function store(Request $request)
     {
-        // 1. Kiểm tra dữ liệu
         $request->validate([
             'name' => 'required|string|max:255',
             'category_ids' => 'required|array',
@@ -44,13 +47,13 @@ class ProductController extends Controller
         ]);
 
         try {
-            // 2. Lưu ảnh đại diện
+            // 1. Lưu ảnh đại diện
             $thumbnailPath = null;
             if ($request->hasFile('thumbnail')) {
                 $thumbnailPath = $request->file('thumbnail')->store('products', 'public');
             }
 
-            // --- XỬ LÝ GOM NHÓM THÔNG SỐ KỸ THUẬT (JSON) ---
+            // 2. Xử lý thông số kỹ thuật
             $specs = [];
             if ($request->has('spec_keys') && $request->has('spec_values')) {
                 $keys = $request->spec_keys;
@@ -62,14 +65,12 @@ class ProductController extends Controller
                     }
                 }
             }
-            // ------------------------------------------------
 
             // 3. Lưu Sản phẩm chính
             $product = Product::create([
                 'name' => $request->name,
-                // 'slug' => \Illuminate\Support\Str::slug($request->name) . '-' . time(), 
                 'description' => $request->description,
-                'specifications' => empty($specs) ? null : $specs, // Lưu JSON thông số
+                'specifications' => empty($specs) ? null : $specs,
                 'type' => $request->type ?? 'simple',
                 'price' => $request->price ?? 0,
                 'sale_price' => $request->sale_price,
@@ -90,22 +91,26 @@ class ProductController extends Controller
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $image) {
                     $imagePath = $image->store('products/gallery', 'public');
-                    $product->images()->create([
-                        'path' => $imagePath 
-                    ]);
+                    $product->images()->create(['path' => $imagePath]);
                 }
             }
 
-            // ==========================================
-            // 6. LƯU BIẾN THỂ
-            // ==========================================
+            // 6. LƯU BIẾN THỂ KÈM ẢNH
             if ($request->type == 'variable' && $request->has('variations')) {
                 foreach ($request->variations as $varData) {
+                    
+                    // Xử lý upload ảnh cho từng dòng biến thể
+                    $variantThumbnail = null;
+                    if (isset($varData['thumbnail']) && $varData['thumbnail'] instanceof \Illuminate\Http\UploadedFile) {
+                        $variantThumbnail = $varData['thumbnail']->store('products/variants', 'public');
+                    }
+
                     $variant = $product->variants()->create([
-                        'sku' => ($varData['sku'] ?? $product->sku) . '-' . \Illuminate\Support\Str::random(4),
+                        'sku' => ($varData['sku'] ?? $product->sku) . '-' . Str::random(4),
                         'price' => $varData['price'] ?? $product->price,
                         'sale_price' => $varData['sale_price'] ?? null,
                         'stock' => $varData['stock'] ?? 0,
+                        'thumbnail' => $variantThumbnail, // Lưu đường dẫn ảnh biến thể
                     ]);
 
                     if (isset($varData['attributes'])) {
@@ -114,9 +119,10 @@ class ProductController extends Controller
                 }
             }
 
-            return redirect()->route('admin.products.index')->with('success', 'Tuyệt vời! Đã đăng sản phẩm và thông số kỹ thuật thành công!');
+            return redirect()->route('admin.products.index')->with('success', 'Tuyệt vời! Đã đăng sản phẩm và các biến thể thành công!');
 
         } catch (\Exception $e) {
+            \Log::error("Store Product Error: " . $e->getMessage());
             return back()->withInput()->withErrors(['error' => 'Lỗi hệ thống: ' . $e->getMessage()]);
         }
     }
@@ -127,12 +133,9 @@ class ProductController extends Controller
         return view('admin.products.show', compact('product'));
     }
 
-    // ==========================================
-    // HÀM HIỂN THỊ FORM SỬA
-    // ==========================================
     public function edit(Product $product)
     {
-        $product->load(['categories', 'images']); 
+        $product->load(['categories', 'images', 'variants.attributeValues']); 
         
         $categories = Category::all();
         $brands = Brand::all();
@@ -142,11 +145,10 @@ class ProductController extends Controller
     }
 
     // ==========================================
-    // HÀM XỬ LÝ CẬP NHẬT DATABASE
+    // HÀM UPDATE (CẬP NHẬT SP + ẢNH BIẾN THỂ CŨ/MỚI)
     // ==========================================
     public function update(Request $request, Product $product)
     {
-        // 1. Kiểm tra dữ liệu đầu vào
         $request->validate([
             'name' => 'required|string|max:255',
             'category_ids' => 'required|array',
@@ -158,13 +160,15 @@ class ProductController extends Controller
         ]);
 
         try {
-            // 2. Xử lý ảnh đại diện
             $thumbnailPath = $product->thumbnail;
             if ($request->hasFile('thumbnail')) {
+                // Xóa ảnh cũ (Tùy chọn)
+                if ($product->thumbnail && Storage::disk('public')->exists($product->thumbnail)) {
+                    Storage::disk('public')->delete($product->thumbnail);
+                }
                 $thumbnailPath = $request->file('thumbnail')->store('products', 'public');
             }
 
-            // --- XỬ LÝ GOM NHÓM THÔNG SỐ KỸ THUẬT (JSON) ---
             $specs = [];
             if ($request->has('spec_keys') && $request->has('spec_values')) {
                 $keys = $request->spec_keys;
@@ -176,13 +180,11 @@ class ProductController extends Controller
                     }
                 }
             }
-            // ------------------------------------------------
 
-            // 3. Cập nhật thông tin Sản phẩm chính
             $product->update([
                 'name' => $request->name,
                 'description' => $request->description,
-                'specifications' => empty($specs) ? null : $specs, // Cập nhật JSON thông số
+                'specifications' => empty($specs) ? null : $specs,
                 'type' => $request->type ?? 'simple',
                 'price' => $request->price ?? 0,
                 'sale_price' => $request->sale_price,
@@ -193,40 +195,82 @@ class ProductController extends Controller
                 'thumbnail' => $thumbnailPath,
             ]);
 
-            // 4. Đồng bộ danh mục
             $product->categories()->sync($request->category_ids);
 
-            // =========================================================
-            // 5. CẬP NHẬT BIẾN THỂ (Variations)
-            // =========================================================
-            if ($request->type == 'variable') {
-                foreach ($product->variants as $oldVariant) {
-                    $oldVariant->attributeValues()->detach(); 
-                    $oldVariant->forceDelete(); 
-                }
+            // CẬP NHẬT BIẾN THỂ
+            if ($request->type == 'variable' && $request->has('variations')) {
+                
+                // Lấy mảng ID các biến thể được gửi lên từ Form
+                $incomingVariantIds = collect($request->variations)->pluck('id')->filter()->toArray();
 
-                if ($request->has('variations')) {
-                    foreach ($request->variations as $varData) {
-                        $variant = $product->variants()->create([
-                            'sku' => $varData['sku'] ?? ($product->sku . '-' . \Illuminate\Support\Str::random(5)),
-                            'price' => $varData['price'] ?? $product->price,
+                // Xóa các biến thể cũ không còn tồn tại trong form
+                $product->variants()->whereNotIn('id', $incomingVariantIds)->get()->each(function($var) {
+                    if ($var->thumbnail && Storage::disk('public')->exists($var->thumbnail)) {
+                        Storage::disk('public')->delete($var->thumbnail);
+                    }
+                    $var->attributeValues()->detach();
+                    $var->forceDelete();
+                });
+
+                foreach ($request->variations as $varData) {
+                    $variantThumbnail = null;
+
+                    // Nếu là cập nhật biến thể ĐÃ CÓ (có gửi ID lên)
+                    if (isset($varData['id'])) {
+                        $existingVariant = $product->variants()->find($varData['id']);
+                        $variantThumbnail = $existingVariant->thumbnail; // Giữ nguyên ảnh cũ
+
+                        // Nếu Admin có chọn ảnh mới -> Ghi đè ảnh cũ
+                        if (isset($varData['thumbnail']) && $varData['thumbnail'] instanceof \Illuminate\Http\UploadedFile) {
+                            if ($existingVariant->thumbnail && Storage::disk('public')->exists($existingVariant->thumbnail)) {
+                                Storage::disk('public')->delete($existingVariant->thumbnail);
+                            }
+                            $variantThumbnail = $varData['thumbnail']->store('products/variants', 'public');
+                        }
+
+                        $existingVariant->update([
+                            'sku' => $varData['sku'] ?? $existingVariant->sku,
+                            'price' => $varData['price'] ?? $existingVariant->price,
                             'sale_price' => $varData['sale_price'] ?? null,
                             'stock' => $varData['stock'] ?? 0,
+                            'thumbnail' => $variantThumbnail,
                         ]);
 
                         if (isset($varData['attributes'])) {
-                            $variant->attributeValues()->attach(array_values($varData['attributes']));
+                            $existingVariant->attributeValues()->sync(array_values($varData['attributes']));
+                        }
+                    } 
+                    // Nếu là biến thể MỚI TINH (không có ID)
+                    else {
+                        if (isset($varData['thumbnail']) && $varData['thumbnail'] instanceof \Illuminate\Http\UploadedFile) {
+                            $variantThumbnail = $varData['thumbnail']->store('products/variants', 'public');
+                        }
+
+                        $newVariant = $product->variants()->create([
+                            'sku' => $varData['sku'] ?? ($product->sku . '-' . Str::random(5)),
+                            'price' => $varData['price'] ?? $product->price,
+                            'sale_price' => $varData['sale_price'] ?? null,
+                            'stock' => $varData['stock'] ?? 0,
+                            'thumbnail' => $variantThumbnail,
+                        ]);
+
+                        if (isset($varData['attributes'])) {
+                            $newVariant->attributeValues()->attach(array_values($varData['attributes']));
                         }
                     }
                 }
             } else {
+                // Nếu đổi từ Variable -> Simple: Xóa trắng biến thể
                 foreach ($product->variants as $oldVariant) {
+                    if ($oldVariant->thumbnail && Storage::disk('public')->exists($oldVariant->thumbnail)) {
+                        Storage::disk('public')->delete($oldVariant->thumbnail);
+                    }
                     $oldVariant->attributeValues()->detach();
                     $oldVariant->forceDelete();
                 }
             }
 
-            return redirect()->route('admin.products.index')->with('success', 'Đã cập nhật sản phẩm và bộ thông số kỹ thuật mới thành công!');
+            return redirect()->route('admin.products.index')->with('success', 'Đã cập nhật sản phẩm và ảnh biến thể thành công!');
 
         } catch (\Exception $e) {
             \Log::error("Update Product Error: " . $e->getMessage());

@@ -4,78 +4,86 @@
 
 @section('content')
 <style>
-    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; font-size: 20px; }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #f4c025; border-radius: 10px; }
     
     .filter-radio { display: none; }
     .filter-label { cursor: pointer; transition: all 0.2s; }
-    .filter-radio:checked + .filter-label { border-color: #FFD700; background-color: rgba(255, 215, 0, 0.1); font-weight: bold; color: black; }
+    .filter-radio:checked + .filter-label { border-color: #f4c025; background-color: rgba(244, 192, 37, 0.1); font-weight: bold; color: #181611; }
     
-    /* Animation cho thanh So sánh */
+    .dark .filter-radio:checked + .filter-label { color: #f4c025; }
+
     #compare-bar { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(150%); }
     #compare-bar.show { transform: translateY(0); }
     
-    /* CSS cho Modal */
     .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); transition: opacity 0.3s; opacity: 0; pointer-events: none; }
     .modal-overlay.show { opacity: 1; pointer-events: auto; }
     .modal-content { transition: transform 0.3s; transform: scale(0.95); }
     .modal-overlay.show .modal-content { transform: scale(1); }
 </style>
 
-<main class="max-w-7xl mx-auto px-4 py-6 relative">
-    <nav class="flex items-center space-x-2 text-sm text-muted mb-4">
-        <a class="hover:text-primary flex items-center" href="{{ route('home') }}">
-            <span class="material-symbols-outlined mr-1"></span> Trang chủ
+<main class="max-w-[1440px] mx-auto px-4 md:px-10 lg:px-20 py-8 relative min-h-screen">
+    
+    <nav class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
+        <a class="hover:text-primary transition-colors flex items-center" href="{{ route('home') }}">
+            <span class="material-symbols-outlined mr-1 text-[18px]">home</span> Trang chủ
         </a>
-        <span class="text-secondary font-medium">{{ $currentCategory->name ?? 'Tất cả Điện thoại' }}</span>
+        <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+        <span class="font-bold text-[#181611] dark:text-white">{{ $currentCategory->name ?? 'Tất cả Điện thoại' }}</span>
     </nav>
 
     <div class="mb-8">
-        <h1 class="text-3xl font-headline font-bold uppercase tracking-tight">{{ $currentCategory->name ?? 'Tất cả Điện thoại' }}</h1>
-        <p class="text-muted mt-1 text-sm">Tìm thấy <span class="font-bold text-bee-dark">{{ $products->total() }}</span> sản phẩm phù hợp</p>
+        <h1 class="text-3xl md:text-4xl font-bold uppercase tracking-tight mb-2">{{ $currentCategory->name ?? 'Tất cả Điện thoại' }}</h1>
+        <p class="text-gray-500 dark:text-gray-400 text-sm">Tìm thấy <span class="font-bold text-primary">{{ $products->total() }}</span> sản phẩm phù hợp</p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
-        <form id="filter-form" action="{{ route('client.products.index') }}" method="GET" class="w-full lg:w-64 flex-shrink-0 space-y-8">
+        
+        <form id="filter-form" action="{{ route('client.products.index') }}" method="GET" class="w-full lg:w-64 flex-shrink-0 space-y-8 bg-white dark:bg-white/5 p-6 rounded-2xl border border-gray-100 dark:border-white/10 h-fit sticky top-24 shadow-sm">
             @if(request('category')) <input type="hidden" name="category" value="{{ request('category') }}"> @endif
             <input type="hidden" name="sort" id="sort-input" value="{{ $sort }}">
 
             <section>
-                <h3 class="font-bold text-sm uppercase mb-4">Khoảng giá</h3>
+                <h3 class="font-bold text-base uppercase mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-white/10 pb-2">
+                    <span class="material-symbols-outlined text-primary">payments</span> Khoảng giá
+                </h3>
                 <div class="grid grid-cols-2 gap-2 text-xs">
                     <div>
                         <input type="radio" name="price_range" id="price-1" value="under-5" class="filter-radio filter-trigger" {{ request('price_range') == 'under-5' ? 'checked' : '' }}>
-                        <label for="price-1" class="filter-label block border border-border py-2 px-1 text-center rounded hover:border-primary">Dưới 5 triệu</label>
+                        <label for="price-1" class="filter-label block border border-gray-200 dark:border-gray-700 py-2.5 px-1 text-center rounded-lg hover:border-primary transition-colors">Dưới 5 triệu</label>
                     </div>
                     <div>
                         <input type="radio" name="price_range" id="price-2" value="5-10" class="filter-radio filter-trigger" {{ request('price_range') == '5-10' ? 'checked' : '' }}>
-                        <label for="price-2" class="filter-label block border border-border py-2 px-1 text-center rounded hover:border-primary">5 - 10 triệu</label>
+                        <label for="price-2" class="filter-label block border border-gray-200 dark:border-gray-700 py-2.5 px-1 text-center rounded-lg hover:border-primary transition-colors">5 - 10 triệu</label>
                     </div>
                     <div>
                         <input type="radio" name="price_range" id="price-3" value="10-15" class="filter-radio filter-trigger" {{ request('price_range') == '10-15' ? 'checked' : '' }}>
-                        <label for="price-3" class="filter-label block border border-border py-2 px-1 text-center rounded hover:border-primary">10 - 15 triệu</label>
+                        <label for="price-3" class="filter-label block border border-gray-200 dark:border-gray-700 py-2.5 px-1 text-center rounded-lg hover:border-primary transition-colors">10 - 15 triệu</label>
                     </div>
                     <div>
                         <input type="radio" name="price_range" id="price-4" value="over-15" class="filter-radio filter-trigger" {{ request('price_range') == 'over-15' ? 'checked' : '' }}>
-                        <label for="price-4" class="filter-label block border border-border py-2 px-1 text-center rounded hover:border-primary">Trên 15 triệu</label>
+                        <label for="price-4" class="filter-label block border border-gray-200 dark:border-gray-700 py-2.5 px-1 text-center rounded-lg hover:border-primary transition-colors">Trên 15 triệu</label>
                     </div>
                 </div>
                 @if(request('price_range'))
-                    <div class="mt-2 text-right">
-                        <button type="button" class="text-xs text-red-500 hover:underline" onclick="document.querySelectorAll('input[name=price_range]').forEach(r => r.checked=false); document.getElementById('filter-form').submit();">Xóa khoảng giá</button>
+                    <div class="mt-3 text-right">
+                        <button type="button" class="text-xs font-bold text-red-500 hover:text-red-600 hover:underline flex items-center justify-end gap-1 ml-auto w-fit" onclick="document.querySelectorAll('input[name=price_range]').forEach(r => r.checked=false); document.getElementById('filter-form').submit();">
+                            <span class="material-symbols-outlined text-[14px]">close</span> Xóa lọc
+                        </button>
                     </div>
                 @endif
             </section>
 
             <section>
-                <h3 class="font-bold text-sm uppercase mb-4">Thương hiệu</h3>
-                <div class="space-y-2 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
+                <h3 class="font-bold text-base uppercase mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-white/10 pb-2 mt-6">
+                    <span class="material-symbols-outlined text-primary">sell</span> Thương hiệu
+                </h3>
+                <div class="space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
                     @foreach($brands as $brand)
                     <label class="flex items-center space-x-3 cursor-pointer group">
-                        <input type="checkbox" name="brands[]" value="{{ $brand->id }}" class="filter-trigger rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
+                        <input type="checkbox" name="brands[]" value="{{ $brand->id }}" class="filter-trigger rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 bg-transparent"
                             {{ is_array(request('brands')) && in_array($brand->id, request('brands')) ? 'checked' : '' }} />
-                        <span class="text-sm group-hover:text-primary transition-colors {{ is_array(request('brands')) && in_array($brand->id, request('brands')) ? 'font-bold text-bee-dark' : '' }}">{{ $brand->name }}</span>
+                        <span class="text-sm group-hover:text-primary transition-colors {{ is_array(request('brands')) && in_array($brand->id, request('brands')) ? 'font-bold text-primary' : 'text-gray-600 dark:text-gray-300' }}">{{ $brand->name }}</span>
                     </label>
                     @endforeach
                 </div>
@@ -83,12 +91,13 @@
         </form>
 
         <div class="flex-1 pb-24">
-            <div class="flex flex-wrap items-center justify-between mb-6 gap-4 bg-neutral-50 p-3 rounded-lg border border-border">
-                <div class="flex items-center space-x-2 overflow-x-auto whitespace-nowrap custom-scrollbar pb-1 md:pb-0">
-                    <span class="text-sm font-medium text-muted mr-2">Sắp xếp:</span>
-                    <button type="button" class="sort-btn {{ $sort == 'newest' ? 'bg-primary border-primary shadow-sm' : 'bg-white border-border hover:border-primary' }} border px-4 py-1.5 rounded-full text-sm transition-colors" data-sort="newest">Mới nhất</button>
-                    <button type="button" class="sort-btn {{ $sort == 'price-asc' ? 'bg-primary border-primary shadow-sm' : 'bg-white border-border hover:border-primary' }} border px-4 py-1.5 rounded-full text-sm transition-colors" data-sort="price-asc">Giá thấp - cao</button>
-                    <button type="button" class="sort-btn {{ $sort == 'price-desc' ? 'bg-primary border-primary shadow-sm' : 'bg-white border-border hover:border-primary' }} border px-4 py-1.5 rounded-full text-sm transition-colors" data-sort="price-desc">Giá cao - thấp</button>
+            
+            <div class="flex flex-wrap items-center justify-between mb-8 gap-4 bg-white dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 shadow-sm">
+                <div class="flex items-center space-x-3 overflow-x-auto whitespace-nowrap custom-scrollbar pb-1 md:pb-0 w-full">
+                    <span class="text-sm font-bold text-gray-500 dark:text-gray-400 mr-2 flex items-center gap-1"><span class="material-symbols-outlined text-[18px]">sort</span> Sắp xếp:</span>
+                    <button type="button" class="sort-btn {{ $sort == 'newest' ? 'bg-primary text-black border-primary' : 'bg-transparent border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary' }} border px-5 py-2 rounded-lg text-sm font-semibold transition-all" data-sort="newest">Mới nhất</button>
+                    <button type="button" class="sort-btn {{ $sort == 'price-asc' ? 'bg-primary text-black border-primary' : 'bg-transparent border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary' }} border px-5 py-2 rounded-lg text-sm font-semibold transition-all" data-sort="price-asc">Giá thấp - cao</button>
+                    <button type="button" class="sort-btn {{ $sort == 'price-desc' ? 'bg-primary text-black border-primary' : 'bg-transparent border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary' }} border px-5 py-2 rounded-lg text-sm font-semibold transition-all" data-sort="price-desc">Giá cao - thấp</button>
                 </div>
             </div>
 
@@ -98,49 +107,84 @@
                         @php
                             $prodImg = $product->thumbnail ?? '';
                             $prodUrl = Str::startsWith($prodImg, ['http://', 'https://']) ? $prodImg : ($prodImg ? asset('storage/' . $prodImg) : 'https://placehold.co/400x400/f8f9fa/1a1a1a?text=BeePhone');
-                            $hasSale = $product->sale_price > 0 && $product->sale_price < $product->price;
-                            $discountPercent = $hasSale ? round((($product->price - $product->sale_price) / $product->price) * 100) : 0;
-                            $priceStr = number_format($hasSale ? $product->sale_price : $product->price, 0, ',', '.') . 'đ';
+                            
+                            $finalPrice = $product->price;
+                            $finalSalePrice = $product->sale_price;
+                            $isVariable = false;
+
+                            $specsList = is_array($product->specifications) ? $product->specifications : (json_decode($product->specifications, true) ?? []);
+
+                            if($product->type == 'variable' && $product->variants && $product->variants->count() > 0) {
+                                $isVariable = true;
+                                $minVariant = $product->variants->sortBy(function($v) {
+                                    return ($v->sale_price > 0 && $v->sale_price < $v->price) ? $v->sale_price : $v->price;
+                                })->first();
+
+                                $finalPrice = $minVariant->price;
+                                $finalSalePrice = $minVariant->sale_price;
+
+                                $colors = []; $rams = []; $roms = [];
+                                foreach($product->variants as $var) {
+                                    foreach($var->attributeValues as $val) {
+                                        $attrName = mb_strtolower($val->attribute->name ?? '');
+                                        if (str_contains($attrName, 'màu')) $colors[] = $val->value;
+                                        elseif (str_contains($attrName, 'ram')) $rams[] = $val->value;
+                                        elseif (str_contains($attrName, 'dung lượng') || str_contains($attrName, 'rom')) $roms[] = $val->value;
+                                    }
+                                }
+                                
+                                if(!empty($rams)) $specsList['Các bản RAM'] = implode(', ', array_unique($rams));
+                                if(!empty($roms)) $specsList['Các bản ROM'] = implode(', ', array_unique($roms));
+                                if(!empty($colors)) $specsList['Màu sắc hiện có'] = implode(', ', array_unique($colors));
+                            }
+                            
+                            $hasSale = $finalSalePrice > 0 && $finalSalePrice < $finalPrice;
+                            $discountPercent = $hasSale ? round((($finalPrice - $finalSalePrice) / $finalPrice) * 100) : 0;
+                            $displayPrice = $hasSale ? $finalSalePrice : $finalPrice;
+                            $priceStr = number_format($displayPrice, 0, ',', '.') . 'đ';
                         @endphp
                         
-                        <article class="group relative bg-white border border-border hover:border-bee-yellow hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden flex flex-col">
+                        <article class="bg-white dark:bg-white/5 p-4 rounded-2xl border border-transparent hover:border-primary transition-all group flex flex-col shadow-sm hover:shadow-xl">
                             @if($hasSale)
-                                <div class="absolute top-3 left-3 z-10">
-                                    <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">Giảm {{ $discountPercent }}%</span>
+                                <div class="absolute top-6 left-6 z-10">
+                                    <span class="bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider shadow-sm">-{{ $discountPercent }}%</span>
                                 </div>
                             @endif
                             
-                            <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" class="aspect-square p-6 relative overflow-hidden bg-neutral-50 block">
-                                <img alt="{{ $product->name }}" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 mix-blend-multiply" src="{{ $prodUrl }}"/>
+                            <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" class="relative rounded-xl overflow-hidden aspect-square bg-gray-50 dark:bg-black/20 mb-4 block flex items-center justify-center p-4">
+                                <img alt="{{ $product->name }}" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 mix-blend-multiply dark:mix-blend-normal" src="{{ $prodUrl }}"/>
                             </a>
                             
-                            <div class="p-4 flex flex-col flex-grow border-t border-gray-50">
-                                <p class="text-xs text-gray-400 mb-1 uppercase tracking-wider font-semibold">{{ $product->brand->name ?? 'HOT' }}</p>
+                            <div class="flex flex-col flex-grow">
+                                <p class="text-[11px] text-gray-400 mb-1 uppercase tracking-widest font-bold">{{ $product->brand->name ?? 'HOT' }}</p>
                                 <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}">
-                                    <h3 class="font-bold text-base mb-2 group-hover:text-bee-yellow transition-colors line-clamp-2">{{ $product->name }}</h3>
+                                    <h3 class="font-bold text-lg mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-tight" title="{{ $product->name }}">{{ $product->name }}</h3>
                                 </a>
                                 
-                                <div class="mt-auto">
-                                    <div class="flex items-baseline space-x-2">
-                                        <span class="text-lg font-bold text-red-600">{{ $priceStr }}</span>
-                                        @if($hasSale)
-                                            <span class="text-sm text-muted line-through">{{ number_format($product->price, 0, ',', '.') }}đ</span>
-                                        @endif
+                                <div class="mt-auto pt-2">
+                                    <div class="flex flex-col mb-4">
+                                        @if($isVariable) <span class="text-[10px] text-gray-400 font-bold leading-none mb-1 uppercase tracking-wider">Giá từ</span> @endif
+                                        <div class="flex items-end gap-2">
+                                            <span class="text-xl font-bold text-red-500 dark:text-red-400">{{ $priceStr }}</span>
+                                            @if($hasSale)
+                                                <span class="text-sm text-gray-400 line-through mb-0.5">{{ number_format($finalPrice, 0, ',', '.') }}đ</span>
+                                            @endif
+                                        </div>
                                     </div>
                                     
-                                    <div class="mt-4 flex items-center justify-between border-t border-border pt-4">
+                                    <div class="flex items-center justify-between border-t border-gray-100 dark:border-white/10 pt-4">
                                         <label class="flex items-center space-x-2 cursor-pointer group/check">
-                                            <input type="checkbox" class="compare-cb w-4 h-4 border-2 border-border rounded text-bee-yellow focus:ring-bee-yellow" 
+                                            <input type="checkbox" class="compare-cb w-4 h-4 border-2 border-gray-300 rounded text-primary focus:ring-primary bg-transparent" 
                                                 data-id="{{ $product->id }}" 
                                                 data-name="{{ $product->name }}" 
                                                 data-img="{{ $prodUrl }}"
                                                 data-price="{{ $priceStr }}"
-                                                data-specs="{{ json_encode($product->specifications ?? []) }}"
+                                                data-specs="{{ json_encode($specsList) }}"
                                             />
-                                            <span class="text-xs font-medium text-muted group-hover/check:text-bee-dark">So sánh</span>
+                                            <span class="text-xs font-bold text-gray-500 dark:text-gray-400 group-hover/check:text-primary transition-colors">So sánh</span>
                                         </label>
-                                        <button class="bg-black text-white p-2 rounded-lg hover:bg-bee-yellow hover:text-black transition-colors">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                        <button class="bg-[#f5f3f0] dark:bg-white/10 text-[#181611] dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-colors">
+                                            <span class="material-symbols-outlined">add_shopping_cart</span>
                                         </button>
                                     </div>
                                 </div>
@@ -149,13 +193,15 @@
                     @endforeach
                 </div>
                 
-                <div class="mt-12 flex justify-center border-t border-border pt-8">
+                <div class="mt-12 flex justify-center pt-8">
                     {{ $products->links() }} 
                 </div>
             @else
-                <div class="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Không tìm thấy sản phẩm nào!</h3>
-                    <a href="{{ route('client.products.index') }}" class="bg-black text-white px-6 py-2 rounded-lg hover:bg-primary hover:text-black transition-colors">Bỏ lọc tất cả</a>
+                <div class="flex flex-col items-center justify-center py-20 bg-white dark:bg-white/5 rounded-2xl border border-dashed border-gray-200 dark:border-white/10">
+                    <span class="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-600 mb-4">search_off</span>
+                    <h3 class="text-xl font-bold mb-2">Không tìm thấy sản phẩm nào!</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm xem sao.</p>
+                    <a href="{{ route('client.products.index') }}" class="bg-primary text-black px-6 py-2.5 rounded-lg font-bold hover:scale-105 transition-transform">Xóa tất cả bộ lọc</a>
                 </div>
             @endif
         </div>
@@ -164,34 +210,36 @@
 
 <div id="compare-bar" class="fixed bottom-0 left-0 w-full z-40 px-4 pb-6 pt-4 pointer-events-none">
     <div class="max-w-4xl mx-auto pointer-events-auto">
-        <div class="bg-bee-dark text-white rounded-2xl shadow-2xl p-4 flex items-center justify-between border border-gray-700">
+        <div class="bg-white dark:bg-[#221e10] rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.5)] p-4 flex items-center justify-between border border-gray-200 dark:border-white/10">
             <div class="flex items-center space-x-4">
                 <div class="flex items-center space-x-2 mr-2" id="compare-slots">
                 </div>
                 <div class="hidden sm:block">
-                    <p class="font-bold text-sm text-bee-yellow">So sánh cấu hình</p>
-                    <p class="text-[11px] text-gray-400">Đã chọn <span id="compare-count">0</span>/4 sản phẩm</p>
+                    <p class="font-bold text-sm text-[#181611] dark:text-white">So sánh cấu hình</p>
+                    <p class="text-xs text-gray-500 font-medium">Đã chọn <span id="compare-count" class="text-primary font-bold">0</span>/4 sản phẩm</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
-                <button id="btn-clear-compare" class="text-xs font-medium text-gray-400 hover:text-white transition-colors px-2 underline">Xóa hết</button>
-                <button id="btn-open-compare" class="bg-bee-yellow text-bee-dark font-bold text-xs uppercase px-6 py-3 rounded-xl hover:bg-yellow-400 transition-all">So sánh ngay</button>
+                <button id="btn-clear-compare" class="text-xs font-bold text-red-500 hover:text-red-600 transition-colors px-2 underline">Xóa hết</button>
+                <button id="btn-open-compare" class="bg-primary text-black font-bold text-xs uppercase px-6 py-3.5 rounded-xl hover:scale-105 transition-transform flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[18px]">compare_arrows</span> So sánh
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 <div id="compare-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="modal-content bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-            <h2 class="text-xl font-bold text-bee-dark uppercase flex items-center gap-2">
-                <svg class="w-6 h-6 text-bee-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                So sánh chi tiết cấu hình
+    <div class="modal-content bg-white dark:bg-[#181611] rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-gray-200 dark:border-white/10">
+        <div class="p-5 border-b border-gray-100 dark:border-white/10 flex justify-between items-center bg-gray-50 dark:bg-white/5">
+            <h2 class="text-xl font-bold uppercase flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">tune</span>
+                So sánh chi tiết
             </h2>
-            <button id="btn-close-modal" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-red-500 hover:text-white transition-colors text-gray-600 font-bold">✕</button>
+            <button id="btn-close-modal" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-white/10 hover:bg-red-500 hover:text-white transition-colors font-bold">✕</button>
         </div>
         
-        <div class="p-4 overflow-auto custom-scrollbar flex-1 bg-white">
+        <div class="p-0 overflow-auto custom-scrollbar flex-1 bg-white dark:bg-[#181611]">
             <table class="w-full text-sm text-left border-collapse" id="compare-table">
             </table>
         </div>
@@ -203,12 +251,12 @@
         // --- LOGIC LỌC ---
         const filterForm = document.getElementById('filter-form');
         document.querySelectorAll('.filter-trigger').forEach(trigger => {
-            trigger.addEventListener('change', () => { document.body.style.opacity = '0.7'; filterForm.submit(); });
+            trigger.addEventListener('change', () => { document.body.style.opacity = '0.5'; filterForm.submit(); });
         });
         document.querySelectorAll('.sort-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault(); document.getElementById('sort-input').value = this.getAttribute('data-sort');
-                document.body.style.opacity = '0.7'; filterForm.submit();
+                document.body.style.opacity = '0.5'; filterForm.submit();
             });
         });
 
@@ -233,12 +281,12 @@
                 if (i < compareList.length) {
                     const p = compareList[i];
                     compareSlots.innerHTML += `
-                        <div class="w-12 h-12 rounded-lg bg-white border border-gray-600 overflow-hidden relative p-1 group">
-                            <img class="w-full h-full object-contain" src="${p.img}">
+                        <div class="w-12 h-12 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 overflow-hidden relative p-1 group">
+                            <img class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal" src="${p.img}">
                             <button data-id="${p.id}" class="remove-cb absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px]">✕</button>
                         </div>`;
                 } else {
-                    compareSlots.innerHTML += `<div class="w-12 h-12 rounded-lg bg-gray-800 border border-dashed border-gray-600 flex items-center justify-center text-gray-500 text-xs">${i+1}</div>`;
+                    compareSlots.innerHTML += `<div class="w-12 h-12 rounded-xl bg-gray-50 dark:bg-white/5 border border-dashed border-gray-200 dark:border-white/20 flex items-center justify-center text-gray-400 dark:text-gray-600 text-xs font-bold">${i+1}</div>`;
                 }
             }
 
@@ -260,13 +308,9 @@
                         return;
                     }
                     
-                    // THÊM TRY CATCH BẢO VỆ JS TRƯỚC LỖI PARSE JSON
                     let parsedSpecs = {};
-                    try {
-                        parsedSpecs = JSON.parse(this.getAttribute('data-specs') || '{}');
-                    } catch(err) {
-                        console.log('Sản phẩm này chưa có thông số cụ thể: ', err);
-                    }
+                    try { parsedSpecs = JSON.parse(this.getAttribute('data-specs') || '{}'); } 
+                    catch(err) { console.log('Lỗi thông số:', err); }
 
                     compareList.push({
                         id: id,
@@ -293,26 +337,33 @@
             
             let allSpecKeys = new Set();
             compareList.forEach(p => Object.keys(p.specs).forEach(k => allSpecKeys.add(k)));
-            const specKeysArray = Array.from(allSpecKeys);
+            
+            let sortedKeys = Array.from(allSpecKeys).sort((a, b) => {
+                let priorityA = a.includes('RAM') ? 1 : (a.includes('ROM') ? 2 : (a.includes('Màu') ? 3 : 99));
+                let priorityB = b.includes('RAM') ? 1 : (b.includes('ROM') ? 2 : (b.includes('Màu') ? 3 : 99));
+                return priorityA - priorityB;
+            });
 
-            let theadHTML = `<thead><tr><th class="p-4 border border-gray-200 w-1/5 bg-gray-50 text-gray-500 uppercase text-xs">Thông số</th>`;
+            let theadHTML = `<thead><tr><th class="p-5 border border-gray-100 dark:border-white/10 w-1/5 bg-gray-50 dark:bg-white/5 text-gray-500 uppercase text-xs tracking-wider">Thông số</th>`;
             compareList.forEach(p => {
                 theadHTML += `
-                    <th class="p-4 border border-gray-200 text-center w-[20%]">
-                        <img src="${p.img}" class="w-32 h-32 object-contain mx-auto mb-3">
-                        <h4 class="font-bold text-bee-dark line-clamp-2 text-sm">${p.name}</h4>
+                    <th class="p-5 border border-gray-100 dark:border-white/10 text-center w-[20%]">
+                        <div class="bg-white dark:bg-white/5 p-2 rounded-xl inline-block mb-3">
+                            <img src="${p.img}" class="w-24 h-24 object-contain mix-blend-multiply dark:mix-blend-normal">
+                        </div>
+                        <h4 class="font-bold text-[#181611] dark:text-white line-clamp-2 text-sm">${p.name}</h4>
                         <p class="text-red-500 font-bold mt-2">${p.price}</p>
                     </th>`;
             });
             theadHTML += `</tr></thead>`;
 
             let tbodyHTML = `<tbody>`;
-            specKeysArray.forEach(key => {
-                tbodyHTML += `<tr class="hover:bg-gray-50 transition-colors"><td class="p-3 border border-gray-200 font-bold text-gray-700 bg-gray-50">${key}</td>`;
+            sortedKeys.forEach(key => {
+                tbodyHTML += `<tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"><td class="p-4 border border-gray-100 dark:border-white/10 font-bold text-[#181611] dark:text-white bg-gray-50 dark:bg-white/5">${key}</td>`;
                 compareList.forEach(p => {
                     let val = p.specs[key];
                     let textVal = Array.isArray(val) ? val.join(', ') : (val || '-');
-                    tbodyHTML += `<td class="p-3 border border-gray-200 text-center text-gray-600">${textVal}</td>`;
+                    tbodyHTML += `<td class="p-4 border border-gray-100 dark:border-white/10 text-center text-gray-600 dark:text-gray-300 font-medium">${textVal}</td>`;
                 });
                 tbodyHTML += `</tr>`;
             });

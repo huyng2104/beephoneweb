@@ -39,8 +39,8 @@ Route::middleware('check.verified')->group(function(){
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
     // Chi tiết sản phẩm & Danh sách sản phẩm
-    // Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
-    // Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
+    Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
+    Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
 
     // Thông tin tài khoản
     // Route::resource('profile', ProfileController::class);

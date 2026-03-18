@@ -528,6 +528,7 @@
                 let title = combo.map(c => c.valName).join(' - ');
                 let hiddenInputs = combo.map(c => `<input type="hidden" name="variations[${index}][attributes][${c.attrId}]" value="${c.valId}">`).join('');
 
+                // MÌNH ĐÃ THÊM Ô UPLOAD ẢNH VÀO GRID NÀY, ĐỔI THÀNH grid-cols-5 ĐỂ CHỨA VỪA 5 CỘT
                 let html = `
                 <div class="border border-slate-200 rounded-lg overflow-hidden bg-white variation-item shadow-sm">
                     <div class="bg-slate-50 p-3 flex justify-between items-center border-b border-slate-200 cursor-pointer" onclick="$(this).next().slideToggle()">
@@ -541,7 +542,7 @@
                         </div>
                     </div>
                     <div class="p-5 flex gap-6 bg-white" style="display:none;">
-                        <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="flex-1 grid grid-cols-2 md:grid-cols-5 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 mb-1">Mã SP (SKU)</label>
                                 <input type="text" name="variations[${index}][sku]" placeholder="VD: IP15-DO-256" class="w-full text-sm border-slate-200 rounded focus:ring-primary py-1.5 px-2">
@@ -557,6 +558,10 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 mb-1">Tồn kho</label>
                                 <input type="number" name="variations[${index}][stock]" value="0" class="w-full text-sm border-slate-200 rounded focus:ring-primary py-1.5 px-2">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Ảnh biến thể</label>
+                                <input type="file" name="variations[${index}][thumbnail]" accept="image/*" class="w-full text-[11px] border-slate-200 rounded focus:ring-primary py-1.5 px-2 bg-slate-50 cursor-pointer file:border-0 file:bg-slate-200 file:text-slate-700 file:text-xs file:font-bold file:px-2 file:py-1 file:rounded-md hover:file:bg-slate-300 transition-all">
                             </div>
                         </div>
                     </div>

@@ -181,13 +181,9 @@
                                             </td>
                                             <td class="py-3 px-4 text-center">
                                                 @if($variant->stock > 0)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                        Còn hàng
-                                                    </span>
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Còn hàng</span>
                                                 @else
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                                        Hết hàng
-                                                    </span>
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Hết hàng</span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -234,11 +230,20 @@
                     <h3 class="text-xl font-bold leading-tight mb-4 flex items-center gap-2 text-slate-800">
                         <span class="material-symbols-outlined text-primary">description</span> Mô tả sản phẩm
                     </h3>
-                    <div class="prose prose-slate max-w-none bg-slate-50 p-6 rounded-xl border border-slate-200 text-sm">
+                    <div class="relative bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                         @if($product->description)
-                            {!! $product->description !!}
+                            <div id="admin-desc-content" class="prose prose-slate max-w-none text-sm overflow-hidden" style="max-height: 300px;">
+                                {!! $product->description !!}
+                            </div>
+                            <div id="admin-desc-gradient" class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                            
+                            <div class="mt-4 text-center">
+                                <button type="button" id="admin-desc-toggle" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-2 rounded-full font-bold text-sm transition-colors border border-slate-300 shadow-sm">
+                                    Xem toàn bộ mô tả
+                                </button>
+                            </div>
                         @else
-                            <p class="text-slate-400 italic">Chưa có thông tin mô tả chi tiết cho sản phẩm này.</p>
+                            <p class="text-slate-400 italic text-center py-6">Chưa có thông tin mô tả chi tiết cho sản phẩm này.</p>
                         @endif
                     </div>
                 </div>
@@ -247,4 +252,38 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const descContent = document.getElementById('admin-desc-content');
+        const descToggleBtn = document.getElementById('admin-desc-toggle');
+        const descGradient = document.getElementById('admin-desc-gradient');
+
+        if (descContent && descToggleBtn) {
+            // Nếu bài viết thực sự ngắn (không bị tràn 300px), thì ẩn nút Xem thêm luôn
+            if (descContent.scrollHeight <= 300) {
+                descToggleBtn.style.display = 'none';
+                if(descGradient) descGradient.style.display = 'none';
+            }
+
+            descToggleBtn.addEventListener('click', function() {
+                if (descContent.style.maxHeight === '300px') {
+                    // Mở rộng
+                    descContent.style.maxHeight = descContent.scrollHeight + 'px';
+                    descToggleBtn.innerHTML = 'Thu gọn mô tả';
+                    if(descGradient) descGradient.style.opacity = '0';
+                } else {
+                    // Thu gọn
+                    descContent.style.maxHeight = '300px';
+                    descToggleBtn.innerHTML = 'Xem toàn bộ mô tả';
+                    if(descGradient) descGradient.style.opacity = '1';
+                    
+                    // Cuộn nhẹ lên trên để Admin không bị lạc trôi
+                    const y = descContent.getBoundingClientRect().top + window.scrollY - 100;
+                    window.scrollTo({top: y, behavior: 'smooth'});
+                }
+            });
+        }
+    });
+</script>
 @endsection

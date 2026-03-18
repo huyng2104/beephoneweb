@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-// Gọi các Model tương ứng (Bro nhớ tạo Model nhé)
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Post;
@@ -14,24 +13,24 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // // 1. Lấy 4 danh mục nổi bật
-        // $categories = Category::where('is_active', true)->take(4)->get();
+        // 1. Lấy danh mục nổi bật (Lấy 4 cái để xếp vừa giao diện)
+        $categories = Category::where('is_active', true)->take(4)->get();
 
-        // // 2. Lấy 4 sản phẩm mới nhất
-        // $newProducts = Product::where('status', 1)
-        //     ->orderBy('created_at', 'desc')
-        //     ->take(10)
-        //     ->get();
+        // 2. Lấy 8 sản phẩm mới nhất 
+        // 💡 TINH TẾ: Dùng 'with' để kéo theo biến thể (variants) giúp View không bị giật lag (N+1 query) khi tìm giá Min!
+       $newProducts = Product::with(['variants.attributeValues.attribute', 'brand', 'categories'])
+            ->where('status', 'active') 
+            ->orderBy('created_at', 'desc')
+            ->take(8) 
+            ->get();
 
-        // // HOẶC NẾU CHƯA CÓ cột trạng thái nào, thì xóa luôn lệnh where đi cho nhanh:
-        // $newProducts = Product::orderBy('created_at', 'desc')
-        //     ->take(10)
-        //     ->get();
-        // // 3. Lấy 3 bài viết tin tức mới nhất
-        // $news = Post::latest()->take(3)->get();
-        // $brands = Brand::where('is_active', 1)->orderBy('sort_order')->get();
-        // // Đẩy data ra view 'client.home'
-        // return view('client.home', compact('categories', 'newProducts', 'news', 'brands'));
-        return view('client.home.index');
+        // 3. Lấy 3 bài viết tin tức mới nhất
+        $news = Post::latest()->take(3)->get();
+
+        // 4. Lấy thương hiệu
+        $brands = Brand::where('is_active', 1)->orderBy('sort_order')->get();
+
+        // 5. Đẩy data ra ĐÚNG cái file index mới của bro
+        return view('client.home.index', compact('categories', 'newProducts', 'news', 'brands'));
     }
 }

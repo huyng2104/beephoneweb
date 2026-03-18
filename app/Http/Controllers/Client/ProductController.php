@@ -37,35 +37,65 @@ class ProductController extends Controller
             $query->whereIn('brand_id', $request->brands);
         }
 
-        // 4. Lọc theo Khoảng giá
-        if ($request->has('price_range')) {
-            switch ($request->price_range) {
+       // 4. LỌC THEO KHOẢNG GIÁ (HỖ TRỢ CẢ BIẾN THỂ)
+    if ($request->has('price_range') && $request->price_range != '') {
+        $range = $request->price_range;
+        
+        $query->where(function($q) use ($range) {
+            
+            // Xử lý khoảng giá
+            $minPrice = 0;
+            $maxPrice = 0;
+            $isOver = false;
+
+            switch($range) {
                 case 'under-5':
-                    $query->where(function($q) {
-                        $q->where('sale_price', '<', 5000000)->where('sale_price', '>', 0)
-                          ->orWhere(function($sub) { $sub->where('price', '<', 5000000)->where('sale_price', 0); });
-                    });
+                    $maxPrice = 5000000;
                     break;
                 case '5-10':
-                    $query->where(function($q) {
-                        $q->whereBetween('sale_price', [5000000, 10000000])->where('sale_price', '>', 0)
-                          ->orWhere(function($sub) { $sub->whereBetween('price', [5000000, 10000000])->where('sale_price', 0); });
-                    });
+                    $minPrice = 5000000;
+                    $maxPrice = 10000000;
                     break;
                 case '10-15':
-                    $query->where(function($q) {
-                        $q->whereBetween('sale_price', [10000000, 15000000])->where('sale_price', '>', 0)
-                          ->orWhere(function($sub) { $sub->whereBetween('price', [10000000, 15000000])->where('sale_price', 0); });
-                    });
+                    $minPrice = 10000000;
+                    $maxPrice = 15000000;
                     break;
                 case 'over-15':
-                    $query->where(function($q) {
-                        $q->where('sale_price', '>', 15000000)
-                          ->orWhere(function($sub) { $sub->where('price', '>', 15000000)->where('sale_price', 0); });
-                    });
+                    $minPrice = 15000000;
+                    $isOver = true;
                     break;
             }
-        }
+
+            // Lọc cho cả Sản phẩm ĐƠN GIẢN (type = simple) VÀ Sản phẩm BIẾN THỂ (type = variable)
+            $q->where(function($subQ) use ($minPrice, $maxPrice, $isOver) {
+                
+                // Trường hợp 1: Sản phẩm Đơn giản (Lấy giá từ bảng products)
+                $subQ->where('type', 'simple')
+                     ->where(function($simpleQ) use ($minPrice, $maxPrice, $isOver) {
+                         $priceColumn = \DB::raw('COALESCE(NULLIF(sale_price, 0), price)');
+                         if ($isOver) {
+                             $simpleQ->where($priceColumn, '>=', $minPrice);
+                         } else {
+                             $simpleQ->whereBetween($priceColumn, [$minPrice, $maxPrice]);
+                         }
+                     });
+                     
+                // Trường hợp 2: HOẶC Sản phẩm Biến thể (Phải chui vào bảng product_variants để tìm)
+                $subQ->orWhere(function($varQ) use ($minPrice, $maxPrice, $isOver) {
+                    $varQ->where('type', 'variable')
+                         ->whereHas('variants', function($variantQ) use ($minPrice, $maxPrice, $isOver) {
+                             $variantPriceColumn = \DB::raw('COALESCE(NULLIF(sale_price, 0), price)');
+                             if ($isOver) {
+                                 $variantQ->where($variantPriceColumn, '>=', $minPrice);
+                             } else {
+                                 $variantQ->whereBetween($variantPriceColumn, [$minPrice, $maxPrice]);
+                             }
+                         });
+                });
+                
+            });
+        });
+    }
 
         // 5. Sắp xếp (Sorting)
         $sort = $request->input('sort', 'newest');

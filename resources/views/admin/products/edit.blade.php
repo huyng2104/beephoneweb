@@ -73,13 +73,12 @@
                             </div>
                             <div class="p-5">
                                 <div class="bg-blue-50 text-blue-700 p-3 rounded-lg text-xs mb-5 border border-blue-100 font-medium">
-                                    Mỗi thông số chỉ được chọn 1 lần. Đã sửa lỗi: Giờ bro có thể nhập liệu cho ô Giá trị bình thường.
+                                    Mỗi thông số chỉ được chọn 1 lần. Nhập liệu giá trị vào ô trống.
                                 </div>
                                 
                                 <div id="specs-wrapper" class="space-y-3">
                                   @php
                                         $existingSpecs = old('specifications', isset($product) && $product->specifications ? $product->specifications : []);
-                                        // Đã bỏ RAM & ROM
                                         $fixedKeys = ['Màn hình', 'Hệ điều hành', 'Camera trước', 'Camera sau', 'Chip xử lý (CPU)', 'Dung lượng pin', 'Sạc nhanh', 'Cổng kết nối', 'Kích thước & Trọng lượng'];
                                     @endphp
 
@@ -165,7 +164,8 @@
                                             </select>
                                             <button type="button" id="btn-add-attribute" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded text-sm font-bold transition-colors">Thêm</button>
                                         </div>
-                                        <div id="attributes-wrapper" class="space-y-4"></div>
+                                        <div id="attributes-wrapper" class="space-y-4">
+                                            </div>
                                     </div>
 
                                     <div id="tab-variations" class="tab-content hidden">
@@ -180,7 +180,7 @@
                                             <button type="button" id="btn-do-variation" class="bg-primary text-slate-900 px-5 py-2 rounded text-sm font-bold shadow-sm">Đi</button>
                                         </div>
 
-                                        <div id="bulk-update-variations" class="bg-emerald-50 border border-emerald-200 p-4 rounded-lg mb-6 shadow-sm" style="display: {{ $product->variants->count() > 0 ? 'block' : 'none' }};">
+                                        <div id="bulk-update-variations" class="bg-emerald-50 border border-emerald-200 p-4 rounded-lg mb-6 shadow-sm" style="display: {{ $product->variants && $product->variants->count() > 0 ? 'block' : 'none' }};">
                                             <h5 class="font-bold text-sm text-emerald-800 mb-3 flex items-center gap-2">
                                                 <span class="material-symbols-outlined text-lg">bolt</span> Cập nhật nhanh cho TẤT CẢ biến thể
                                             </h5>
@@ -193,56 +193,68 @@
                                                 </button>
                                             </div>
                                         </div>
+                                        
                                         <div id="variations-wrapper" class="space-y-3">
-                                            @foreach($product->variants as $index => $variant)
-                                                <div class="border border-slate-200 rounded-lg overflow-hidden bg-white variation-item shadow-sm mt-3">
-                                                    <div class="bg-slate-50 p-3 flex justify-between items-center border-b border-slate-200 cursor-pointer" onclick="$(this).next().slideToggle()">
-                                                        <div class="flex items-center gap-3">
-                                                            <span class="material-symbols-outlined text-slate-400">drag_indicator</span>
-                                                            <strong class="text-xs text-primary uppercase">
-                                                                #{{ $index + 1 }} — 
-                                                                @php
-                                                                    $sortedVals = $variant->attributeValues->sortBy(function($val) {
-                                                                        $name = mb_strtolower($val->attribute->name ?? '');
-                                                                        if (str_contains($name, 'màu')) return 1;
-                                                                        if (str_contains($name, 'ram')) return 2;
-                                                                        if (str_contains($name, 'dung lượng') || str_contains($name, 'rom')) return 3;
-                                                                        return 99;
-                                                                    });
-                                                                @endphp
-                                                                
-                                                                @foreach($sortedVals as $val)
-                                                                    {{ $val->value }}{{ !$loop->last ? ' - ' : '' }}
+                                            @if($product->variants)
+                                                @foreach($product->variants as $index => $variant)
+                                                    <div class="border border-slate-200 rounded-lg overflow-hidden bg-white variation-item shadow-sm mt-3">
+                                                        <div class="bg-slate-50 p-3 flex justify-between items-center border-b border-slate-200 cursor-pointer" onclick="$(this).next().slideToggle()">
+                                                            <div class="flex items-center gap-3">
+                                                                <span class="material-symbols-outlined text-slate-400">drag_indicator</span>
+                                                                <strong class="text-xs text-primary uppercase">
+                                                                    #{{ $index + 1 }} — 
+                                                                    @php
+                                                                        $sortedVals = $variant->attributeValues->sortBy(function($val) {
+                                                                            $name = mb_strtolower($val->attribute->name ?? '');
+                                                                            if (str_contains($name, 'màu')) return 1;
+                                                                            if (str_contains($name, 'ram')) return 2;
+                                                                            if (str_contains($name, 'dung lượng') || str_contains($name, 'rom')) return 3;
+                                                                            return 99;
+                                                                        });
+                                                                    @endphp
+                                                                    
+                                                                    @foreach($sortedVals as $val)
+                                                                        {{ $val->value }}{{ !$loop->last ? ' - ' : '' }}
+                                                                    @endforeach
+                                                                </strong>
+                                                                @foreach($variant->attributeValues as $val)
+                                                                    <input type="hidden" name="variations[{{ $index }}][attributes][{{ $val->attribute_id }}]" value="{{ $val->id }}">
                                                                 @endforeach
-                                                            </strong>
-                                                            @foreach($variant->attributeValues as $val)
-                                                                <input type="hidden" name="variations[{{ $index }}][attributes][{{ $val->attribute_id }}]" value="{{ $val->id }}">
-                                                            @endforeach
+                                                                <input type="hidden" name="variations[{{ $index }}][id]" value="{{ $variant->id }}">
+                                                            </div>
+                                                            <div class="flex items-center gap-4">
+                                                                <button type="button" class="text-red-500 text-[10px] font-bold uppercase" onclick="$(this).closest('.variation-item').remove()">Xóa</button>
+                                                            </div>
                                                         </div>
-                                                        <div class="flex items-center gap-4">
-                                                            <button type="button" class="text-red-500 text-[10px] font-bold uppercase" onclick="$(this).closest('.variation-item').remove()">Xóa</button>
+                                                        
+                                                        <div class="p-4 grid grid-cols-2 md:grid-cols-5 gap-4 bg-white" style="display:none;">
+                                                            <div>
+                                                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">SKU</label>
+                                                                <input type="text" name="variations[{{ $index }}][sku]" value="{{ $variant->sku }}" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
+                                                            </div>
+                                                            <div>
+                                                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giá bán (₫)</label>
+                                                                <input type="number" name="variations[{{ $index }}][price]" value="{{ (int)$variant->price }}" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
+                                                            </div>
+                                                            <div>
+                                                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giá KM</label>
+                                                                <input type="number" name="variations[{{ $index }}][sale_price]" value="{{ $variant->sale_price ? (int)$variant->sale_price : '' }}" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
+                                                            </div>
+                                                            <div>
+                                                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kho</label>
+                                                                <input type="number" name="variations[{{ $index }}][stock]" value="{{ $variant->stock }}" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
+                                                            </div>
+                                                            <div>
+                                                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ảnh biến thể</label>
+                                                                @if($variant->thumbnail)
+                                                                    <img src="{{ asset('storage/' . $variant->thumbnail) }}" class="h-10 w-10 object-cover rounded mb-2 border border-slate-200 shadow-sm">
+                                                                @endif
+                                                                <input type="file" name="variations[{{ $index }}][thumbnail]" accept="image/*" class="w-full text-[11px] border-slate-200 rounded py-1 bg-slate-50 cursor-pointer file:border-0 file:bg-slate-200 file:text-slate-700 file:text-[10px] file:font-bold file:px-2 file:py-1 file:rounded hover:file:bg-slate-300">
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4 bg-white" style="display:none;">
-                                                        <div>
-                                                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">SKU</label>
-                                                            <input type="text" name="variations[{{ $index }}][sku]" value="{{ $variant->sku }}" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
-                                                        </div>
-                                                        <div>
-                                                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giá bán (₫)</label>
-                                                            <input type="number" name="variations[{{ $index }}][price]" value="{{ (int)$variant->price }}" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
-                                                        </div>
-                                                        <div>
-                                                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giá KM</label>
-                                                            <input type="number" name="variations[{{ $index }}][sale_price]" value="{{ $variant->sale_price ? (int)$variant->sale_price : '' }}" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
-                                                        </div>
-                                                        <div>
-                                                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kho</label>
-                                                            <input type="number" name="variations[{{ $index }}][stock]" value="{{ $variant->stock }}" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endforeach
+                                                @endforeach
+                                            @endif
                                         </div>
                                     </div>
 
@@ -256,7 +268,7 @@
                         
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase text-slate-700">Trạng thái & Thương hiệu</h4>
+                                <h4 class="font-black text-sm uppercase text-slate-700">Trạng thái</h4>
                             </div>
                             <div class="p-5 space-y-4">
                                 <div>
@@ -319,6 +331,28 @@
                             </div>
                         </div>
 
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                                <h4 class="font-black text-sm uppercase text-slate-700">Album hình ảnh</h4>
+                            </div>
+                            <div class="p-5">
+                                @if($product->images && $product->images->count() > 0)
+                                    <div class="grid grid-cols-3 gap-2 mb-4">
+                                        @foreach($product->images as $img)
+                                            <div class="rounded-lg overflow-hidden border border-slate-200 relative group aspect-square">
+                                                <img src="{{ asset('storage/' . $img->path) }}" class="w-full h-full object-cover">
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                <div class="relative group aspect-[2/1] rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 hover:border-primary transition-colors cursor-pointer flex flex-col items-center justify-center">
+                                    <input type="file" name="images[]" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                    <span class="material-symbols-outlined text-2xl text-slate-300 group-hover:text-primary transition-colors">collections</span>
+                                    <span class="text-[10px] font-black uppercase mt-1 text-slate-400">Thêm nhiều ảnh</span>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </main>
@@ -331,7 +365,6 @@
     .custom-scrollbar::-webkit-scrollbar-track { background: #f8f9fa; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    
     .active-tab { border-left: 3px solid #f4c025; background-color: rgba(244, 192, 37, 0.08); color: #000 !important; }
     .tox-notifications-container { display: none !important; }
 </style>
@@ -342,7 +375,6 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // --- TABS LOGIC ---
         const tabBtns = document.querySelectorAll('.tab-btn');
         const tabContents = document.querySelectorAll('.tab-content');
 
@@ -354,7 +386,6 @@
         }
         tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.getAttribute('data-target'))));
 
-        // --- PRODUCT TYPE TOGGLE ---
         const productType = document.getElementById('product_type');
         const tabVarBtn = document.getElementById('btn-tab-variations');
         const tabGeneral = document.querySelector('[data-target="tab-general"]');
@@ -378,7 +409,6 @@
         productType.addEventListener('change', toggleProductTabs);
         toggleProductTabs();
 
-        // --- PREVIEW IMAGE ---
         $('#input-thumbnail').change(function() {
             if (this.files && this.files[0]) {
                 let reader = new FileReader();
@@ -387,23 +417,22 @@
             }
         });
         
-        // --- TINYMCE ---
+        // FIX: TẮT HIỆN THÔNG BÁO UPGRADE CỦA TINYMCE
         tinymce.init({
             selector: '#description-editor',
             height: 500,
-            plugins: [ 'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'help', 'wordcount' ],
+            plugins: [ 'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'wordcount' ],
             toolbar: 'undo redo | blocks | bold italic textcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | table | removeformat | code',
             content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; color: #334155; }',
-            paste_data_images: true, branding: false, promotion: false
+            paste_data_images: true, 
+            branding: false, 
+            promotion: false // Dòng này tắt nút Upgrade
         });
     });
 
     $(document).ready(function() {
         const baseUrl = '/admin';
 
-        // ==========================================
-        // LOGIC CHỐNG TRÙNG LẶP THÔNG SỐ (SPECS)
-        // ==========================================
         const fixedSpecKeys = ['Màn hình', 'Hệ điều hành', 'Camera trước', 'Camera sau', 'Chip xử lý (CPU)', 'Dung lượng pin', 'Sạc nhanh'];
 
         function getSpecOptionsHtml(selectedValue = '') {
@@ -434,43 +463,67 @@
 
         $('#btn-add-spec').click(function() {
             let currentRows = $('.spec-row').length;
-            if (currentRows >= fixedSpecKeys.length) {
-                alert('Đã thêm đủ tất cả các thông số quan trọng rồi!');
-                return;
-            }
+            if (currentRows >= fixedSpecKeys.length) return alert('Đã thêm đủ tất cả các thông số!');
 
             let newRow = `
                 <div class="flex items-center gap-3 spec-row mt-3">
                     <span class="material-symbols-outlined text-slate-300 cursor-move">drag_indicator</span>
-                    <select name="spec_keys[]" class="w-1/3 text-sm border-slate-200 rounded focus:ring-primary focus:border-primary py-2 px-3 bg-slate-50 cursor-pointer spec-key-select" required>
+                    <select name="spec_keys[]" class="w-1/3 text-sm border-slate-200 rounded focus:ring-primary py-2 px-3 bg-slate-50 cursor-pointer spec-key-select" required>
                         <option value="" disabled selected>-- Chọn thông số --</option>
                         ${getSpecOptionsHtml()}
                     </select>
-                    <input type="text" name="spec_values[]" placeholder="Nhập giá trị (VD: 8GB, 5000mAh...)" class="flex-1 text-sm border-slate-200 rounded focus:ring-primary focus:border-primary py-2 px-3 bg-slate-50" required>
-                    <button type="button" class="btn-remove-spec text-red-500 hover:text-red-700 p-2 transition-colors" title="Xóa dòng này">
+                    <input type="text" name="spec_values[]" placeholder="Nhập giá trị..." class="flex-1 text-sm border-slate-200 rounded focus:ring-primary py-2 px-3 bg-slate-50" required>
+                    <button type="button" class="btn-remove-spec text-red-500 hover:text-red-700 p-2" title="Xóa dòng này">
                         <span class="material-symbols-outlined text-lg">delete</span>
                     </button>
                 </div>
             `;
             $('#specs-wrapper').append(newRow);
-            updateAvailableSpecs(); // Cập nhật lại dropdown ngay lập tức
+            updateAvailableSpecs(); 
         });
 
         $(document).on('click', '.btn-remove-spec', function() {
             $(this).closest('.spec-row').remove();
-            updateAvailableSpecs(); // Trả lại Option cho dropdown khác
+            updateAvailableSpecs(); 
         });
 
-        $(document).on('change', '.spec-key-select', function() {
-            updateAvailableSpecs(); // Khóa Option ở các dòng khác
-        });
-
-        // Chạy lần đầu để khóa các option đã được chọn sẵn từ DB
+        $(document).on('change', '.spec-key-select', function() { updateAvailableSpecs(); });
         updateAvailableSpecs();
 
         // ==========================================
-        // LOGIC ATTRIBUTES & VARIATIONS
+        // LOGIC ATTRIBUTES & VARIATIONS (EDIT)
         // ==========================================
+        function renderAttr(id, name, values) {
+            let options = values.map(v => `<option value="${v.id}">${v.value || v.name}</option>`).join('');
+            let isVar = $('#product_type').val() === 'variable' ? 'flex' : 'none';
+            
+            let html = `
+                <div class="border border-slate-200 rounded-lg p-4 bg-white shadow-sm mb-4" id="attr-block-${id}">
+                    <div class="flex justify-between mb-3">
+                        <strong class="text-sm text-slate-700">${name}</strong>
+                        <button type="button" class="text-red-500 text-[10px] font-bold uppercase" onclick="$(this).parent().parent().remove()">Xóa</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Giá trị</label>
+                            <select multiple name="attributes[${id}][values][]" class="w-full select2-edit">${options}</select>
+                            <input type="hidden" name="attributes[${id}][id]" value="${id}">
+                            
+                            <div class="flex gap-2 mt-2">
+                                <button type="button" class="btn-select-all bg-slate-100 border border-slate-300 px-3 py-1 text-xs rounded hover:bg-slate-200 font-medium text-slate-700">Chọn tất cả</button>
+                                <button type="button" class="btn-deselect-all bg-slate-100 border border-slate-300 px-3 py-1 text-xs rounded hover:bg-slate-200 font-medium text-slate-700">Không chọn</button>
+                            </div>
+                        </div>
+                        <div class="var-checkbox-wrapper items-center gap-2 pt-5" style="display: ${isVar}">
+                            <input type="checkbox" name="attributes[${id}][variation]" value="1" class="rounded text-primary" checked>
+                            <span class="text-xs font-bold text-slate-600">Dùng cho biến thể</span>
+                        </div>
+                    </div>
+                </div>`;
+            $('#attributes-wrapper').append(html);
+            $(`#attr-block-${id} .select2-edit`).select2({ width: '100%', placeholder: 'Chọn giá trị...' });
+        }
+
         $('#btn-add-attribute').click(function() {
             let select = $('#attribute-selector');
             let id = select.val();
@@ -482,31 +535,12 @@
             });
         });
 
-        function renderAttr(id, name, values) {
-            let options = values.map(v => `<option value="${v.id}">${v.value || v.name}</option>`).join('');
-            let isVar = $('#product_type').val() === 'variable' ? 'flex' : 'none';
-            
-            let html = `
-                <div class="border border-slate-200 rounded-lg p-4 bg-white shadow-sm" id="attr-block-${id}">
-                    <div class="flex justify-between mb-3">
-                        <strong class="text-sm text-slate-700">${name}</strong>
-                        <button type="button" class="text-red-500 text-[10px] font-bold uppercase" onclick="$(this).parent().parent().remove()">Xóa</button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Giá trị</label>
-                            <select multiple name="attributes[${id}][values][]" class="w-full select2-edit">${options}</select>
-                            <input type="hidden" name="attributes[${id}][id]" value="${id}">
-                        </div>
-                        <div class="var-checkbox-wrapper items-center gap-2 pt-5" style="display: ${isVar}">
-                            <input type="checkbox" name="attributes[${id}][variation]" value="1" class="rounded text-primary">
-                            <span class="text-xs font-bold text-slate-600">Dùng cho biến thể</span>
-                        </div>
-                    </div>
-                </div>`;
-            $('#attributes-wrapper').append(html);
-            $('.select2-edit').select2({ width: '100%', placeholder: 'Chọn giá trị...' });
-        }
+        $(document).on('click', '.btn-select-all', function() { 
+            $(this).closest('div').siblings('select').find('option').prop('selected', true).trigger('change'); 
+        });
+        $(document).on('click', '.btn-deselect-all', function() { 
+            $(this).closest('div').siblings('select').find('option').prop('selected', false).trigger('change'); 
+        });
 
         $('#btn-do-variation').click(function() {
             let action = $('#variation-action').val();
@@ -514,8 +548,8 @@
             $('.var-checkbox-wrapper input:checked').each(function() {
                 let block = $(this).closest('[id^="attr-block-"]');
                 let attrId = block.find('input[type="hidden"]').val();
-                let attrName = block.find('strong').text().trim().toLowerCase(); 
-                let vals = block.find('select').select2('data');       
+                let attrName = block.find('strong.text-sm').text().trim().toLowerCase(); 
+                let vals = block.find('select').select2('data');      
                 
                 if (vals.length) {
                     attrGroups.push(vals.map(v => ({ attrId: attrId, valId: v.id, valName: v.text, attrName: attrName })));
@@ -579,7 +613,7 @@
                                 <button type="button" class="text-red-500 text-[10px] font-bold uppercase" onclick="$(this).closest('.variation-item').remove()">Xóa</button>
                             </div>
                         </div>
-                        <div class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4 bg-white" style="display:none;">
+                        <div class="p-4 grid grid-cols-2 md:grid-cols-5 gap-4 bg-white" style="display:none;">
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">SKU</label>
                                 <input type="text" name="variations[${uniqueIdx}][sku]" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
@@ -596,6 +630,10 @@
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kho</label>
                                 <input type="number" name="variations[${uniqueIdx}][stock]" value="0" class="w-full text-sm border-slate-200 rounded py-1.5 px-2">
                             </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ảnh biến thể</label>
+                                <input type="file" name="variations[${uniqueIdx}][thumbnail]" accept="image/*" class="w-full text-[11px] border-slate-200 rounded py-1 bg-slate-50 cursor-pointer file:border-0 file:bg-slate-200 file:text-slate-700 file:text-[10px] file:font-bold file:px-2 file:py-1 file:rounded hover:file:bg-slate-300">
+                            </div>
                         </div>
                     </div>`;
                 
@@ -606,7 +644,7 @@
             if (action === 'add_missing' && addedCount === 0) {
                 alert('Tất cả các tổ hợp này đều đã tồn tại, không có biến thể nào mới được tạo thêm!');
             } else if (addedCount > 0) {
-                alert(`Đã thêm thành công ${addedCount} biến thể mới. Bấm mở rộng để nhập giá và tồn kho nhé!`);
+                alert(`Đã thêm thành công ${addedCount} biến thể mới. Bấm mở rộng để nhập giá, kho và ảnh nhé!`);
             } 
         });
 
@@ -633,6 +671,45 @@
                 alert('Cập nhật hàng loạt thành công! 🎉');
             }
         });
+        
+        // --- LOAD THUỘC TÍNH CŨ KHI EDIT (FIX LỖI NULL) ---
+        @php
+            $groupedAttrs = [];
+            if (isset($product) && $product->variants) {
+                foreach($product->variants as $variant) {
+                    if ($variant->attributeValues) {
+                        foreach($variant->attributeValues as $attrVal) {
+                            $attrId = $attrVal->attribute_id;
+                            if(!isset($groupedAttrs[$attrId])) {
+                                $groupedAttrs[$attrId] = [
+                                    'id' => $attrId,
+                                    'name' => $attrVal->attribute->name ?? 'Thuộc tính',
+                                    'values' => []
+                                ];
+                            }
+                            $existingIds = array_column($groupedAttrs[$attrId]['values'], 'id');
+                            if(!in_array($attrVal->id, $existingIds)) {
+                                $groupedAttrs[$attrId]['values'][] = $attrVal;
+                            }
+                        }
+                    }
+                }
+            }
+        @endphp
+
+        @if(count($groupedAttrs) > 0)
+            @foreach($groupedAttrs as $attrId => $data)
+                $.get(`${baseUrl}/attributes/{{ $attrId }}/get-values`, function(res) {
+                    if (res.success) {
+                        renderAttr('{{ $attrId }}', '{!! $data['name'] !!}', res.data);
+                        setTimeout(() => {
+                            let select = $(`#attr-block-{{ $attrId }} .select2-edit`);
+                            select.val({!! json_encode(array_column($data['values'], 'id')) !!}).trigger('change');
+                        }, 500);
+                    }
+                });
+            @endforeach
+        @endif
     });
 </script>
 @endsection
