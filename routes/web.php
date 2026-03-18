@@ -50,7 +50,7 @@ Route::middleware('check.verified')->group(function(){
     Route::resource('profile', ProfileController::class);
 
     // Nạp ví
-    Route::post('/wallet/deposit',[PaymentController::class,'createDeposit'])->name('wallet.deposit');
+    Route::post('/wallet/deposit',[ClientWalletController::class,'createDeposit'])->name('wallet.deposit');
     Route::get('vnpay/response',[PaymentController::class,'vnpay_response'])->name('wallet.deposit');
 
     // Rút ví

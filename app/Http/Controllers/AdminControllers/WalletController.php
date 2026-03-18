@@ -7,28 +7,29 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class WalletController extends Controller
 {
     // 1. Hiển thị danh sách ví của tất cả User
-   public function index(Request $request)
-{
-    $search = $request->input('search');
+    public function index(Request $request)
+    {
+        $search = $request->input('search');
 
-    // Lấy danh sách user, nếu có search thì lọc theo name hoặc email
-    $users = User::with('wallet')
-        ->when($search, function ($query) use ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
-        })
-        ->paginate(10)
-        ->withQueryString(); // Rất quan trọng: Giữ lại từ khóa search khi bấm sang trang 2, 3
+        // Lấy danh sách user, nếu có search thì lọc theo name hoặc email
+        $users = User::with('wallet')
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->paginate(10)
+            ->withQueryString(); // Rất quan trọng: Giữ lại từ khóa search khi bấm sang trang 2, 3
 
-    return view('admin.wallets.index', compact('users', 'search'));
-}
+        return view('admin.wallets.index', compact('users', 'search'));
+    }
 
     // 2. Xử lý cộng/trừ tiền (Admin nạp/phạt tiền user)
     public function updateBalance(Request $request)
@@ -59,14 +60,14 @@ class WalletController extends Controller
                 if ($request->action == 'add') {
                     $wallet->balance += $amount;
                     $type = 'deposit';
-                    $desc = $request->description ?? 'Admin nạp tiền vào ví';
+                    $desc = $request->description ?? 'Nạp tiền';
                 } else {
                     if ($wallet->balance < $amount) {
                         throw new \Exception('Số dư ví không đủ để trừ!');
                     }
                     $wallet->balance -= $amount;
-                    $type = 'withdraw'; 
-                    $desc = $request->description ?? 'Admin trừ tiền ví';
+                    $type = 'withdraw';
+                    $desc = $request->description ?? 'Trừ tiền';
                 }
 
                 $wallet->save();
@@ -79,12 +80,13 @@ class WalletController extends Controller
                     'balance_before' => $balanceBefore,
                     'balance_after' => $wallet->balance,
                     'description' => $desc,
+                    'reference_type' => get_class(Auth::user()),
+                    'reference_id' => Auth::user()->id,
                     'status' => 'completed'
                 ]);
             });
 
             return back()->with('success', 'Cập nhật số dư thành công!');
-
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -94,13 +96,13 @@ class WalletController extends Controller
     public function history($id)
     {
         $user = User::findOrFail($id);
-        
+
         // Đảm bảo user này có ví để xem lịch sử
         $wallet = Wallet::firstOrCreate(
             ['user_id' => $user->id],
             ['balance' => 0, 'status' => 'active']
         );
-        
+
         // Lấy danh sách giao dịch mới nhất xếp lên đầu
         $transactions = $wallet->transactions()->paginate(15);
 

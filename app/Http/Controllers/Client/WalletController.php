@@ -12,6 +12,65 @@ use App\Models\WithdrawalRequest;
 
 class WalletController extends Controller
 {
+    public function createDeposit(Request $request)
+    {
+        $request->validate(['amount' => 'required|numeric|min:10000']);
+        $user = Auth::user();
+        // dd($user->wallet->balance);
+        // 1. Tạo giao dịch Pending trong DB
+        $transaction = $user->wallet->transactions()->create([
+            'type'           => 'deposit',
+            'amount'         => $request->amount,
+            'balance_before' => $user->wallet->balance,
+            'balance_after' => $user->wallet->balance,
+            'status'         => 'pending',
+            'description'    => 'Nạp tiền vào ví qua VNPay',
+            // Lưu ID làm mã tham chiếu gửi lên VNPay
+        ]);
+
+        // 2. Cấu hình tham số gửi lên VNPay
+        $vnp_Url = env('VNPAY_URL');
+        $vnp_HashSecret = env('VNPAY_HASH_SECRET');
+
+        $inputData = [
+            "vnp_Version"    => "2.1.0",
+            "vnp_TmnCode"    => env('VNPAY_TMN_CODE'),
+            "vnp_Amount"     => $transaction->amount * 100, // VNPay yêu cầu nhân số tiền với 100
+            "vnp_Command"    => "pay",
+            "vnp_CreateDate" => date('YmdHis'),
+            "vnp_CurrCode"   => "VND",
+            "vnp_IpAddr"     => $request->ip(),
+            "vnp_Locale"     => "vn",
+            "vnp_OrderInfo"  => "Nap tien vao vi GD: " . $transaction->id,
+            "vnp_OrderType"  => "billpayment",
+            "vnp_ReturnUrl"  => env('VNPAY_RETURN_URL'),
+            "vnp_TxnRef"     => $transaction->id, // Mã giao dịch của bạn
+        ];
+
+        // 3. Sắp xếp dữ liệu và tạo chữ ký (Signature)
+        ksort($inputData);
+        $query = "";
+        $hashdata = "";
+        $i = 0;
+        foreach ($inputData as $key => $value) {
+            if ($i == 1) {
+                $hashdata .= '&' . urlencode($key) . "=" . urlencode($value);
+            } else {
+                $hashdata .= urlencode($key) . "=" . urlencode($value);
+                $i = 1;
+            }
+            $query .= urlencode($key) . "=" . urlencode($value) . '&';
+        }
+
+        $vnp_Url = $vnp_Url . "?" . $query;
+        if (isset($vnp_HashSecret)) {
+            $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
+            $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
+        }
+
+        // 4. Chuyển hướng khách sang trang VNPay
+        return redirect($vnp_Url);
+    }
     public function  withdrawalPost(Request $request)
     {
         $request->validate([
@@ -72,7 +131,6 @@ class WalletController extends Controller
     {
         $transaction = WalletTransaction::findOrFail($id);
         $withdrawalRequest = WithdrawalRequest::where('transaction_id', $transaction->id)->first();
-
         try {
             DB::transaction(function () use ($withdrawalRequest, $transaction) {
                 $withdrawalRequest->update([
@@ -88,8 +146,10 @@ class WalletController extends Controller
                     'type' => 'refund',
                     'amount' => $transaction->amount,
                     'balance_before' => $transaction->wallet->balance,
+                    'reference_id' => $withdrawalRequest->id,
+                    'reference_type' =>  get_class($withdrawalRequest),
                     'balance_after' => $transaction->wallet->balance + $transaction->amount,
-                    'description' => 'Hoàn tiền cho lệnh rút',
+                    'description' => 'Hoàn tiền',
                 ]);
                 $transaction->wallet->increment('balance', $transaction->amount);
             });

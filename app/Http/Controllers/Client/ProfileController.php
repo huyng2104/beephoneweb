@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -74,7 +75,10 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
         if (!$user || $user->wallet == null) {
-            return abort(404);
+            Wallet::firstOrCreate(
+                ['user_id' => $user->id],
+                ['balance' => 0, 'status' => 'active']
+            );
         }
         return view('client.profiles.wallet')->with([
             'user' => $user

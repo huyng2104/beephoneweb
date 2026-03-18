@@ -22,4 +22,5 @@ class WithdrawalRequest extends Model
     public function walletTransaction(){
         return $this->belongsTo(WalletTransaction::class);
     }
+
 }
