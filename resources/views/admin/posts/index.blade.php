@@ -206,8 +206,9 @@ font-weight: 500;
                                                 </td>
                                                 <td class="py-4 px-2 text-center">
                                                     <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input checked="" class="sr-only toggle-checkbox"
-                                                            type="checkbox" />
+                                                        <input type="checkbox" class="sr-only toggle-checkbox toggle-status"
+                                                            data-id="{{ $post->id }}"
+                                                            {{ $post->status ? 'checked' : '' }} />
                                                         <div
                                                             class="toggle-label w-10 h-5 bg-gray-300 rounded-full transition-colors relative">
                                                             <div
@@ -297,5 +298,25 @@ font-weight: 500;
                 }, 500);
             }
         }, 3000);
+
+        document.querySelectorAll('.toggle-status').forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                let postId = this.dataset.id;
+
+                fetch(`/admin/posts/toggle-status/${postId}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) {
+                            alert('Có lỗi xảy ra!');
+                        }
+                    });
+            });
+        });
     </script>
 @endsection

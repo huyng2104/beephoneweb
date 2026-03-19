@@ -62,8 +62,8 @@ Route::middleware('check.verified')->group(function () {
     Route::get('vnpay/response', [PaymentController::class, 'vnpay_response'])->name('wallet.deposit');
 
     // Rút ví
-    Route::post('/wallet/withdrawal',[ClientWalletController::class,'withdrawalPost'])->name('wallet.withdrawal');
-    Route::post('/wallet/withdrawal/cancelled/{id}',[ClientWalletController::class,'withdrawalCancelled'])->name('wallet.withdrawal.cancelled');
+    Route::post('/wallet/withdrawal', [ClientWalletController::class, 'withdrawalPost'])->name('wallet.withdrawal');
+    Route::post('/wallet/withdrawal/cancelled/{id}', [ClientWalletController::class, 'withdrawalCancelled'])->name('wallet.withdrawal.cancelled');
 
     // QUẢN LÝ GIỎ HÀNG
     Route::post('/cart/add', [CartController::class, 'add'])->name('client.cart.add');
@@ -88,7 +88,6 @@ Route::middleware('check.verified')->group(function () {
     Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
     Route::get('/bai-viet/{slug}', [ClientPostController::class, 'show'])->name('client.posts.show');
     Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])->name('chatbot.chat');
-
 });
 
 // ==========================================
@@ -216,6 +215,8 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::resource('posts', PostController::class);
         Route::resource('post-categories', PostCategoryController::class);
         Route::post('posts/upload', [PostController::class, 'upload'])->name('posts.upload');
+        Route::post('posts/toggle-status/{id}', [PostController::class, 'toggleStatus'])
+            ->name('admin.posts.toggleStatus');
 
         // 9. Quản lý Ví tiền
         Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');

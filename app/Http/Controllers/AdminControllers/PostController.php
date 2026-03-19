@@ -216,4 +216,16 @@ class PostController extends Controller
 
         return view('admin.posts.detail', compact('post'));
     }
+
+    public function toggleStatus($id)
+    {
+        $post = Post::findOrFail($id);
+        $post->status = !$post->status;
+        $post->save();
+
+        return response()->json([
+            'success' => true,
+            'status' => $post->status
+        ]);
+    }
 }
