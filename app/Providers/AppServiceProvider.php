@@ -29,13 +29,15 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
         });
-        $permissions = Permission::select('id', 'slug')->get();
-        foreach ($permissions as $permission) {
+        if (Schema::hasTable('permissions')) {
+            $permissions = Permission::select('id', 'slug')->get();
+            foreach ($permissions as $permission) {
 
-            Gate::define($permission->slug, function ($user) use ($permission) {
+                Gate::define($permission->slug, function ($user) use ($permission) {
 
-                return $user->permissions->contains('id', $permission->id);
-            });
+                    return $user->permissions->contains('id', $permission->id);
+                });
+            }
         }
 
         VerifyEmail::toMailUsing(function ($notifiable, $url) {

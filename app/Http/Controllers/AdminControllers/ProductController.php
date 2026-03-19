@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Attribute;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -161,6 +162,10 @@ class ProductController extends Controller
             // 2. Xử lý ảnh đại diện
             $thumbnailPath = $product->thumbnail;
             if ($request->hasFile('thumbnail')) {
+                // Kiểm tra và xóa ảnh cũ để tránh rác server
+                if ($product->thumbnail && Storage::disk('public')->exists($product->thumbnail)) {
+                    Storage::disk('public')->delete($product->thumbnail);
+                }
                 $thumbnailPath = $request->file('thumbnail')->store('products', 'public');
             }
 

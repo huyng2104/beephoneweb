@@ -311,7 +311,11 @@
                             <div class="p-5 text-center">
                                 @if($product->thumbnail)
                                     <div class="mb-4 rounded-xl overflow-hidden border border-slate-200 shadow-inner group relative">
-                                        <img src="{{ asset('storage/' . $product->thumbnail) }}" id="preview-thumbnail" class="w-full aspect-square object-cover">
+                                        @if(str_starts_with($product->thumbnail, 'http'))
+                                            <img src="{{ $product->thumbnail }}" id="preview-thumbnail" class="w-full aspect-square object-cover">
+                                        @else
+                                            <img src="{{ asset('storage/' . $product->thumbnail) }}" id="preview-thumbnail" class="w-full aspect-square object-cover">
+                                        @endif
                                         <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold">Thay đổi ảnh</div>
                                     </div>
                                 @endif
