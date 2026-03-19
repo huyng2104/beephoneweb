@@ -27,6 +27,7 @@ use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\WalletController as ClientWalletController;
 use App\Http\Controllers\Client\CartController;
+use App\Http\Controllers\Client\PostController as ClientPostController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -37,7 +38,7 @@ use App\Http\Controllers\Client\CartController;
 // HỆ THỐNG CLIENT (Public)
 // ==========================================
 
-Route::middleware('check.verified')->group(function(){
+Route::middleware('check.verified')->group(function () {
     // Trang chủ
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -46,19 +47,23 @@ Route::middleware('check.verified')->group(function(){
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
 
     // Thông tin tài khoản
-    Route::get('profile/wallet',[ProfileController::class,'user_wallet'])->name('profile.wallet');
+    Route::get('profile/wallet', [ProfileController::class, 'user_wallet'])->name('profile.wallet');
     Route::resource('profile', ProfileController::class);
 
     // Nạp ví
-    Route::post('/wallet/deposit',[ClientWalletController::class,'createDeposit'])->name('wallet.deposit');
-    Route::get('vnpay/response',[PaymentController::class,'vnpay_response'])->name('wallet.deposit');
+    Route::post('/wallet/deposit', [ClientWalletController::class, 'createDeposit'])->name('wallet.deposit');
+    Route::get('vnpay/response', [PaymentController::class, 'vnpay_response'])->name('wallet.deposit');
 
     // Rút ví
-    Route::post('/wallet/withdrawal',[ClientWalletController::class,'withdrawalPost'])->name('wallet.withdrawal');
-    Route::post('/wallet/withdrawal/cancelled/{id}',[ClientWalletController::class,'withdrawalCancelled'])->name('wallet.withdrawal.cancelled');
+    Route::post('/wallet/withdrawal', [ClientWalletController::class, 'withdrawalPost'])->name('wallet.withdrawal');
+    Route::post('/wallet/withdrawal/cancelled/{id}', [ClientWalletController::class, 'withdrawalCancelled'])->name('wallet.withdrawal.cancelled');
     // QUẢN LÝ GIỎ HÀNG
     Route::post('/cart/add', [CartController::class, 'add'])->name('client.cart.add');
     Route::get('/cart/count', [CartController::class, 'count'])->name('client.cart.count');
+
+    // Quản lý bài viết
+    Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
+    Route::get('/bai-viet/{slug}', [ClientPostController::class, 'show'])->name('client.posts.show');
 
     // THÊM 3 DÒNG NÀY:
     Route::get('/gio-hang', [CartController::class, 'index'])->name('client.cart.index');

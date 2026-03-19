@@ -171,10 +171,10 @@ class PostController extends Controller
     {
         $post = Post::findOrFail($id);
 
-        if ($post->thumbnail && file_exists(public_path('uploads/posts/' . $post->thumbnail))) {
+        // if ($post->thumbnail && file_exists(public_path('uploads/posts/' . $post->thumbnail))) {
 
-            unlink(public_path('uploads/posts/' . $post->thumbnail));
-        }
+        //     unlink(public_path('uploads/posts/' . $post->thumbnail));
+        // }
 
         $post->delete();
 

@@ -21,6 +21,8 @@
                 href="{{ route('client.products.index', ['category' => 'am-thanh']) }}">Âm thanh</a>
             <a class="text-sm font-medium hover:text-primary transition-colors"
                 href="{{ route('client.products.index') }}">Khuyến mãi</a>
+            <a class="text-sm font-medium hover:text-primary transition-colors"
+                href="{{ route('client.posts.index') }}">Tin tức & Bài viết</a>
         </nav>
 
         <div class="flex flex-1 justify-end items-center gap-4 max-w-xl">
