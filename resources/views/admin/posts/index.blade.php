@@ -239,7 +239,9 @@ font-weight: 500;
                                                             @csrf
                                                             @method('DELETE')
 
-                                                            <button class="p-1.5 hover:bg-red-50 text-red-600 rounded-md"
+                                                            <button
+                                                                onclick="return confirm('Bạn có chắc chắn muốn xóa bài viết này không?')"
+                                                                class="p-1.5 hover:bg-red-50 text-red-600 rounded-md"
                                                                 title="Xóa">
                                                                 <span class="material-symbols-outlined">delete</span>
                                                             </button>

@@ -78,42 +78,48 @@
                     công nghệ</button>
             </div>
             <!-- Featured Post -->
-            <section class="mb-12 @container">
-                <div
-                    class="bg-white dark:bg-[#1a170d] rounded-xl overflow-hidden shadow-sm flex flex-col @3xl:flex-row group cursor-pointer border border-[#f5f3f0] dark:border-[#332e1c]">
-                    <div class="w-full @3xl:w-3/5 h-[300px] @3xl:h-auto overflow-hidden">
-                        <div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105"
-                            data-alt="Professional review of iPhone 15 Pro Max on a sleek desk"
-                            style="background-image: url('{{ asset('uploads/posts/' . $featuredPost->thumbnail) }}')">
-                        </div>
-                    </div>
-                    <div class="p-8 @3xl:w-2/5 flex flex-col justify-center">
-                        <span class="text-primary font-bold text-xs tracking-widest uppercase mb-3 block">Bài viết nổi
-                            bật</span>
-                        <h2
-                            class="text-2xl @3xl:text-3xl font-bold leading-tight mb-4 group-hover:text-primary transition-colors">
-                            {{ $featuredPost->title }}</h2>
-                        <p class="text-[#8a8060] mb-6 line-clamp-3">
-                            {{ Str::limit(strip_tags($featuredPost->content), 150) }}</p>
+            @if ($featuredPost)
+                <section class="mb-12 @container">
+                    <a href="{{ route('client.posts.show', $featuredPost->slug) }}" class="flex flex-col @3xl:flex-row">
                         <div
-                            class="flex items-center justify-between mt-auto pt-6 border-t border-[#f5f3f0] dark:border-[#332e1c]">
-                            <div class="flex items-center gap-4 text-xs text-[#8a8060]">
-                                <span class="flex items-center gap-1"><span
-                                        class="material-symbols-outlined text-[16px]">calendar_today</span>
-                                    {{ $featuredPost->created_at->format('d/m/Y') }}</span>
-                                <span class="flex items-center gap-1"><span
-                                        class="material-symbols-outlined text-[16px]">chat_bubble</span> 15 bình luận</span>
-                                <span class="flex items-center gap-1"><span
-                                        class="material-symbols-outlined text-[16px]">visibility</span>{{ $featuredPost->views }}
-                                </span>
+                            class="bg-white dark:bg-[#1a170d] rounded-xl overflow-hidden shadow-sm flex flex-col @3xl:flex-row group cursor-pointer border border-[#f5f3f0] dark:border-[#332e1c]">
+                            <div class="w-full @3xl:w-3/5 h-[300px] @3xl:h-auto overflow-hidden">
+                                <div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105"
+                                    data-alt="Professional review of iPhone 15 Pro Max on a sleek desk"
+                                    style="background-image: url('{{ asset('uploads/posts/' . $featuredPost->thumbnail) }}')">
+                                </div>
                             </div>
-                            <button
-                                class="bg-primary hover:bg-opacity-90 text-[#181611] font-bold py-2 px-6 rounded-lg text-sm transition-all">Đọc
-                                bài viết</button>
+                            <div class="p-8 @3xl:w-2/5 flex flex-col justify-center">
+                                <span class="text-primary font-bold text-xs tracking-widest uppercase mb-3 block">Bài viết
+                                    nổi
+                                    bật</span>
+                                <h2
+                                    class="text-2xl @3xl:text-3xl font-bold leading-tight mb-4 group-hover:text-primary transition-colors">
+                                    {{ $featuredPost->title }}</h2>
+                                <p class="text-[#8a8060] mb-6 line-clamp-3">
+                                    {{ Str::limit(strip_tags($featuredPost->content), 150) }}</p>
+                                <div
+                                    class="flex items-center justify-between mt-auto pt-6 border-t border-[#f5f3f0] dark:border-[#332e1c]">
+                                    <div class="flex items-center gap-4 text-xs text-[#8a8060]">
+                                        <span class="flex items-center gap-1"><span
+                                                class="material-symbols-outlined text-[16px]">calendar_today</span>
+                                            {{ $featuredPost->created_at->format('d/m/Y') }}</span>
+                                        <span class="flex items-center gap-1"><span
+                                                class="material-symbols-outlined text-[16px]">chat_bubble</span> 15 bình
+                                            luận</span>
+                                        <span class="flex items-center gap-1"><span
+                                                class="material-symbols-outlined text-[16px]">visibility</span>{{ $featuredPost->views }}
+                                        </span>
+                                    </div>
+                                    <button
+                                        class="bg-primary hover:bg-opacity-90 text-[#181611] font-bold py-2 px-6 rounded-lg text-sm transition-all">Đọc
+                                        bài viết</button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </section>
+                    </a>
+                </section>
+            @endif
             {{-- @if ($featuredPost)
                 <div class="bg-white ... group">
                     <a href="{{ route('client.posts.show', $featuredPost->slug) }}" class="flex flex-col @3xl:flex-row">
@@ -154,111 +160,39 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Card 1 -->
-                        <div
-                            class="bg-white dark:bg-[#1a170d] rounded-xl overflow-hidden border border-[#f5f3f0] dark:border-[#332e1c] group">
-                            <div class="h-48 overflow-hidden relative">
-                                <div class="w-full h-full bg-center bg-cover transition-transform group-hover:scale-105"
-                                    data-alt="Modern smartphone showing various mobile apps"
-                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDmSuQdMGUu-v3DlW_Lg0S9Fewjd0eQxDx9hx5QJWdfl-65kAy-4AzoWltU7SE_L7P9UbMDzDAk8vtH3Ui5ZQY4bGlmDRmqFwGreyszGH-iV-YnM42Tt2QAzy1qTLqcyk6YN7-VQmFTSfa_3zzp1h4Uh4rVTsQ01FXHw8Zb0u9g1gW0xdQ9FYk3HBDtVSYQAYt1yLz-HAoCfRLuEv3ll3ajSXSVBiulA-KbcIUxSVjSOUJKdswt7rhjh0iLNWR4zxBjSdEFDZL0dy4");'>
-                                </div>
-                                <span
-                                    class="absolute top-3 left-3 bg-primary text-[#181611] text-[10px] font-black uppercase px-2 py-1 rounded">Mẹo
-                                    hay</span>
+                        @foreach ($posts as $item)
+                            <div
+                                class="bg-white dark:bg-[#1a170d] rounded-xl overflow-hidden border border-[#f5f3f0] dark:border-[#332e1c] group">
+                                <a href="{{ route('client.posts.show', $item->slug) }}" class="flex flex-col @3xl:flex-row">
+                                    <div class="h-48 overflow-hidden relative">
+                                        <div class="w-full h-full bg-center bg-cover transition-transform group-hover:scale-105"
+                                            data-alt="Modern smartphone showing various mobile apps"
+                                            style="background-image: url('{{ asset('uploads/posts/' . $item->thumbnail) }}')">
+                                        </div>
+                                        <span
+                                            class="absolute top-3 left-3 bg-primary text-[#181611] text-[10px] font-black uppercase px-2 py-1 rounded">{{ $item->category->name ?? 'Tin tức' }}</span>
+                                    </div>
+                                    <div class="p-5">
+                                        <h4 class="text-lg font-bold mb-3 group-hover:text-primary transition-colors">
+                                            {{ $item->title }}</h4>
+                                        <p class="text-[#8a8060] text-sm line-clamp-2 mb-4">
+                                            {{ Str::limit(strip_tags($item->content), 100) }}</p>
+                                        <div
+                                            class="flex items-center justify-between pt-4 border-t border-[#f5f3f0] dark:border-[#332e1c]">
+                                            <span class="text-xs text-[#8a8060]">{{ $item->views }} lượt xem</span>
+                                            <a class="text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all"
+                                                href="#">Đọc tiếp <span
+                                                    class="material-symbols-outlined text-[18px]">arrow_forward</span></a>
+                                        </div>
+                                    </div>
+                                </a>
                             </div>
-                            <div class="p-5">
-                                <h4 class="text-lg font-bold mb-3 group-hover:text-primary transition-colors">10 mẹo tối ưu
-                                    hóa pin cực hay cho Android và iOS</h4>
-                                <p class="text-[#8a8060] text-sm line-clamp-2 mb-4">Làm sao để pin điện thoại dùng được lâu
-                                    hơn? Khám phá ngay những thiết lập ẩn giúp kéo dài tuổi thọ pin...</p>
-                                <div
-                                    class="flex items-center justify-between pt-4 border-t border-[#f5f3f0] dark:border-[#332e1c]">
-                                    <span class="text-xs text-[#8a8060]">8 bình luận</span>
-                                    <a class="text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all"
-                                        href="#">Đọc tiếp <span
-                                            class="material-symbols-outlined text-[18px]">arrow_forward</span></a>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Card 2 -->
-                        <div
-                            class="bg-white dark:bg-[#1a170d] rounded-xl overflow-hidden border border-[#f5f3f0] dark:border-[#332e1c] group">
-                            <div class="h-48 overflow-hidden relative">
-                                <div class="w-full h-full bg-center bg-cover transition-transform group-hover:scale-105"
-                                    data-alt="Person holding a new smartphone in a tech store"
-                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDnP0tHgAkQcCnpww9JB4tpNHQrPKnD_ZEZOtTcJQU9tXsy-O3tUPblVCnt_Vt4T9zI6Mmnbpa8UTFcoPpjJpiKiaAPbKcdBfZVHIGOTz6jyumJ_QmlIgt2Gzu11CuSctrj2T0inD2J0_EZbqxmmt6TCgEb9eygiPGlzjWf89MwQwSQ6wnS5OcCEnhLep1BTSH04HELb-U-36yQLzwD5lsvfbZiJj1nwvPimjGHbQBnr9i4V3RpnFO3rVyqGyWBYRJvxjYbkDiGGE0");'>
-                                </div>
-                                <span
-                                    class="absolute top-3 left-3 bg-primary text-[#181611] text-[10px] font-black uppercase px-2 py-1 rounded">Cẩm
-                                    nang</span>
-                            </div>
-                            <div class="p-5">
-                                <h4 class="text-lg font-bold mb-3 group-hover:text-primary transition-colors">Nên mua Galaxy
-                                    S24 Ultra hay đợi iPhone 16?</h4>
-                                <p class="text-[#8a8060] text-sm line-clamp-2 mb-4">So sánh chi tiết thông số và trải nghiệm
-                                    người dùng giữa hai siêu phẩm hàng đầu thế giới hiện nay.</p>
-                                <div
-                                    class="flex items-center justify-between pt-4 border-t border-[#f5f3f0] dark:border-[#332e1c]">
-                                    <span class="text-xs text-[#8a8060]">24 bình luận</span>
-                                    <a class="text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all"
-                                        href="#">Đọc tiếp <span
-                                            class="material-symbols-outlined text-[18px]">arrow_forward</span></a>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Card 3 -->
-                        <div
-                            class="bg-white dark:bg-[#1a170d] rounded-xl overflow-hidden border border-[#f5f3f0] dark:border-[#332e1c] group">
-                            <div class="h-48 overflow-hidden relative">
-                                <div class="w-full h-full bg-center bg-cover transition-transform group-hover:scale-105"
-                                    data-alt="Close up of a professional mobile camera lens"
-                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuANc8HbUZv_B8cO62tF106GnOOkiFqZwGTu43mwt8yywexg3WY4LgwoRl05k6cYom--iOA9eUpoGelkvv3X1Q3LTLty-uMuWdqZxkPQ6evVZ6uEn26940yUcd7tl_pMdaziYAXZeJEBI_DDl0_yYeGb_0S0FzwaKmlG4Q6wGpqbmKCxeDa5TVWrvdDB_yDi54cZpyYZppklFdY-_zWsJyIAKfFK670AHOOrUX8KGnja1ky7Sh1Yq_O2SLQzblIlXofATQ_mREXhY3o");'>
-                                </div>
-                                <span
-                                    class="absolute top-3 left-3 bg-primary text-[#181611] text-[10px] font-black uppercase px-2 py-1 rounded">Tin
-                                    công nghệ</span>
-                            </div>
-                            <div class="p-5">
-                                <h4 class="text-lg font-bold mb-3 group-hover:text-primary transition-colors">Sony ra mắt
-                                    cảm biến máy ảnh mới cho di động</h4>
-                                <p class="text-[#8a8060] text-sm line-clamp-2 mb-4">Cuộc cách mạng nhiếp ảnh di động sắp
-                                    bắt đầu với cảm biến 1-inch thế hệ mới từ Sony.</p>
-                                <div
-                                    class="flex items-center justify-between pt-4 border-t border-[#f5f3f0] dark:border-[#332e1c]">
-                                    <span class="text-xs text-[#8a8060]">12 bình luận</span>
-                                    <a class="text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all"
-                                        href="#">Đọc tiếp <span
-                                            class="material-symbols-outlined text-[18px]">arrow_forward</span></a>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Card 4 -->
-                        <div
-                            class="bg-white dark:bg-[#1a170d] rounded-xl overflow-hidden border border-[#f5f3f0] dark:border-[#332e1c] group">
-                            <div class="h-48 overflow-hidden relative">
-                                <div class="w-full h-full bg-center bg-cover transition-transform group-hover:scale-105"
-                                    data-alt="Selection of wireless earphones and accessories"
-                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDklUHFXAH-6ivpTlM6bJ5JNEbXJeqelfKPCt8w0poyJVzpT01N-KolzgjnvD-d8afYUXrmQJ-hR5WwDYN43Xa7E5YhFMt7-urQ8Xk-ANRmVROJYCt7NHiRtQVG3lW5kMLjn73qk19YQkU5SGBD6UxH9-TPCfd1iIuK2HsLs_TgC-3YrZl-xCLyBBMZcS7eUd9AZYTlftSxfT6HXqMGrFEifp3lgZswM98kbmL-qP8Thb1UStHLcHzBHlKQbsnIaHql9WMGy6qjVl4");'>
-                                </div>
-                                <span
-                                    class="absolute top-3 left-3 bg-primary text-[#181611] text-[10px] font-black uppercase px-2 py-1 rounded">Đánh
-                                    giá</span>
-                            </div>
-                            <div class="p-5">
-                                <h4 class="text-lg font-bold mb-3 group-hover:text-primary transition-colors">Top 5 tai
-                                    nghe Bluetooth giá rẻ đáng mua nhất</h4>
-                                <p class="text-[#8a8060] text-sm line-clamp-2 mb-4">Không cần chi quá nhiều tiền vẫn có thể
-                                    sở hữu tai nghe chống ồn chủ động cực xịn.</p>
-                                <div
-                                    class="flex items-center justify-between pt-4 border-t border-[#f5f3f0] dark:border-[#332e1c]">
-                                    <span class="text-xs text-[#8a8060]">45 bình luận</span>
-                                    <a class="text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all"
-                                        href="#">Đọc tiếp <span
-                                            class="material-symbols-outlined text-[18px]">arrow_forward</span></a>
-                                </div>
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
                     <!-- Pagination -->
+                    {{-- <div class="mt-10">
+                        {{ $posts->links() }}
+                    </div> --}}
                     <div class="mt-12 flex justify-center gap-2">
                         <button
                             class="size-10 flex items-center justify-center rounded-lg bg-primary text-[#181611] font-bold">1</button>
@@ -280,73 +214,32 @@
                         <h4 class="text-xl font-bold mb-6 border-l-4 border-primary pl-3">Xem nhiều nhất</h4>
                         <div class="space-y-6">
                             <!-- Top item 1 -->
-                            <div class="flex gap-4 group cursor-pointer">
-                                <div class="size-20 shrink-0 rounded-lg bg-center bg-cover"
-                                    data-alt="Close-up of a vibrant mobile screen"
-                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAuKxCByBOIiqH0_sWB1SCJDNu99T827Cc6K77aw_aPELYB7m-uu6rSYWsFWdepL9mVsa1OxIpppwWyeB6xjR6t3IGcX5Kn8UISfKN2Ev2z7mhBQd8UGxeDm70g1ixFtu2vmWcHK4nZBjqJ9PiQU5sfQsGOouHsZvWFg99czDPUaMAWJhz-kpuPPY3Ww1yHjwPbypnynnYoeedX75bWVZU1DR7DunTigZYJPQia2MEQ5t00Lil7xvgHkQojbTWRpnHHucgNx6Qaqgs");'>
-                                </div>
-                                <div class="flex flex-col justify-center">
-                                    <h5 class="text-sm font-bold group-hover:text-primary transition-colors line-clamp-2">
-                                        Cách bảo mật thông tin cá nhân trên smartphone cực kỳ quan trọng</h5>
-                                    <span class="text-[10px] text-[#8a8060] mt-1 uppercase tracking-wider">Mẹo hay • 1.2k
-                                        lượt xem</span>
-                                </div>
-                            </div>
-                            <!-- Top item 2 -->
-                            <div class="flex gap-4 group cursor-pointer">
-                                <div class="size-20 shrink-0 rounded-lg bg-center bg-cover"
-                                    data-alt="New iPhone model in various colors"
-                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCqsWvZFd0-ecMO3MFejIPH8k2ILu7-RKDdDa98y7SQ6zL_qIBG31JYGB9zV2zPDifP6gkE6HlETlUjojigiQIGonkf05PdFCg6uZosO0kWkixMi6i6Qz03uVRuC0-zv7hrfafgxobi9bnXZI6S5vwRfYJghQl9LdP_V6WFxSbyYIxwNfVuxQVTZLrzYQcIhoEi45-K14RUE4V4SsLC9XyjKgFL_KjPo55PuLCoETja4zRH1HMgMJugUgduL8L2eF4sBa3aIbFx13s");'>
-                                </div>
-                                <div class="flex flex-col justify-center">
-                                    <h5 class="text-sm font-bold group-hover:text-primary transition-colors line-clamp-2">
-                                        Tổng hợp bảng giá iPhone cũ mới nhất tháng 5/2024</h5>
-                                    <span class="text-[10px] text-[#8a8060] mt-1 uppercase tracking-wider">Cẩm nang • 900
-                                        lượt xem</span>
-                                </div>
-                            </div>
-                            <!-- Top item 3 -->
-                            <div class="flex gap-4 group cursor-pointer">
-                                <div class="size-20 shrink-0 rounded-lg bg-center bg-cover"
-                                    data-alt="Digital watch and smart devices"
-                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB1dAjOvRscyNZIyZxWWd118zWQ5fZ478L-Kt_Q1w5W_asBqSYOxs8ffy6ET-qMroK7ch2gHmG9DVej9ipzYKgSx3CxaW363Vza82058qrtiTKAh2t87Qi4wyqu1BUWkrWh66Mnj2pgkxGyQXfYpkEheHp34q3-pvRdmQV6qyaK7TbcDPscrcPXJDhC7x699fu718TExKK4k1RQaNXp3TnvLnGqHqIvufYxctLYDXcR0L9jW-h5t0iGPJQgDGuZ7xJwFf051LIatRM");'>
-                                </div>
-                                <div class="flex flex-col justify-center">
-                                    <h5 class="text-sm font-bold group-hover:text-primary transition-colors line-clamp-2">
-                                        Smartwatch nào pin trâu nhất hiện nay? Đánh giá thực tế</h5>
-                                    <span class="text-[10px] text-[#8a8060] mt-1 uppercase tracking-wider">Đánh giá • 850
-                                        lượt xem</span>
-                                </div>
-                            </div>
+                            @foreach ($mostViewed as $item)
+                                <a href="{{ route('client.posts.show', $item->slug) }}"
+                                    class="flex flex-col @3xl:flex-row">
+
+                                    <div class="flex gap-4 group cursor-pointer">
+                                        <div class="size-20 shrink-0 rounded-lg bg-center bg-cover"
+                                            data-alt="Close-up of a vibrant mobile screen"
+                                            style="background-image: url('{{ asset('uploads/posts/' . $item->thumbnail) }}')">
+                                        </div>
+                                        <div class="flex flex-col justify-center">
+                                            <h5
+                                                class="text-sm font-bold group-hover:text-primary transition-colors line-clamp-2">
+                                                {{ $item->title }}</h5>
+                                            <span
+                                                class="text-[10px] text-[#8a8060] mt-1 uppercase tracking-wider">{{ $item->category->name }}
+                                                •
+                                                {{ $item->views }} lượt xem</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            @endforeach
+
                         </div>
                     </div>
                     <!-- Newsletter Signup -->
-                    <div class="bg-primary p-8 rounded-xl relative overflow-hidden">
-                        <div class="relative z-10">
-                            <h4 class="text-2xl font-black text-[#181611] mb-2">Đăng ký nhận tin</h4>
-                            <p class="text-[#181611]/80 text-sm mb-6 font-medium">Nhận những tin tức công nghệ mới nhất và
-                                ưu đãi đặc quyền từ Bee Phone.</p>
-                            <form class="space-y-3">
-                                <input
-                                    class="w-full px-4 py-3 rounded-lg border-none focus:ring-2 focus:ring-[#181611] text-sm bg-white/90"
-                                    placeholder="Địa chỉ email của bạn" type="email" />
-                                <button
-                                    class="w-full bg-[#181611] text-white py-3 rounded-lg font-bold text-sm hover:bg-[#181611]/90 transition-all">ĐĂNG
-                                    KÝ NGAY</button>
-                            </form>
-                        </div>
-                        <!-- Decorative Icon -->
-                        <span
-                            class="material-symbols-outlined absolute -bottom-6 -right-6 text-black/10 text-[120px] pointer-events-none">mail</span>
-                    </div>
-                    <!-- Ad Banner or Promotion -->
-                    <div class="bg-[#2d291e] p-6 rounded-xl text-white text-center">
-                        <p class="text-primary text-xs font-bold tracking-[0.2em] mb-2">QUẢNG CÁO</p>
-                        <h5 class="text-lg font-bold mb-4">Lên đời iPhone 15 Pro Max <br /> trợ giá tới 2.000.000đ</h5>
-                        <button
-                            class="border border-white/30 hover:bg-white hover:text-[#2d291e] transition-all px-6 py-2 rounded-lg text-sm font-bold">Xem
-                            ngay</button>
-                    </div>
+
                 </aside>
             </div>
         </main>
