@@ -135,10 +135,10 @@
                     </div>
                 </div>
 
-                <a href="#" class="w-full bg-primary text-black font-bold py-4 rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-3 active:scale-[0.98] block text-center">
-                    <span>Thanh toán ngay</span>
-                    <span class="material-symbols-outlined">arrow_forward</span>
-                </a>
+                <a href="{{ route('client.checkout.index') }}" class="w-full bg-primary text-black font-bold py-4 rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-3 active:scale-[0.98] block text-center">
+    <span>Thanh toán ngay</span>
+    <span class="material-symbols-outlined">arrow_forward</span>
+</a>
                 <p class="text-center text-[10px] text-gray-400 dark:text-gray-500 mt-6 uppercase tracking-widest font-bold">An toàn • Bảo mật • Tiết kiệm</p>
             </div>
         </div>

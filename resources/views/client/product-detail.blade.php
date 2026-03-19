@@ -1,5 +1,4 @@
 @extends('client.layouts.app')
-
 @section('title', 'Bee Phone - ' . $product->name)
 
 @section('content')

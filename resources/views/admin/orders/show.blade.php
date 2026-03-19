@@ -124,12 +124,26 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             @foreach ($order->items as $item)
+
+                            @php
+                                $product = $item->product;
+                                $productName = $product ? $product->name : $item->product_name;
+                                $productThumbnail = $product ? $product->thumbnail : $item->thumbnail;
+                                $productSku = $product ? $product->sku : $item->product_sku;
+                            @endphp
+
                             <tr>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-3 min-w-[220px]">
                                         <div class="size-10 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center">
                                             @if ($item->thumbnail)
                                             <img src="{{ $item->thumbnail }}" alt="{{ $item->product_name }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                                            @if ($productThumbnail)
+                                                @if(str_starts_with($productThumbnail, 'http'))
+                                                    <img src="{{ $productThumbnail }}" alt="{{ $productName }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                                                @else
+                                                    <img src="{{ Storage::url($productThumbnail) }}" alt="{{ $productName }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                                                @endif
                                             <span class="material-symbols-outlined text-slate-400 text-[18px] hidden">inventory_2</span>
                                             @else
                                             <span class="material-symbols-outlined text-slate-400 text-[18px]">inventory_2</span>
@@ -139,12 +153,24 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ $item->product_sku ?: '-' }}</td>
+                                        <div class="flex-1">
+                                            <span class="font-semibold text-slate-900 dark:text-white block">{{ $productName }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ $productSku ?: '-' }}</td>
                                 <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ number_format($item->unit_price) }} ₫</td>
                                 <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $item->quantity }}</td>
                                 <td class="px-4 py-3 text-right font-semibold text-slate-900 dark:text-white">{{ number_format($item->line_total) }} ₫</td>
                             </tr>
                             @endforeach
                         </tbody>
+                        <tfoot class="bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
+                            <tr>
+                                <td colspan="4" class="px-4 py-3 text-right font-semibold text-slate-900 dark:text-white">Tổng cộng:</td>
+                                <td class="px-4 py-3 text-right font-bold text-lg text-primary">{{ number_format($order->total_amount) }} ₫</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
                 @else
@@ -152,6 +178,50 @@
                     Đơn hàng này chưa có dữ liệu chi tiết sản phẩm.
                 </div>
                 @endif
+
+
+                <!-- Payment Section -->
+                <div class="border-t border-slate-200 dark:border-slate-700 pt-6 mt-6">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4">Thông tin thanh toán</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                            <p class="text-xs text-slate-500 font-semibold">Phương thức thanh toán</p>
+                            <p class="text-base font-bold text-slate-900 dark:text-white mt-2">
+                                {{ $paymentMethodLabels[$order->payment_method] ?? $order->payment_method }}
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                            <p class="text-xs text-slate-500 font-semibold">Trạng thái thanh toán</p>
+                            <div class="mt-2">
+                                @php
+                                    $statusColor = match($order->payment_status) {
+                                        'paid' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                        'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
+                                        'failed' => 'bg-red-50 text-red-700 border-red-200',
+                                        'cancelled' => 'bg-slate-100 text-slate-700 border-slate-200',
+                                        default => 'bg-slate-100 text-slate-700 border-slate-200'
+                                    };
+                                @endphp
+                                <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold border {{ $statusColor }}">
+                                    {{ $paymentStatusLabels[$order->payment_status] ?? $order->payment_status }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                            <p class="text-xs text-slate-500 font-semibold">Thời gian thanh toán</p>
+                            <p class="text-base font-bold text-slate-900 dark:text-white mt-2">
+                                @if ($order->payment_status === 'paid')
+                                    {{ $order->paid_at?->format('d/m/Y H:i') }}
+                                @elseif ($order->payment_status === 'pending')
+                                    Chờ thanh toán
+                                @else
+                                    Chưa thanh toán
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -48,10 +48,11 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-        $order->load('items');
 
         $statusLabels = Order::statusLabels();
         $returnStatusLabels = Order::returnStatusLabels();
+        $paymentMethodLabels = Order::paymentMethodLabels();
+        $paymentStatusLabels = Order::paymentStatusLabels();
 
         return view('admin.orders.show', [
             'order' => $order,
@@ -59,11 +60,13 @@ class OrderController extends Controller
             'statusLabels' => $statusLabels,
             'returnStatuses' => Order::returnStatuses(),
             'returnStatusLabels' => $returnStatusLabels,
+            'paymentMethodLabels' => $paymentMethodLabels,
+            'paymentStatusLabels' => $paymentStatusLabels,
             'availableStatuses' => $this->availableStatusesFor($order),
         ]);
     }
 
-    public function updateStatus(Request $request, Order $order): RedirectResponse
+  public function updateStatus(Request $request, Order $order): RedirectResponse
     {
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:' . implode(',', Order::statuses())],
@@ -77,15 +80,30 @@ class OrderController extends Controller
             ]);
         }
 
+        // THÊM ĐOẠN NÀY VÀO: Báo lỗi nếu Admin cố tình truyền trạng thái Đã nhận
+        if ($nextStatus === Order::STATUS_RECEIVED) {
+            throw ValidationException::withMessages([
+                'status' => 'Trạng thái này là đặc quyền của Khách hàng. Admin chỉ được cập nhật đến Đã Giao Hàng!',
+            ]);
+        }
+
         if (!$order->canMoveTo($nextStatus)) {
             throw ValidationException::withMessages([
                 'status' => 'Không thể chuyển trạng thái theo luồng hiện tại.',
             ]);
         }
 
-        $order->update(['status' => $nextStatus]);
 
-        return back()->with('status', 'Đã cập nhật trạng thái đơn hàng.');
+        $data = ['status' => $nextStatus];
+
+        if ($nextStatus === Order::STATUS_RECEIVED) {
+            $data['payment_status'] = 'paid';
+            $data['paid_at'] = now();
+        }
+
+        $order->update($data);
+
+        return back()->with('status', 'Cập nhật thành công');
     }
 
     public function cancel(Request $request, Order $order): RedirectResponse
@@ -142,12 +160,18 @@ class OrderController extends Controller
         return $pdf->download('don-hang-' . $order->order_code . '.pdf');
     }
 
-    private function availableStatusesFor(Order $order): array
+   private function availableStatusesFor(Order $order): array
     {
         $statuses = [$order->status];
 
         foreach (Order::statuses() as $status) {
-            if ($order->canMoveTo($status) && !in_array($status, $statuses, true) && $status !== Order::STATUS_CANCELLED) {
+            // Lọc ra các trạng thái hợp lệ, NHƯNG cấm Admin chọn Hủy và Đã Nhận Hàng
+            if (
+                $order->canMoveTo($status) && 
+                !in_array($status, $statuses, true) && 
+                $status !== Order::STATUS_CANCELLED &&
+                $status !== Order::STATUS_RECEIVED // THÊM DÒNG NÀY ĐỂ CHẶN ADMIN
+            ) {
                 $statuses[] = $status;
             }
         }

@@ -20,13 +20,21 @@ use App\Http\Controllers\AuthControllers\AuthController;
 use App\Http\Controllers\AdminControllers\VoucherController;
 use App\Http\Controllers\AdminControllers\UserController;
 use App\Http\Controllers\AdminControllers\OrderController;
+
+
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
 use App\Http\Controllers\AdminControllers\WalletController;
+
 use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\WalletController as ClientWalletController;
 use App\Http\Controllers\Client\CartController;
+use App\Http\Controllers\Client\CheckoutController;
+use App\Http\Controllers\Client\OrderController as ClientOrderController;
+use App\Http\Controllers\Client\ChatbotController;
+use App\Http\Controllers\Client\PostController as ClientPostController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -37,7 +45,7 @@ use App\Http\Controllers\Client\CartController;
 // HỆ THỐNG CLIENT (Public)
 // ==========================================
 
-Route::middleware('check.verified')->group(function(){
+Route::middleware('check.verified')->group(function () {
     // Trang chủ
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -46,27 +54,42 @@ Route::middleware('check.verified')->group(function(){
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
 
     // Thông tin tài khoản
-    Route::get('profile/wallet',[ProfileController::class,'user_wallet'])->name('profile.wallet');
+    Route::get('profile/wallet', [ProfileController::class, 'user_wallet'])->name('profile.wallet');
     Route::resource('profile', ProfileController::class);
 
     // Nạp ví
-    Route::post('/wallet/deposit',[ClientWalletController::class,'createDeposit'])->name('wallet.deposit');
-    Route::get('vnpay/response',[PaymentController::class,'vnpay_response'])->name('wallet.deposit');
+    Route::post('/wallet/deposit', [ClientWalletController::class, 'createDeposit'])->name('wallet.deposit');
+    Route::get('vnpay/response', [PaymentController::class, 'vnpay_response'])->name('wallet.deposit');
 
     // Rút ví
     Route::post('/wallet/withdrawal',[ClientWalletController::class,'withdrawalPost'])->name('wallet.withdrawal');
     Route::post('/wallet/withdrawal/cancelled/{id}',[ClientWalletController::class,'withdrawalCancelled'])->name('wallet.withdrawal.cancelled');
+
     // QUẢN LÝ GIỎ HÀNG
     Route::post('/cart/add', [CartController::class, 'add'])->name('client.cart.add');
     Route::get('/cart/count', [CartController::class, 'count'])->name('client.cart.count');
-
-    // THÊM 3 DÒNG NÀY:
     Route::get('/gio-hang', [CartController::class, 'index'])->name('client.cart.index');
     Route::post('/cart/update', [CartController::class, 'update'])->name('client.cart.update');
     Route::post('/cart/remove', [CartController::class, 'remove'])->name('client.cart.remove');
+
+    // THANH TOÁN (CHECKOUT)
+    Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('client.checkout.index');
+    Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('client.checkout.process');
+    Route::get('/dat-hang-thanh-cong', [CheckoutController::class, 'success'])->name('client.checkout.success');
+
+    // QUẢN LÝ ĐƠN HÀNG CỦA KHÁCH
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/don-mua', [ClientOrderController::class, 'index'])->name('client.orders.index');
+        Route::get('/don-mua/{id}', [ClientOrderController::class, 'show'])->name('client.orders.show');
+        Route::patch('/don-mua/{id}/xac-nhan', [ClientOrderController::class, 'confirmReceived'])->name('client.orders.confirm');
+        Route::patch('/don-mua/{id}/huy', [ClientOrderController::class, 'cancel'])->name('client.orders.cancel');
+    });
+
+    Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
+    Route::get('/bai-viet/{slug}', [ClientPostController::class, 'show'])->name('client.posts.show');
+    Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])->name('chatbot.chat');
+
 });
-
-
 
 // ==========================================
 // ĐĂNG NHẬP / ĐĂNG KÝ / QUÊN MẬT KHẨU
@@ -82,9 +105,6 @@ Route::get('reset-password', [AuthController::class, 'resetPassword'])->name('re
 Route::post('post-reset-password', [AuthController::class, 'postResetPassword'])->name('post-reset-password');
 Route::get('verify-code', [AuthController::class, 'verify_code'])->name('verify-code');
 Route::post('check-otp', [AuthController::class, 'check_otp'])->name('check_otp');
-
-
-
 
 // ==========================================
 // XÁC THỰC EMAIL
@@ -113,17 +133,11 @@ Route::post('/email/verification-notification', function (Request $request) {
     return back()->with('success', 'Đã gửi lại email xác minh!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
-
-
-
-
 // ==========================================
 // HỆ THỐNG ADMIN
 // ==========================================
 
-
 // ĐÃ FIX: Chỉ dùng quyền admin/staff ở ngoài cùng, quyền order.view để riêng vào nhóm đơn hàng
-
 
 Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
 
@@ -157,6 +171,7 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::post('categories/{category}/filters/attributes', [CategoryFilterController::class, 'storeAttribute'])->name('categories.filters.attributes.store');
         Route::patch('categories/{category}/filters/attributes/{attribute}/toggle', [CategoryFilterController::class, 'toggleFilterable'])->name('categories.filters.attributes.toggle');
         Route::delete('categories/{category}/filters/attributes/{attribute}', [CategoryFilterController::class, 'detachAttribute'])->name('categories.filters.attributes.detach');
+
 
         // 3. Quản lý Thuộc tính gốc (Attributes)
         Route::get('attributes/trash', [AttributeController::class, 'trash'])->name('attributes.trash');

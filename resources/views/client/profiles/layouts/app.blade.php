@@ -31,15 +31,13 @@
                             </svg>
                             Hồ sơ cá nhân
                         </a>
-                        <a class="flex items-center gap-3 px-6 py-3 text-sm text-gray-600 hover:bg-gray-50 transition"
-                            href="#">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round"
-                                    stroke-linejoin="round" stroke-width="2"></path>
-                            </svg>
-                            Đơn hàng của tôi
-                        </a>
+                       <a class="flex items-center gap-3 px-6 py-3 text-sm transition {{ request()->routeIs('client.orders.*') ? 'text-[#181611] dark:text-white bg-[#f4c025] font-bold rounded-lg' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg' }}"
+    href="{{ route('client.orders.index') }}">
+    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+    </svg>
+    Đơn hàng của tôi
+</a>
                         <a class="flex items-center gap-3 px-6 py-3 text-sm text-gray-600 hover:bg-gray-50 transition"
                             href="#">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"

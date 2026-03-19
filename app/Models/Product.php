@@ -37,7 +37,7 @@ protected $casts = [
     // Sản phẩm có nhiều Biến thể (Variants)
     public function variants(): HasMany
     {
-        return $this->hasMany(ProductVariant::class);
+        return $this->hasMany(ProductVariant::class, 'product_id');
     }
 
     // Sản phẩm có nhiều Ảnh (Gallery)
