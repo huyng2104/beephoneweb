@@ -48,10 +48,7 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-<<<<<<< HEAD
-=======
         $order->load('items');
->>>>>>> parent of 6faed6e (update orders)
 
         $statusLabels = Order::statusLabels();
         $returnStatusLabels = Order::returnStatusLabels();
@@ -159,8 +156,8 @@ class OrderController extends Controller
         foreach (Order::statuses() as $status) {
             // Lọc ra các trạng thái hợp lệ, NHƯNG cấm Admin chọn Hủy và Đã Nhận Hàng
             if (
-                $order->canMoveTo($status) && 
-                !in_array($status, $statuses, true) && 
+                $order->canMoveTo($status) &&
+                !in_array($status, $statuses, true) &&
                 $status !== Order::STATUS_CANCELLED &&
                 $status !== Order::STATUS_RECEIVED // THÊM DÒNG NÀY ĐỂ CHẶN ADMIN
             ) {
