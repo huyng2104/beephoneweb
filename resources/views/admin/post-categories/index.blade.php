@@ -133,8 +133,8 @@ font-weight: 500;
                                             </th>
                                             <th class="py-4 px-2 font-bold text-xs uppercase tracking-wider">Đường dẫn
                                                 (Slug)</th>
-                                            <th class="py-4 px-2 font-bold text-xs uppercase tracking-wider text-center">
-                                                Hiển thị</th>
+                                            {{-- <th class="py-4 px-2 font-bold text-xs uppercase tracking-wider text-center">
+                                                Hiển thị</th> --}}
                                             <th class="py-4 px-2 font-bold text-xs uppercase tracking-wider text-right">Thao
                                                 tác</th>
                                         </tr>
@@ -154,7 +154,7 @@ font-weight: 500;
                                                 </div>
                                             </td>
                                             <td class="py-4 px-2 text-sm text-[#8a8060]">{{ $category->slug }}</td>
-                                            <td class="py-4 px-2 text-center">
+                                            {{-- <td class="py-4 px-2 text-center">
                                                 <label class="relative inline-flex items-center cursor-pointer">
                                                     <input checked="" class="sr-only toggle-checkbox" type="checkbox" />
                                                     <div
@@ -164,7 +164,7 @@ font-weight: 500;
                                                         </div>
                                                     </div>
                                                 </label>
-                                            </td>
+                                            </td> --}}
                                             <td class="py-4 px-2 text-right">
                                                 <div class="flex justify-end gap-2 transition-opacity">
                                                     <a href="{{ route('admin.post-categories.edit', $category->id) }}"
