@@ -22,7 +22,7 @@ class WalletController extends Controller
             'type'           => 'deposit',
             'amount'         => $request->amount,
             'balance_before' => $user->wallet->balance,
-            'balance_after' => $user->wallet->balance,
+            'balance_after' => $user->wallet->balance += $request->amount,
             'status'         => 'pending',
             'description'    => 'Nạp tiền vào ví qua VNPay',
             // Lưu ID làm mã tham chiếu gửi lên VNPay

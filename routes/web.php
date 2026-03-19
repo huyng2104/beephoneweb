@@ -30,6 +30,8 @@ use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\CheckoutController;
 use App\Http\Controllers\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Client\ChatbotController;
+use App\Http\Controllers\Client\PostController as ClientPostController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -59,7 +61,7 @@ Route::middleware('check.verified')->group(function () {
     // Rút ví
     Route::post('/wallet/withdrawal',[ClientWalletController::class,'withdrawalPost'])->name('wallet.withdrawal');
     Route::post('/wallet/withdrawal/cancelled/{id}',[ClientWalletController::class,'withdrawalCancelled'])->name('wallet.withdrawal.cancelled');
-    
+
     // QUẢN LÝ GIỎ HÀNG
     Route::post('/cart/add', [CartController::class, 'add'])->name('client.cart.add');
     Route::get('/cart/count', [CartController::class, 'count'])->name('client.cart.count');
@@ -80,6 +82,8 @@ Route::middleware('check.verified')->group(function () {
         Route::patch('/don-mua/{id}/huy', [ClientOrderController::class, 'cancel'])->name('client.orders.cancel');
     });
 
+    Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
+    Route::get('/bai-viet/{slug}', [ClientPostController::class, 'show'])->name('client.posts.show');
     Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])->name('chatbot.chat');
 
 });
