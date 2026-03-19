@@ -65,7 +65,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                         @if ($user->wallet->transactions->count() != 0)
-                            @foreach ($user->wallet->transactions()->latest()->take(5)->get() as $transaction)
+                            @foreach ($user->wallet->transactions()->latest()->paginate(4) as $transaction)
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
 
                                     <td class="px-4 py-3 md:px-6 md:py-4 text-sm whitespace-nowrap">
@@ -186,8 +186,11 @@
                                 </td>
                             </tr>
                         @endif
+
                     </tbody>
+
                 </table>
+                {{ $user->wallet->transactions->links() }}
             </div>
         </section>
         <!-- END: TransactionHistory -->
