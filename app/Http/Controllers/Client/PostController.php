@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Post;
 
 class PostController extends Controller
 {
@@ -15,18 +16,18 @@ class PostController extends Controller
     public function index()
     {
         // bài viết mới nhất (phân trang)
-        $posts = \App\Models\Post::with(['category', 'user'])
+        $posts = Post::with(['category', 'user'])
             ->where('status', 1)
             ->latest()
             ->paginate(6);
 
         // bài nổi bật (lấy 1 bài đầu)
-        $featuredPost = \App\Models\Post::where('status', 1)
+        $featuredPost = Post::where('status', 1)
             ->latest()
             ->first();
 
         // bài xem nhiều
-        $mostViewed = \App\Models\Post::orderBy('views', 'desc')
+        $mostViewed = Post::orderBy('views', 'desc')
             ->take(3)
             ->get();
 
@@ -35,16 +36,21 @@ class PostController extends Controller
 
     public function show($slug)
     {
-        $post = \App\Models\Post::with(['category', 'user'])
+        $post = Post::with(['category', 'user'])
             ->where('slug', $slug)
             ->firstOrFail();
 
         // bài liên quan
-        $relatedPosts = \App\Models\Post::where('post_categories_id', $post->post_categories_id)
+        $relatedPosts = Post::where('post_categories_id', $post->post_categories_id)
             ->where('id', '!=', $post->id)
             ->latest()
             ->take(3)
             ->get();
+
+        $post = Post::where('slug', $slug)->firstOrFail();
+
+        // Tăng lượt xem
+        $post->increment('views');
 
         return view('client.posts.show', compact('post', 'relatedPosts'));
     }
