@@ -20,9 +20,12 @@ use App\Http\Controllers\AuthControllers\AuthController;
 use App\Http\Controllers\AdminControllers\VoucherController;
 use App\Http\Controllers\AdminControllers\UserController;
 use App\Http\Controllers\AdminControllers\OrderController;
+
+
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
 use App\Http\Controllers\AdminControllers\WalletController;
+
 use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\WalletController as ClientWalletController;
@@ -168,6 +171,7 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::post('categories/{category}/filters/attributes', [CategoryFilterController::class, 'storeAttribute'])->name('categories.filters.attributes.store');
         Route::patch('categories/{category}/filters/attributes/{attribute}/toggle', [CategoryFilterController::class, 'toggleFilterable'])->name('categories.filters.attributes.toggle');
         Route::delete('categories/{category}/filters/attributes/{attribute}', [CategoryFilterController::class, 'detachAttribute'])->name('categories.filters.attributes.detach');
+
 
         // 3. Quản lý Thuộc tính gốc (Attributes)
         Route::get('attributes/trash', [AttributeController::class, 'trash'])->name('attributes.trash');

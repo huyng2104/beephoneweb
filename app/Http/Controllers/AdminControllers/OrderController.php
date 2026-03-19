@@ -48,10 +48,11 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-        $order->load('items');
 
         $statusLabels = Order::statusLabels();
         $returnStatusLabels = Order::returnStatusLabels();
+        $paymentMethodLabels = Order::paymentMethodLabels();
+        $paymentStatusLabels = Order::paymentStatusLabels();
 
         return view('admin.orders.show', [
             'order' => $order,
@@ -59,6 +60,8 @@ class OrderController extends Controller
             'statusLabels' => $statusLabels,
             'returnStatuses' => Order::returnStatuses(),
             'returnStatusLabels' => $returnStatusLabels,
+            'paymentMethodLabels' => $paymentMethodLabels,
+            'paymentStatusLabels' => $paymentStatusLabels,
             'availableStatuses' => $this->availableStatusesFor($order),
         ]);
     }
@@ -90,9 +93,17 @@ class OrderController extends Controller
             ]);
         }
 
-        $order->update(['status' => $nextStatus]);
 
-        return back()->with('status', 'Đã cập nhật trạng thái đơn hàng.');
+        $data = ['status' => $nextStatus];
+
+        if ($nextStatus === Order::STATUS_RECEIVED) {
+            $data['payment_status'] = 'paid';
+            $data['paid_at'] = now();
+        }
+
+        $order->update($data);
+
+        return back()->with('status', 'Cập nhật thành công');
     }
 
     public function cancel(Request $request, Order $order): RedirectResponse

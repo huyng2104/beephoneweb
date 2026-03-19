@@ -120,7 +120,11 @@
                             <div class="flex items-center gap-4">
                                 <div class="size-12 shrink-0 rounded-lg border border-slate-200 overflow-hidden bg-white flex items-center justify-center p-1 shadow-sm">
                                     @if($product->thumbnail)
-                                        <img src="{{ Storage::url($product->thumbnail) }}" alt="{{ $product->name }}" class="h-full w-full object-contain">
+                                        @if(str_starts_with($product->thumbnail, 'http'))
+                                            <img src="{{ $product->thumbnail }}" alt="{{ $product->name }}" class="h-full w-full object-contain">
+                                        @else
+                                            <img src="{{ Storage::url($product->thumbnail) }}" alt="{{ $product->name }}" class="h-full w-full object-contain">
+                                        @endif
                                     @else
                                         <span class="material-symbols-outlined text-slate-300 text-2xl">image</span>
                                     @endif

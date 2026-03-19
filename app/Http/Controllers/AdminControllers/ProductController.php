@@ -8,8 +8,8 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Attribute;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -122,7 +122,7 @@ class ProductController extends Controller
             return redirect()->route('admin.products.index')->with('success', 'Tuyệt vời! Đã đăng sản phẩm và các biến thể thành công!');
 
         } catch (\Exception $e) {
-            \Log::error("Store Product Error: " . $e->getMessage());
+            'Log'::error("Store Product Error: " . $e->getMessage());
             return back()->withInput()->withErrors(['error' => 'Lỗi hệ thống: ' . $e->getMessage()]);
         }
     }
@@ -162,6 +162,7 @@ class ProductController extends Controller
         try {
             $thumbnailPath = $product->thumbnail;
             if ($request->hasFile('thumbnail')) {
+                // Kiểm tra và xóa ảnh cũ để tránh rác server
                 // Xóa ảnh cũ (Tùy chọn)
                 if ($product->thumbnail && Storage::disk('public')->exists($product->thumbnail)) {
                     Storage::disk('public')->delete($product->thumbnail);

@@ -129,6 +129,14 @@ class VoucherController extends Controller
             DB::transaction(function () use ($request, $id) {
                 $voucher = Voucher::findOrFail($id);
                 $voucher->update($request->validated());
+                
+                $data = $request->validated();
+                // Đồng bộ logic xử lý dữ liệu giống hàm store
+                $data['code'] = str_replace(' ', '', $request->code);
+                // Nếu dùng checkbox, khi bỏ chọn sẽ không có request->status, cần gán mặc định là 0
+                $data['status'] = $request->status ?? 0;
+
+                $voucher->update($data);
                 $voucher->brands()->sync($request->brands ?? []);
                 $voucher->categories()->sync($request->categories ?? []);
                 $voucher->products()->sync($request->products ?? []);
