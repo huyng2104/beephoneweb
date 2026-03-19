@@ -9,66 +9,59 @@ use App\Models\PostCategory;
 
 class PostController extends Controller
 {
-    // public function index()
-    // {
-    //     return view('client.posts.index'); // sửa đúng view của bạn
-    // }
-
     public function index(Request $request)
     {
-        // bài viết mới nhất (phân trang)
-        $posts = Post::with(['category', 'user'])
-            ->where('status', 1)
-            ->latest()
-            ->paginate(6);
+        $query = Post::with(['category', 'user'])
+            ->where('status', 1);
 
-        // bài nổi bật (lấy 1 bài đầu)
+        // lọc theo danh mục
+        if ($request->category) {
+            $query->where('post_categories_id', $request->category);
+        }
+
+        // bài viết
+        $posts = $query->latest()->paginate(6);
+        $posts->appends($request->all());
+
+        // bài nổi bật
         $featuredPost = Post::where('status', 1)
             ->latest()
             ->first();
 
         // bài xem nhiều
-        $mostViewed = Post::orderBy('views', 'desc')
+        $mostViewed = Post::where('status', 1)
+            ->orderByDesc('views')
             ->take(3)
             ->get();
-
-        $query = Post::with(['category', 'user'])
-            ->where('status', 1);
-
-        // 👉 lọc theo danh mục
-        if ($request->category) {
-            $query->where('post_categories_id', $request->category);
-        }
-
-        $posts = $query->latest()->paginate(6);
-
-        // giữ query khi phân trang
-        $posts->appends($request->all());
 
         // danh mục
         $categories = PostCategory::all();
 
-
-        return view('client.posts.index', compact('posts', 'featuredPost', 'mostViewed', 'categories'));
+        return view('client.posts.index', compact(
+            'posts',
+            'featuredPost',
+            'mostViewed',
+            'categories'
+        ));
     }
 
     public function show($slug)
     {
         $post = Post::with(['category', 'user'])
             ->where('slug', $slug)
+            ->where('status', 1) // ✅ tránh truy cập bài bị ẩn
             ->firstOrFail();
+
+        // tăng view
+        $post->increment('views');
 
         // bài liên quan
         $relatedPosts = Post::where('post_categories_id', $post->post_categories_id)
             ->where('id', '!=', $post->id)
+            ->where('status', 1)
             ->latest()
             ->take(3)
             ->get();
-
-        $post = Post::where('slug', $slug)->firstOrFail();
-
-        // Tăng lượt xem
-        $post->increment('views');
 
         return view('client.posts.show', compact('post', 'relatedPosts'));
     }
