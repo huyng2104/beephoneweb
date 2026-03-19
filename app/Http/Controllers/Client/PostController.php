@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Post;
+use App\Models\PostCategory;
 
 class PostController extends Controller
 {
@@ -13,7 +14,7 @@ class PostController extends Controller
     //     return view('client.posts.index'); // sửa đúng view của bạn
     // }
 
-    public function index()
+    public function index(Request $request)
     {
         // bài viết mới nhất (phân trang)
         $posts = Post::with(['category', 'user'])
@@ -31,7 +32,24 @@ class PostController extends Controller
             ->take(3)
             ->get();
 
-        return view('client.posts.index', compact('posts', 'featuredPost', 'mostViewed'));
+        $query = Post::with(['category', 'user'])
+            ->where('status', 1);
+
+        // 👉 lọc theo danh mục
+        if ($request->category) {
+            $query->where('post_categories_id', $request->category);
+        }
+
+        $posts = $query->latest()->paginate(6);
+
+        // giữ query khi phân trang
+        $posts->appends($request->all());
+
+        // danh mục
+        $categories = PostCategory::all();
+
+
+        return view('client.posts.index', compact('posts', 'featuredPost', 'mostViewed', 'categories'));
     }
 
     public function show($slug)

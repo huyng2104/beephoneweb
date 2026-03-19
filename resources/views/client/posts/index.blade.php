@@ -62,20 +62,26 @@
             </div>
             <!-- Chips / Category Filter -->
             <div class="flex gap-3 overflow-x-auto pb-4 mb-8 no-scrollbar">
-                <button class="bg-primary text-[#181611] px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap">Tất
-                    cả</button>
-                <button
-                    class="bg-white dark:bg-[#2d291e] border border-[#f5f3f0] dark:border-[#3d3829] px-6 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary transition-colors">Đánh
-                    giá</button>
-                <button
-                    class="bg-white dark:bg-[#2d291e] border border-[#f5f3f0] dark:border-[#3d3829] px-6 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary transition-colors">Mẹo
-                    hay</button>
-                <button
-                    class="bg-white dark:bg-[#2d291e] border border-[#f5f3f0] dark:border-[#3d3829] px-6 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary transition-colors">Cẩm
-                    nang mua sắm</button>
-                <button
-                    class="bg-white dark:bg-[#2d291e] border border-[#f5f3f0] dark:border-[#3d3829] px-6 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary transition-colors">Tin
-                    công nghệ</button>
+
+                {{-- TẤT CẢ --}}
+                <a href="{{ route('client.posts.index') }}"
+                    class="px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap
+        {{ request('category') ? 'bg-white dark:bg-[#2d291e]' : 'bg-primary text-[#181611]' }}">
+                    Tất cả
+                </a>
+
+                {{-- DANH MỤC --}}
+                @foreach ($categories as $cate)
+                    <a href="{{ route('client.posts.index', ['category' => $cate->id]) }}"
+                        class="px-6 py-2 rounded-full text-sm whitespace-nowrap transition-colors
+            {{ request('category') == $cate->id
+                ? 'bg-primary text-[#181611] font-bold'
+                : 'bg-white dark:bg-[#2d291e] border hover:border-primary' }}">
+
+                        {{ $cate->name }}
+                    </a>
+                @endforeach
+
             </div>
             <!-- Featured Post -->
             @if ($featuredPost)
@@ -163,7 +169,8 @@
                         @foreach ($posts as $item)
                             <div
                                 class="bg-white dark:bg-[#1a170d] rounded-xl overflow-hidden border border-[#f5f3f0] dark:border-[#332e1c] group">
-                                <a href="{{ route('client.posts.show', $item->slug) }}" class="flex flex-col @3xl:flex-row">
+                                <a href="{{ route('client.posts.show', $item->slug) }}"
+                                    class="flex flex-col @3xl:flex-row">
                                     <div class="h-48 overflow-hidden relative">
                                         <div class="w-full h-full bg-center bg-cover transition-transform group-hover:scale-105"
                                             data-alt="Modern smartphone showing various mobile apps"
