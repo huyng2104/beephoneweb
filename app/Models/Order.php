@@ -7,26 +7,29 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
-    protected $fillable = [
-        'order_code',
-        'user_id',
-        'customer_name',
-        'customer_phone',
-        'customer_email',
-        'recipient_name',
-        'recipient_phone',
-        'recipient_address',
-        'shipping_address',
-        'total_amount',
-        'status',
-        'return_status',
-        'note',
-        'cancellation_reason',
-        'return_note',
-        'ordered_at',
-        'cancelled_at',
-        'return_requested_at',
-        'return_confirmed_at',
+   protected $fillable = [
+        'user_id', 
+        'order_code', 
+        'customer_name', 
+        'phone', 
+        'customer_phone', 
+        'customer_email', 
+        'recipient_name', 
+        'recipient_phone', 
+        'recipient_address', 
+        'shipping_address', 
+        'address', 
+        'total_price', 
+        'total_amount', 
+        'status', 
+        'return_status', 
+        'note', 
+        'cancellation_reason', 
+        'return_note', 
+        'ordered_at', 
+        'cancelled_at', 
+        'return_requested_at', 
+        'return_confirmed_at'
     ];
 
     protected $casts = [
