@@ -124,6 +124,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             @foreach ($order->items as $item)
+<<<<<<< HEAD
 
                             @php
                                 $product = $item->product;
@@ -132,45 +133,47 @@
                                 $productSku = $product ? $product->sku : $item->product_sku;
                             @endphp
 
+=======
+>>>>>>> parent of 6faed6e (update orders)
                             <tr>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-3 min-w-[220px]">
                                         <div class="size-10 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center">
                                             @if ($item->thumbnail)
                                             <img src="{{ $item->thumbnail }}" alt="{{ $item->product_name }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+<<<<<<< HEAD
                                             @if ($productThumbnail)
                                                 @if(str_starts_with($productThumbnail, 'http'))
                                                     <img src="{{ $productThumbnail }}" alt="{{ $productName }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
                                                 @else
                                                     <img src="{{ Storage::url($productThumbnail) }}" alt="{{ $productName }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
                                                 @endif
+=======
+>>>>>>> parent of 6faed6e (update orders)
                                             <span class="material-symbols-outlined text-slate-400 text-[18px] hidden">inventory_2</span>
                                             @else
                                             <span class="material-symbols-outlined text-slate-400 text-[18px]">inventory_2</span>
                                             @endif
                                         </div>
                                         <span class="font-semibold text-slate-900 dark:text-white">{{ $item->product_name }}</span>
+<<<<<<< HEAD
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ $item->product_sku ?: '-' }}</td>
                                         <div class="flex-1">
                                             <span class="font-semibold text-slate-900 dark:text-white block">{{ $productName }}</span>
                                         </div>
+=======
+>>>>>>> parent of 6faed6e (update orders)
                                     </div>
                                 </td>
-                                <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ $productSku ?: '-' }}</td>
+                                <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ $item->product_sku ?: '-' }}</td>
                                 <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ number_format($item->unit_price) }} ₫</td>
                                 <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $item->quantity }}</td>
                                 <td class="px-4 py-3 text-right font-semibold text-slate-900 dark:text-white">{{ number_format($item->line_total) }} ₫</td>
                             </tr>
                             @endforeach
                         </tbody>
-                        <tfoot class="bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
-                            <tr>
-                                <td colspan="4" class="px-4 py-3 text-right font-semibold text-slate-900 dark:text-white">Tổng cộng:</td>
-                                <td class="px-4 py-3 text-right font-bold text-lg text-primary">{{ number_format($order->total_amount) }} ₫</td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
                 @else
@@ -178,6 +181,7 @@
                     Đơn hàng này chưa có dữ liệu chi tiết sản phẩm.
                 </div>
                 @endif
+<<<<<<< HEAD
 
 
                 <!-- Payment Section -->
@@ -222,6 +226,8 @@
                         </div>
                     </div>
                 </div>
+=======
+>>>>>>> parent of 6faed6e (update orders)
             </div>
         </div>
 

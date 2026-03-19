@@ -8,7 +8,6 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Attribute;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -58,7 +57,7 @@ class ProductController extends Controller
             if ($request->has('spec_keys') && $request->has('spec_values')) {
                 $keys = $request->spec_keys;
                 $values = $request->spec_values;
-                
+
                 foreach ($keys as $index => $key) {
                     if (!empty($key) && !empty($values[$index])) {
                         $specs[$key] = $values[$index];
@@ -98,7 +97,7 @@ class ProductController extends Controller
             // 6. LƯU BIẾN THỂ KÈM ẢNH
             if ($request->type == 'variable' && $request->has('variations')) {
                 foreach ($request->variations as $varData) {
-                    
+
                     // Xử lý upload ảnh cho từng dòng biến thể
                     $variantThumbnail = null;
                     if (isset($varData['thumbnail']) && $varData['thumbnail'] instanceof \Illuminate\Http\UploadedFile) {
@@ -135,8 +134,8 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        $product->load(['categories', 'images', 'variants.attributeValues']); 
-        
+        $product->load(['categories', 'images', 'variants.attributeValues']);
+
         $categories = Category::all();
         $brands = Brand::all();
         $attributes = Attribute::with('values')->get();
@@ -163,7 +162,6 @@ class ProductController extends Controller
             $thumbnailPath = $product->thumbnail;
             if ($request->hasFile('thumbnail')) {
                 // Kiểm tra và xóa ảnh cũ để tránh rác server
-                // Xóa ảnh cũ (Tùy chọn)
                 if ($product->thumbnail && Storage::disk('public')->exists($product->thumbnail)) {
                     Storage::disk('public')->delete($product->thumbnail);
                 }
@@ -174,7 +172,7 @@ class ProductController extends Controller
             if ($request->has('spec_keys') && $request->has('spec_values')) {
                 $keys = $request->spec_keys;
                 $values = $request->spec_values;
-                
+
                 foreach ($keys as $index => $key) {
                     if (!empty($key) && !empty($values[$index])) {
                         $specs[$key] = $values[$index];
@@ -200,7 +198,7 @@ class ProductController extends Controller
 
             // CẬP NHẬT BIẾN THỂ
             if ($request->type == 'variable' && $request->has('variations')) {
-                
+
                 // Lấy mảng ID các biến thể được gửi lên từ Form
                 $incomingVariantIds = collect($request->variations)->pluck('id')->filter()->toArray();
 
@@ -240,7 +238,7 @@ class ProductController extends Controller
                         if (isset($varData['attributes'])) {
                             $existingVariant->attributeValues()->sync(array_values($varData['attributes']));
                         }
-                    } 
+                    }
                     // Nếu là biến thể MỚI TINH (không có ID)
                     else {
                         if (isset($varData['thumbnail']) && $varData['thumbnail'] instanceof \Illuminate\Http\UploadedFile) {

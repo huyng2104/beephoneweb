@@ -22,11 +22,7 @@
                 <div class="flex flex-col md:flex-row gap-6 bg-slate-50 p-6 rounded-xl border border-slate-100">
                     <div class="shrink-0">
                         @if($product->thumbnail)
-                            @if(str_starts_with($product->thumbnail, 'http'))
-                                <img alt="{{ $product->name }}" class="w-40 h-40 object-cover rounded-lg shadow-sm border border-slate-200 bg-white" src="{{ $product->thumbnail }}"/>
-                            @else
-                                <img alt="{{ $product->name }}" class="w-40 h-40 object-cover rounded-lg shadow-sm border border-slate-200 bg-white" src="{{ asset('storage/' . $product->thumbnail) }}"/>
-                            @endif
+                            <img alt="{{ $product->name }}" class="w-40 h-40 object-cover rounded-lg shadow-sm border border-slate-200 bg-white" src="{{ asset('storage/' . $product->thumbnail) }}"/>
                         @else
                             <div class="w-40 h-40 rounded-lg shadow-sm border border-slate-200 bg-white flex items-center justify-center text-slate-300">
                                 <span class="material-symbols-outlined text-5xl">image</span>

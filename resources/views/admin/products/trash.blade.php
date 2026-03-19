@@ -47,11 +47,7 @@
                                 <td class="py-3 px-6">
                                     <div class="w-12 h-12 rounded-lg border border-slate-200 bg-slate-100 overflow-hidden">
                                         @if($item->thumbnail)
-                                            @if(str_starts_with($item->thumbnail, 'http'))
-                                                <img src="{{ $item->thumbnail }}" class="w-full h-full object-cover" alt="img">
-                                            @else
-                                                <img src="{{ asset('storage/' . $item->thumbnail) }}" class="w-full h-full object-cover" alt="img">
-                                            @endif
+                                            <img src="{{ asset('storage/' . $item->thumbnail) }}" class="w-full h-full object-cover" alt="img">
                                         @else
                                             <span class="material-symbols-outlined text-slate-300 w-full h-full flex items-center justify-center">image</span>
                                         @endif
