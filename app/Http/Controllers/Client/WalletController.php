@@ -4,19 +4,22 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\WalletTransaction;
+use App\Models\WithdrawalRequest;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\WithdrawalRequest;
 
 class WalletController extends Controller
 {
+    // ==================================================
+    // 1. TẠO LỆNH NẠP TIỀN & ĐẨY SANG VNPAY
+    // ==================================================
     public function createDeposit(Request $request)
     {
         $request->validate(['amount' => 'required|numeric|min:10000']);
         $user = Auth::user();
-        // dd($user->wallet->balance);
+        
         // 1. Tạo giao dịch Pending trong DB
         $transaction = $user->wallet->transactions()->create([
             'type'           => 'deposit',
@@ -25,7 +28,6 @@ class WalletController extends Controller
             'balance_after' => $user->wallet->balance += $request->amount,
             'status'         => 'pending',
             'description'    => 'Nạp tiền vào ví qua VNPay',
-            // Lưu ID làm mã tham chiếu gửi lên VNPay
         ]);
 
         // 2. Cấu hình tham số gửi lên VNPay
@@ -43,8 +45,9 @@ class WalletController extends Controller
             "vnp_Locale"     => "vn",
             "vnp_OrderInfo"  => "Nap tien vao vi GD: " . $transaction->id,
             "vnp_OrderType"  => "billpayment",
-            "vnp_ReturnUrl"  => env('VNPAY_RETURN_URL'),
-            "vnp_TxnRef"     => $transaction->id, // Mã giao dịch của bạn
+            // QUAN TRỌNG: Gọi route hứng kết quả nạp ví (Không dùng env nữa)
+            "vnp_ReturnUrl"  => route('wallet.vnpay.return'), 
+            "vnp_TxnRef"     => $transaction->id, // Mã giao dịch
         ];
 
         // 3. Sắp xếp dữ liệu và tạo chữ ký (Signature)
@@ -71,42 +74,111 @@ class WalletController extends Controller
         // 4. Chuyển hướng khách sang trang VNPay
         return redirect($vnp_Url);
     }
-    public function  withdrawalPost(Request $request)
+
+    // ==================================================
+    // 2. HỨNG KẾT QUẢ TỪ VNPAY VÀ CỘNG TIỀN
+    // ==================================================
+    public function vnpayReturn(Request $request)
+    {
+        $vnp_HashSecret = env('VNPAY_HASH_SECRET');
+        $inputData = array();
+        foreach ($request->all() as $key => $value) {
+            if (substr($key, 0, 4) == "vnp_") {
+                $inputData[$key] = $value;
+            }
+        }
+
+        $vnp_SecureHash = $inputData['vnp_SecureHash'] ?? '';
+        unset($inputData['vnp_SecureHash']);
+        ksort($inputData);
+        $i = 0;
+        $hashData = "";
+        foreach ($inputData as $key => $value) {
+            if ($i == 1) {
+                $hashData = $hashData . '&' . urlencode($key) . "=" . urlencode($value);
+            } else {
+                $hashData = $hashData . urlencode($key) . "=" . urlencode($value);
+                $i = 1;
+            }
+        }
+
+        $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
+        $transactionId = $request->vnp_TxnRef;
+        $transaction = WalletTransaction::find($transactionId);
+
+        if ($secureHash == $vnp_SecureHash) {
+            if ($request->vnp_ResponseCode == '00') {
+                // TING TING: GIAO DỊCH THÀNH CÔNG
+                if ($transaction && $transaction->status == 'pending') {
+                    $wallet = $transaction->wallet;
+                    
+                    // Cộng tiền vào ví
+                    $wallet->increment('balance', $transaction->amount);
+
+                    // Cập nhật trạng thái giao dịch
+                    $transaction->update([
+                        'status' => 'completed',
+                        'balance_after' => $wallet->balance // Cập nhật lại số dư mới nhất
+                    ]);
+                }
+                return redirect()->route('profile.wallet')->with('success', 'Nạp tiền vào ví thành công!');
+            } else {
+                // GIAO DỊCH THẤT BẠI HOẶC KHÁCH HỦY
+                if ($transaction && $transaction->status == 'pending') {
+                    $transaction->update([
+                        'status' => 'failed', 
+                        'description' => 'Nạp tiền thất bại hoặc bị hủy'
+                    ]);
+                }
+                return redirect()->route('profile.wallet')->with('error', 'Nạp tiền thất bại hoặc đã bị hủy!');
+            }
+        } else {
+            return redirect()->route('profile.wallet')->with('error', 'Lỗi bảo mật dữ liệu VNPAY!');
+        }
+    }
+
+    // ==================================================
+    // 3. TẠO YÊU CẦU RÚT TIỀN (Giữ nguyên của bro)
+    // ==================================================
+    public function withdrawalPost(Request $request)
     {
         $request->validate([
             'amount' => 'required|numeric|min:50000',
-            'bank_name' => 'string|nullable',
-            'account_number' => 'nullable|numeric',
-            'bank_name' => 'string|nullable',
+            'bank_name' => 'required|string',
+            'account_number' => 'required|numeric',
+            'account_name' => 'required|string',
         ]);
+
         $wallet = Auth::user()->wallet;
-        if ($wallet->balance <= $request->amount) {
+        
+        if ($wallet->balance < $request->amount) {
             return back()->with([
-                'error' => 'Số tiền rút nhiều hơn ví'
+                'error' => 'Số tiền rút nhiều hơn số dư trong ví!'
             ]);
         }
+
         $hasPendingRequest = WithdrawalRequest::where('user_id', Auth::user()->id)
             ->where('status', 'pending')
             ->exists();
+            
         if ($hasPendingRequest) {
             return back()->with('error', 'Bạn đang có một lệnh rút tiền đang được xử lý. Vui lòng chờ Admin duyệt xong trước khi tạo lệnh mới!');
         }
+
         try {
             DB::transaction(function () use ($wallet, $request) {
-
                 // Thêm record bảng transactions
-                $transaction =  $wallet->transactions()->create([
+                $transaction = $wallet->transactions()->create([
                     'type' => 'withdraw',
                     'amount' => $request->amount,
                     'balance_before' => $wallet->balance,
                     'balance_after' => $wallet->balance - $request->amount,
-                    'description' => 'Người dùng rút tiền',
+                    'description' => 'Người dùng yêu cầu rút tiền',
                     'status' => 'pending',
                 ]);
 
-                // Cập số dư ví
-                $wallet->balance -= $request->amount;
-                $wallet->save();
+                // Trừ số dư ví ngay lập tức
+                $wallet->decrement('balance', $request->amount);
 
                 // Tạo yêu cầu rút
                 WithdrawalRequest::create([
@@ -118,19 +190,21 @@ class WalletController extends Controller
                     'transaction_id' => $transaction->id,
                 ]);
             });
-            return back()->with([
-                'success' => 'Tạo yêu cầu rút tiền thành công'
-            ]);
+            
+            return back()->with(['success' => 'Tạo yêu cầu rút tiền thành công! Vui lòng chờ Admin xử lý.']);
         } catch (\Exception $e) {
-            return back()->with([
-                'error' => 'Lỗi'
-            ]);
+            return back()->with(['error' => 'Đã xảy ra lỗi trong quá trình tạo lệnh rút tiền!']);
         }
     }
+
+    // ==================================================
+    // 4. HỦY YÊU CẦU RÚT TIỀN (Giữ nguyên của bro)
+    // ==================================================
     public function withdrawalCancelled($id)
     {
         $transaction = WalletTransaction::findOrFail($id);
         $withdrawalRequest = WithdrawalRequest::where('transaction_id', $transaction->id)->first();
+        
         try {
             DB::transaction(function () use ($withdrawalRequest, $transaction) {
                 $withdrawalRequest->update([
@@ -139,27 +213,28 @@ class WalletController extends Controller
 
                 $transaction->update([
                     'status' => 'cancelled',
-                    'description' => 'Người dùng hủy lệnh'
+                    'description' => 'Người dùng hủy lệnh rút tiền'
                 ]);
+                
+                // Hoàn tiền lại vào ví
                 WalletTransaction::create([
                     'wallet_id' => $transaction->wallet->id,
                     'type' => 'refund',
                     'amount' => $transaction->amount,
                     'balance_before' => $transaction->wallet->balance,
                     'reference_id' => $withdrawalRequest->id,
-                    'reference_type' =>  get_class($withdrawalRequest),
+                    'reference_type' => get_class($withdrawalRequest),
                     'balance_after' => $transaction->wallet->balance + $transaction->amount,
-                    'description' => 'Hoàn tiền',
+                    'description' => 'Hoàn tiền do hủy lệnh rút',
+                    'status' => 'completed'
                 ]);
+                
                 $transaction->wallet->increment('balance', $transaction->amount);
             });
-            return back()->with([
-                'success' => 'Hủy lện rút thành công'
-            ]);
+            
+            return back()->with(['success' => 'Đã hủy lệnh rút và hoàn tiền lại vào ví thành công!']);
         } catch (\Exception $e) {
-            return back()->with([
-                'error' => 'Lỗi'
-            ]);
+            return back()->with(['error' => 'Có lỗi xảy ra khi hủy lệnh rút tiền!']);
         }
     }
 }

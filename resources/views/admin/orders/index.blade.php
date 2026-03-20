@@ -56,7 +56,7 @@
                         <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Người đặt / Người nhận</th>
                         <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Ngày đặt</th>
                         <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide text-right">Tổng tiền</th>
-                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Trạng thái</th>
+                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Thanh toán</th> <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Trạng thái</th>
                         <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide text-right">Thao tác</th>
                     </tr>
                 </thead>
@@ -86,6 +86,15 @@
                             <p class="text-xs text-slate-500">{{ optional($order->ordered_at)->format('H:i') ?? $order->created_at->format('H:i') }}</p>
                         </td>
                         <td class="px-5 py-4 text-sm font-bold text-slate-900 dark:text-white text-right align-top">{{ number_format($order->total_amount) }} ₫</td>
+                        
+                        <td class="px-5 py-4 align-top">
+                            <p class="font-bold text-sm text-slate-900 dark:text-white uppercase">{{ $order->payment_method ?? 'COD' }}</p>
+                            @if(($order->payment_status ?? 'pending') == 'paid')
+                                <span class="inline-flex mt-1 text-[11px] px-2 py-0.5 rounded bg-green-100 text-green-700 font-bold">Đã thanh toán</span>
+                            @else
+                                <span class="inline-flex mt-1 text-[11px] px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-bold">Chưa thanh toán</span>
+                            @endif
+                        </td>
                         <td class="px-5 py-4 align-top">
                             <span class="inline-flex text-xs px-2.5 py-1 rounded-lg font-semibold {{ $statusClass }}">
                                 {{ $statusLabels[$order->status] ?? $order->status }}
@@ -99,8 +108,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-5 py-10 text-center">
-                            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Chưa có đơn hàng nào</p>
+                        <td colspan="7" class="px-5 py-10 text-center"> <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Chưa có đơn hàng nào</p>
                             <p class="text-xs text-slate-500 mt-1">Hãy seed dữ liệu hoặc tạo đơn hàng mới để bắt đầu.</p>
                         </td>
                     </tr>

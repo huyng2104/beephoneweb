@@ -7,17 +7,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
-
     protected $fillable = [
         'order_code',
         'user_id',
         'customer_name',
+        'phone',                // Đã thêm
         'customer_phone',
         'customer_email',
         'recipient_name',
         'recipient_phone',
         'recipient_address',
         'shipping_address',
+        'address',              // Đã thêm
+        'total_price',          // Đã thêm
         'total_amount',
         'status',
         'return_status',
@@ -28,11 +30,10 @@ class Order extends Model
         'cancelled_at',
         'return_requested_at',
         'return_confirmed_at',
-
-
+        'payment_method',       // Đã thêm
+        'payment_status',
     ];
     
-
     protected $casts = [
         'ordered_at' => 'datetime',
         'cancelled_at' => 'datetime',

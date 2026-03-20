@@ -119,9 +119,10 @@ Câu hỏi của khách: " . $userMessage;
         // 3. GỌI API GEMINI 2.5 FLASH
         // ==========================================
         try {
-           $response = Http::withoutVerifying()->withHeaders([
+          // Sửa lại thành gemini-2.5-flash nhé bro:
+$response = Http::withoutVerifying()->withHeaders([
     'Content-Type' => 'application/json',
-])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}", [
+])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
                 'contents' => [
                     ['parts' => [['text' => $prompt]]]
                 ]
@@ -133,8 +134,8 @@ Câu hỏi của khách: " . $userMessage;
                     return response()->json(['reply' => 'Dạ hiện tại lượng khách truy cập BeePhone đang quá đông, anh/chị vui lòng chờ em 10 giây rồi nhắn lại nhé ạ! 🥰']);
                 }
                 // Các lỗi khác
-                return response()->json(['reply' => 'Dạ hệ thống AI đang bảo trì nâng cấp, anh/chị thông cảm gọi Hotline giúp em nhé!']);
-            }
+// Các lỗi khác
+return response()->json(['reply' => 'Lỗi API thật sự là: ' . $response->body()]);            }
             $result = $response->json();
             
             if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {

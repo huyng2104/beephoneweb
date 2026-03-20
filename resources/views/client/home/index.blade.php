@@ -132,32 +132,29 @@
                         </a>
                         
                         <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}">
-                            <h3 class="font-bold text-lg mb-1 line-clamp-1 hover:text-primary transition-colors" title="{{ $product->name }}">{{ $product->name }}</h3>
+                            <h3 class="font-bold text-lg mb-4 line-clamp-1 hover:text-primary transition-colors" title="{{ $product->name }}">{{ $product->name }}</h3>
                         </a>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-4 line-clamp-1" title="{{ strip_tags($product->description) }}">
-                            {{ $product->description ? strip_tags($product->description) : 'Đang cập nhật mô tả...' }}
-                        </p>
                         
                         <div class="flex items-end justify-between mt-auto">
-    <div class="flex flex-col">
-        @if($isVariable) 
-            <span class="text-[10px] text-gray-400 font-bold leading-none mb-1 uppercase tracking-wider">Giá từ</span> 
-        @endif
-        <span class="text-xl font-bold text-red-500">{{ number_format($displayPrice, 0, ',', '.') }}₫</span>
-    </div>
-    
-    @if($isVariable)
-        <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" 
-           class="bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-colors shrink-0 shadow-sm" title="Chọn phiên bản">
-            <span class="material-symbols-outlined">tune</span>
-        </a>
-    @else
-        <button class="btn-add-cart-quick bg-black dark:bg-primary text-white dark:text-black w-10 h-10 rounded-lg flex items-center justify-center hover:scale-105 transition-transform shrink-0 shadow-md" 
-                data-product-id="{{ $product->id }}" title="Thêm vào giỏ">
-            <span class="material-symbols-outlined">add_shopping_cart</span>
-        </button>
-    @endif
-</div>
+                            <div class="flex flex-col">
+                                @if($isVariable) 
+                                    <span class="text-[10px] text-gray-400 font-bold leading-none mb-1 uppercase tracking-wider">Giá từ</span> 
+                                @endif
+                                <span class="text-xl font-bold text-red-500">{{ number_format($displayPrice, 0, ',', '.') }}₫</span>
+                            </div>
+                            
+                            @if($isVariable)
+                                <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" 
+                                   class="bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-colors shrink-0 shadow-sm" title="Chọn phiên bản">
+                                    <span class="material-symbols-outlined">tune</span>
+                                </a>
+                            @else
+                                <button class="btn-add-cart-quick bg-black dark:bg-primary text-white dark:text-black w-10 h-10 rounded-lg flex items-center justify-center hover:scale-105 transition-transform shrink-0 shadow-md" 
+                                        data-product-id="{{ $product->id }}" title="Thêm vào giỏ">
+                                    <span class="material-symbols-outlined">add_shopping_cart</span>
+                                </button>
+                            @endif
+                        </div>
                     </div>
                 @endforeach
 

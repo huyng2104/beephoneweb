@@ -126,9 +126,12 @@ class CartController extends Controller
     {
         $cartItem = CartItem::find($request->item_id);
         if ($cartItem) {
-            // Check tồn kho (Bro có thể thêm logic check kho ở đây tương tự hàm add)
             $cartItem->quantity = $request->quantity;
             $cartItem->save();
+            
+            // ĐÃ THÊM: Xóa bộ nhớ Voucher khi thay đổi số lượng
+            session()->forget('voucher');
+
             return response()->json(['success' => true, 'message' => 'Đã cập nhật số lượng!']);
         }
         return response()->json(['success' => false, 'message' => 'Không tìm thấy sản phẩm!']);
@@ -140,8 +143,88 @@ class CartController extends Controller
         $cartItem = CartItem::find($request->item_id);
         if ($cartItem) {
             $cartItem->delete();
+
+            // ĐÃ THÊM: Xóa bộ nhớ Voucher khi xóa sản phẩm
+            session()->forget('voucher');
+
             return response()->json(['success' => true, 'message' => 'Đã xóa khỏi giỏ hàng!']);
         }
         return response()->json(['success' => false, 'message' => 'Không tìm thấy sản phẩm!']);
+    }
+
+    // Hàm xử lý Áp dụng mã giảm giá
+    public function applyVoucher(Request $request)
+    {
+        $code = $request->code;
+        if (!$code) {
+            return response()->json(['success' => false, 'message' => 'Vui lòng nhập mã giảm giá!']);
+        }
+
+        // Tìm mã giảm giá trong DB
+        $voucher = \App\Models\Voucher::where('code', $code)->first();
+
+        if (!$voucher) {
+            return response()->json(['success' => false, 'message' => 'Mã giảm giá không tồn tại!']);
+        }
+
+        // --- CHECK ĐIỀU KIỆN THEO ĐÚNG DB CỦA BRO ---
+        if ($voucher->status != 1) return response()->json(['success' => false, 'message' => 'Mã giảm giá đã ngưng hoạt động!']);
+        if ($voucher->usage_limit !== null && $voucher->used_count >= $voucher->usage_limit) return response()->json(['success' => false, 'message' => 'Mã giảm giá đã hết lượt sử dụng!']);
+        if ($voucher->start_date && now() < $voucher->start_date) return response()->json(['success' => false, 'message' => 'Mã chưa đến thời gian sử dụng!']);
+        if ($voucher->end_date && now() > $voucher->end_date) return response()->json(['success' => false, 'message' => 'Mã giảm giá đã hết hạn!']);
+
+        // Tính tổng tiền giỏ hàng hiện tại
+        $cart = \App\Models\Cart::with(['items.product', 'items.variant'])
+            ->where(function($q) {
+                if(\Illuminate\Support\Facades\Auth::check()) $q->where('user_id', \Illuminate\Support\Facades\Auth::id());
+                else $q->where('session_id', \Illuminate\Support\Facades\Session::getId());
+            })->first();
+
+        $totalPrice = 0;
+        if ($cart) {
+            foreach ($cart->items as $item) {
+                $price = $item->product->sale_price > 0 ? $item->product->sale_price : $item->product->price;
+                if ($item->variant) {
+                    $price = $item->variant->sale_price > 0 ? $item->variant->sale_price : $item->variant->price;
+                }
+                $totalPrice += $price * $item->quantity;
+            }
+        }
+
+        // Check đơn hàng tối thiểu
+        if ($voucher->min_order_value && $totalPrice < $voucher->min_order_value) {
+            return response()->json(['success' => false, 'message' => 'Đơn hàng chưa đạt giá trị tối thiểu ' . number_format($voucher->min_order_value, 0, ',', '.') . 'đ!']);
+        }
+
+        // Tính toán số tiền được giảm
+        $discountAmount = 0;
+        if ($voucher->discount_type === 'percent') { // Giảm theo %
+            $discountAmount = ($totalPrice * $voucher->discount_value) / 100;
+            // Check giảm tối đa
+            if ($voucher->max_discount && $discountAmount > $voucher->max_discount) {
+                $discountAmount = $voucher->max_discount;
+            }
+        } else { // Giảm số tiền cố định (fixed)
+            $discountAmount = $voucher->discount_value; 
+        }
+
+        // Không cho phép giảm lố tiền đơn hàng
+        if ($discountAmount > $totalPrice) {
+            $discountAmount = $totalPrice;
+        }
+
+        // Lưu voucher vào Session để qua trang Checkout trừ tiền
+        session(['voucher' => [
+            'id' => $voucher->id,
+            'code' => $voucher->code,
+            'discount_amount' => $discountAmount
+        ]]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Áp dụng mã thành công!',
+            'discount_formatted' => number_format($discountAmount, 0, ',', '.'),
+            'new_total' => number_format($totalPrice - $discountAmount, 0, ',', '.')
+        ]);
     }
 }

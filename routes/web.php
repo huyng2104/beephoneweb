@@ -57,9 +57,9 @@ Route::middleware('check.verified')->group(function () {
     Route::get('profile/wallet', [ProfileController::class, 'user_wallet'])->name('profile.wallet');
     Route::resource('profile', ProfileController::class);
 
-    // Nạp ví
-    Route::post('/wallet/deposit', [ClientWalletController::class, 'createDeposit'])->name('wallet.deposit');
-    Route::get('vnpay/response', [PaymentController::class, 'vnpay_response'])->name('wallet.deposit');
+    // Nạp ví (ĐÃ FIX CHUẨN XỊN)
+    Route::post('/wallet/deposit',[ClientWalletController::class,'createDeposit'])->name('wallet.deposit');
+    Route::get('/wallet/vnpay-return', [ClientWalletController::class, 'vnpayReturn'])->name('wallet.vnpay.return');
 
     // Rút ví
     Route::post('/wallet/withdrawal', [ClientWalletController::class, 'withdrawalPost'])->name('wallet.withdrawal');
@@ -71,11 +71,13 @@ Route::middleware('check.verified')->group(function () {
     Route::get('/gio-hang', [CartController::class, 'index'])->name('client.cart.index');
     Route::post('/cart/update', [CartController::class, 'update'])->name('client.cart.update');
     Route::post('/cart/remove', [CartController::class, 'remove'])->name('client.cart.remove');
+    Route::post('/cart/apply-voucher', [CartController::class, 'applyVoucher'])->name('client.cart.apply_voucher');
 
     // THANH TOÁN (CHECKOUT)
     Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('client.checkout.index');
     Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('client.checkout.process');
     Route::get('/dat-hang-thanh-cong', [CheckoutController::class, 'success'])->name('client.checkout.success');
+    Route::get('/vnpay/response', [App\Http\Controllers\Client\CheckoutController::class, 'vnpay_return'])->name('vnpay.return');
 
     // QUẢN LÝ ĐƠN HÀNG CỦA KHÁCH
     Route::middleware(['auth'])->group(function () {

@@ -6,7 +6,6 @@
 
     <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col lg:flex-row gap-8">
-            <!-- BEGIN: Sidebar Navigation -->
             <aside class="w-full lg:w-64 flex-shrink-0" data-purpose="sidebar-navigation">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="p-6 border-b border-gray-100">
@@ -21,9 +20,10 @@
                             </div>
                         </div>
                     </div>
+                    
                     <nav class="py-2">
-                        <a class="flex items-center gap-3 px-6 py-3 text-sm border-l-4 border-amber-400 bg-amber-50 text-gray-900 font-semibold"
-                            href="#">
+                        <a class="flex items-center gap-3 px-6 py-3 text-sm transition {{ request()->routeIs('profile.index') ? 'border-l-4 border-amber-400 bg-amber-50 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
+                            href="{{ route('profile.index') }}">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
@@ -31,14 +31,16 @@
                             </svg>
                             Hồ sơ cá nhân
                         </a>
-                       <a class="flex items-center gap-3 px-6 py-3 text-sm transition {{ request()->routeIs('client.orders.*') ? 'text-[#181611] dark:text-white bg-[#f4c025] font-bold rounded-lg' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg' }}"
-    href="{{ route('client.orders.index') }}">
-    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-    </svg>
-    Đơn hàng của tôi
-</a>
-                        <a class="flex items-center gap-3 px-6 py-3 text-sm text-gray-600 hover:bg-gray-50 transition"
+
+                        <a class="flex items-center gap-3 px-6 py-3 text-sm transition {{ request()->routeIs('client.orders.*') ? 'border-l-4 border-amber-400 bg-amber-50 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
+                            href="{{ route('client.orders.index') }}">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                            </svg>
+                            Đơn hàng của tôi
+                        </a>
+
+                        <a class="flex items-center gap-3 px-6 py-3 text-sm transition text-gray-600 hover:bg-gray-50"
                             href="#">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
@@ -48,8 +50,9 @@
                             </svg>
                             Sản phẩm yêu thích
                         </a>
-                        <a class="flex items-center gap-3 px-6 py-3 text-sm text-gray-600 hover:bg-gray-50 transition"
-                            href="{{route('profile.wallet')}}">
+
+                        <a class="flex items-center gap-3 px-6 py-3 text-sm transition {{ request()->routeIs('profile.wallet') ? 'border-l-4 border-amber-400 bg-amber-50 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
+                            href="{{ route('profile.wallet') }}">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path
@@ -58,7 +61,8 @@
                             </svg>
                             Ví Bee Pay
                         </a>
-                        <a class="flex items-center gap-3 px-6 py-3 text-sm text-gray-600 hover:bg-gray-50 transition"
+
+                        <a class="flex items-center gap-3 px-6 py-3 text-sm transition text-gray-600 hover:bg-gray-50"
                             href="#">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
@@ -68,7 +72,8 @@
                             </svg>
                             Thông báo
                         </a>
-                        <a class="flex items-center gap-3 px-6 py-3 text-sm text-gray-600 hover:bg-gray-50 transition"
+
+                        <a class="flex items-center gap-3 px-6 py-3 text-sm transition text-gray-600 hover:bg-gray-50"
                             href="#">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
@@ -78,6 +83,7 @@
                             </svg>
                             Đổi mật khẩu
                         </a>
+
                         <div class="mt-4 pt-4 border-t border-gray-100">
                             <a class="flex items-center gap-3 px-6 py-3 text-sm text-red-500 hover:bg-red-50 transition font-medium"
                                 href="#">
@@ -93,10 +99,7 @@
                     </nav>
                 </div>
             </aside>
-            <!-- END: Sidebar Navigation -->
-            <!-- BEGIN: Main Content Area -->
             @yield('profile_content')
-            <!-- END: Main Content Area -->
-        </div>
+            </div>
     </main>
 @endsection
