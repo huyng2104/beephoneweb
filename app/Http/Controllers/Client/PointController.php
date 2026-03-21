@@ -39,51 +39,66 @@ class PointController extends Controller
     }
 
     // 2. Xử lý đổi điểm lấy Mã giảm giá
+   // 2. Xử lý đổi điểm lấy Mã giảm giá
     public function redeem(Request $request)
     {
         $request->validate(['voucher_id' => 'required|exists:vouchers,id']);
         
         $user = Auth::user();
         $voucher = Voucher::findOrFail($request->voucher_id);
+
+        // ==========================================
+        // BƯỚC CHẶN 1: KIỂM TRA KHÁCH ĐÃ CÓ VOUCHER NÀY CHƯA
+        // ==========================================
+        $alreadyHasVoucher = DB::table('user_vouchers')
+            ->where('user_id', $user->id)
+            ->where('voucher_id', $voucher->id)
+            ->exists();
+
+        if ($alreadyHasVoucher) {
+            return back()->with('error', 'Bạn đã sở hữu mã giảm giá này rồi! Hãy vào kho Voucher để kiểm tra nhé.');
+        }
         
+        // ==========================================
+        // BƯỚC 2: TÍNH ĐIỂM VÀ KIỂM TRA SỐ DƯ
+        // ==========================================
         $setting = PointSetting::first();
         $redeemRate = $setting ? $setting->redeem_rate : 1000;
 
-        // Tính toán số điểm cần thiết để đổi voucher này
         $pointCost = 0;
         if ($voucher->discount_type === 'fixed') {
             $pointCost = ceil($voucher->discount_value / $redeemRate);
         } else {
-            // Nếu giảm theo %, tạm tính giá trị dựa trên max_discount
             $pointCost = ceil(($voucher->max_discount ?: 50000) / $redeemRate);
         }
 
-        // Kiểm tra xem User có đủ điểm không
         if ($user->total_points < $pointCost) {
             return back()->with('error', 'Rất tiếc! Bạn không đủ Bee Point để đổi mã này.');
         }
 
+        // ==========================================
+        // BƯỚC 3: TRỪ ĐIỂM VÀ LƯU VOUCHER AN TOÀN
+        // ==========================================
         DB::beginTransaction();
         try {
             // 1. Trừ điểm: Ghi lịch sử
             PointHistory::create([
                 'user_id' => $user->id,
-                'voucher_id' => $voucher->id,
+                'order_id' => null, 
                 'points' => -$pointCost, // Số âm là trừ điểm
                 'type' => 'redeem',
                 'description' => 'Đổi ' . number_format($pointCost) . ' điểm lấy mã giảm giá: ' . $voucher->code
             ]);
 
-            // 2. Lưu voucher vào kho của khách (Pivot user_vouchers)
-            // Truyền used_at = null để đánh dấu là mã chưa được sử dụng
-            $voucher->users()->attach($user->id, ['used_at' => null]);
+            // 2. Lưu voucher vào kho của khách
+            $voucher->users()->attach($user->id);
 
             DB::commit();
             return back()->with('success', 'Tuyệt vời! Bạn đã đổi thành công mã ' . $voucher->code . '. Mã đã được lưu vào kho của bạn.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại sau!');
+            return back()->with('error', 'Lỗi hệ thống: ' . $e->getMessage());
         }
     }
 }
