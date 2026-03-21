@@ -3,17 +3,13 @@
 @section('profile_content')
     @include('popup_notify.index')
     <main class="flex-1 space-y-6" data-purpose="wallet-main-content">
-        <!-- Wallet Title -->
         <section>
             <h1 class="text-2xl font-bold text-gray-900">Ví Bee Pay của tôi</h1>
             <p class="text-gray-500 text-sm mt-1">Quản lý số dư và thực hiện thanh toán nội bộ nhanh chóng</p>
         </section>
-        <!-- BEGIN: WalletBalanceCard -->
         <section>
-            <!-- Focused Internal Balance Card -->
             <div class="bg-[#1a1a1a] text-white p-8 rounded-2xl relative overflow-hidden shadow-xl"
                 data-purpose="balance-display">
-                <!-- Background decorative circle -->
                 <div class="absolute -top-12 -right-12 w-64 h-64 bg-[#f4c025] opacity-10 rounded-full"></div>
                 <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                     <div>
@@ -41,9 +37,6 @@
                 </div>
             </div>
         </section>
-        <!-- END: WalletBalanceCard -->
-
-        <!-- BEGIN: TransactionHistory -->
         <section class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
             data-purpose="transaction-list">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center">
@@ -64,8 +57,13 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                        @if ($user->wallet->transactions->count() != 0)
-                            @foreach ($user->wallet->transactions()->latest()->paginate(4) as $transaction)
+                        @php
+                            // KHAI BÁO BIẾN PHÂN TRANG Ở ĐÂY ĐỂ TRÁNH LỖI LINKS()
+                            $paginatedTransactions = $user->wallet->transactions()->latest()->paginate(4);
+                        @endphp
+                        
+                        @if ($paginatedTransactions->count() != 0)
+                            @foreach ($paginatedTransactions as $transaction)
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
 
                                     <td class="px-4 py-3 md:px-6 md:py-4 text-sm whitespace-nowrap">
@@ -190,12 +188,13 @@
                     </tbody>
 
                 </table>
-                {{ $user->wallet->transactions->links() }}
+                <div class="p-4 border-t border-gray-100">
+                    {{-- SỬ DỤNG BIẾN MỚI ĐỂ GỌI LINKS() CHUẨN XÁC --}}
+                    {{ $paginatedTransactions->links() }}
+                </div>
             </div>
         </section>
-        <!-- END: TransactionHistory -->
-
-    </main>
+        </main>
 
     {{-- Popup cho chi tiết giao dịch --}}
     <div id="transactionModal"

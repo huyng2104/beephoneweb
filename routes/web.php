@@ -20,7 +20,7 @@ use App\Http\Controllers\AuthControllers\AuthController;
 use App\Http\Controllers\AdminControllers\VoucherController;
 use App\Http\Controllers\AdminControllers\UserController;
 use App\Http\Controllers\AdminControllers\OrderController;
-
+use App\Http\Controllers\AdminControllers\PointController;
 
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
@@ -90,6 +90,10 @@ Route::middleware('check.verified')->group(function () {
     Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
     Route::get('/bai-viet/{slug}', [ClientPostController::class, 'show'])->name('client.posts.show');
     Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])->name('chatbot.chat');
+
+    // QUẢN LÝ ĐIỂM THƯỞNG (BEE POINT)
+    Route::get('/bee-point', [App\Http\Controllers\Client\PointController::class, 'index'])->name('client.points.index');
+    Route::post('/bee-point/redeem', [App\Http\Controllers\Client\PointController::class, 'redeem'])->name('client.points.redeem');
 });
 
 // ==========================================
@@ -224,5 +228,9 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');
         Route::post('/wallets/update-balance', [WalletController::class, 'updateBalance'])->name('wallets.update');
         Route::get('/wallets/{id}/history', [WalletController::class, 'history'])->name('wallets.history');
+
+        // 10. Quản lý Điểm thưởng (Bee Point)
+        Route::get('/points', [PointController::class, 'index'])->name('points.index');
+        Route::post('/points/settings', [PointController::class, 'updateSettings'])->name('points.settings.update');
     });
 });

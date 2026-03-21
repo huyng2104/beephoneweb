@@ -106,4 +106,17 @@ class User extends Authenticatable  implements MustVerifyEmail
     {
         return $this->hasMany(Order::class);
     }
+    public function pointHistories()
+    {
+        return $this->hasMany(PointHistory::class);
+    }
+    // 1. Mối quan hệ với bảng Lịch sử điểm
+
+
+    // 2. Cột ảo tính Tổng điểm hiện tại của User
+    public function getTotalPointsAttribute()
+    {
+        // Tính tổng tất cả các điểm cộng (+) và trừ (-) trong lịch sử
+        return $this->pointHistories()->sum('points') ?? 0;
+    }
 }
