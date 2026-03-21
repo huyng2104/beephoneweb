@@ -67,7 +67,7 @@
                                 </div>
 
                                 <div class="p-2 space-y-1">
-                                    @if (Auth::user()->role === 'admin' || Auth::user()->role === 'staff')
+                                    @if (Auth::user()->role->name === 'admin' || Auth::user()->role->name === 'staff')
                                         <a href="{{ route('admin.dashboard') }}"
                                             class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#f5f3f0] dark:hover:bg-white/5 hover:text-primary rounded-lg transition-colors">
                                             <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>

@@ -20,7 +20,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <nav class="py-2">
                         <a class="flex items-center gap-3 px-6 py-3 text-sm transition {{ request()->routeIs('profile.index') ? 'border-l-4 border-amber-400 bg-amber-50 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
                             href="{{ route('profile.index') }}">
@@ -34,12 +34,23 @@
 
                         <a class="flex items-center gap-3 px-6 py-3 text-sm transition {{ request()->routeIs('client.orders.*') ? 'border-l-4 border-amber-400 bg-amber-50 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
                             href="{{ route('client.orders.index') }}">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round"
+                                    stroke-linejoin="round" stroke-width="2"></path>
                             </svg>
                             Đơn hàng của tôi
                         </a>
-
+                        <a class="flex items-center gap-3 px-6 py-3 text-sm transition {{ request()->routeIs('client.vouchers.*') ? 'border-l-4 border-amber-400 bg-amber-50 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
+                            href="#">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z">
+                                </path>
+                            </svg>
+                            Voucher đã lưu
+                        </a>
                         <a class="flex items-center gap-3 px-6 py-3 text-sm transition text-gray-600 hover:bg-gray-50"
                             href="#">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"
@@ -63,7 +74,8 @@
                         </a>
                         <a class="flex items-center gap-3 px-6 py-3 text-sm transition {{ request()->routeIs('client.points.*') ? 'border-l-4 border-amber-400 bg-amber-50 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
                             href="{{ route('client.points.index') }}">
-                            <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('client.points.*') ? 'text-amber-500' : '' }}">
+                            <span
+                                class="material-symbols-outlined text-[20px] {{ request()->routeIs('client.points.*') ? 'text-amber-500' : '' }}">
                                 workspace_premium
                             </span>
                             Điểm Bee Point
@@ -107,6 +119,6 @@
                 </div>
             </aside>
             @yield('profile_content')
-            </div>
+        </div>
     </main>
 @endsection
