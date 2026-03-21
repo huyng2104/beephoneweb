@@ -61,12 +61,23 @@
                                     <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Vai trò</label>
                                     <select name="role" id="role" onchange="togglePermissions()"
                                         class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
-                                        @foreach ($roles as $role)
-                                            <option value="{{ $role->id }}"
-                                                {{ old('role') == $role->id ? 'selected' : '' }}>
-                                                {{ $role->name }}
-                                            </option>
-                                        @endforeach
+                                        @if (Auth::user()->role->name === 'admin')
+                                            @foreach ($roles as $role)
+                                                <option value="{{ $role->id }}"
+                                                    {{ old('role') == $role->id ? 'selected' : '' }}>
+                                                    {{ $role->name }}
+                                                </option>
+                                            @endforeach
+                                        @else
+                                            @foreach ($roles as $role)
+                                                @if ($role->name === 'user')
+                                                    <option value="{{ $role->id  }}"
+                                                    {{ old('role') == $role->id ? 'selected' : '' }}>
+                                                    {{ $role->name }}
+                                                </option>
+                                                @endif
+                                            @endforeach
+                                        @endif
                                     </select>
                                     @error('role')
                                         <span class="text-red-500 text-sm">{{ $message }}</span>
