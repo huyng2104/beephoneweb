@@ -61,6 +61,13 @@
                             </svg>
                             Ví Bee Pay
                         </a>
+                        <a class="flex items-center gap-3 px-6 py-3 text-sm transition {{ request()->routeIs('client.points.*') ? 'border-l-4 border-amber-400 bg-amber-50 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
+                            href="{{ route('client.points.index') }}">
+                            <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('client.points.*') ? 'text-amber-500' : '' }}">
+                                workspace_premium
+                            </span>
+                            Điểm Bee Point
+                        </a>
 
                         <a class="flex items-center gap-3 px-6 py-3 text-sm transition text-gray-600 hover:bg-gray-50"
                             href="#">
