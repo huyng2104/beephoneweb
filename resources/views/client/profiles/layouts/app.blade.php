@@ -10,14 +10,37 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="p-6 border-b border-gray-100">
                         <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-100">
-                                <img alt="Avatar Sidebar"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlnd0uNBPq_YQXOSRidaH7U9gYhN8R2yfsAz2HMWPBYUfRaOKgYe8gFkpw9B0bkzlTtHyx7YIL4IU0on8pRSSzvTikoy2pnNRSp-ySM8oBnsKpJ4CVN-Nxk9pBPuAo3ENAWutWhILXbSjIOucMUPT_FqeULocWBUr7xsJ8b7qZuVPTLAZM5flME8aUo2XuUuRBmU6Y3LAfb5a1xcltgQMa2GRzk2lBsC8bf05AMlh6JSv9FjPIs8N3UxbRM9S9sCJAvvgg1KwJjpk" />
+
+                            {{-- Phần Avatar --}}
+                            <div
+                                class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center shadow-sm">
+                                @if ($user->avatar)
+                                    {{-- TH 1: CÓ ẢNH --}}
+                                    <img alt="{{ $user->name }}" class="w-full h-full object-cover"
+                                        src="{{ asset('storage/' . $user->avatar) }}" />
+                                @else
+                                    {{-- TH 2: HIỂN THỊ CHỮ VIẾT TẮT --}}
+                                    @php
+                                        $words = explode(' ', trim($user->name));
+                                        if (count($words) > 1) {
+                                            $initials = mb_substr($words[0], 0, 1) . mb_substr(end($words), 0, 1);
+                                        } else {
+                                            $initials = mb_substr($user->name, 0, 2);
+                                        }
+                                    @endphp
+                                    <div
+                                        class="w-full h-full bg-gray-200 text-gray-900 flex items-center justify-center text-lg font-bold uppercase tracking-wider">
+                                        {{ mb_strtoupper($initials) }}
+                                    </div>
+                                @endif
                             </div>
+
+                            {{-- Phần Thông tin User --}}
                             <div>
                                 <p class="font-bold text-sm">{{ $user->name }}</p>
-                                <p class="text-xs text-yellow-500 uppercase font-semibold">{{ $user->role->name_role }}</p>
+                                <p class="text-xs text-amber-500 uppercase font-semibold">{{ $user->role->name_role }}</p>
                             </div>
+
                         </div>
                     </div>
 
@@ -92,16 +115,7 @@
                             Thông báo
                         </a>
 
-                        <a class="flex items-center gap-3 px-6 py-3 text-sm transition text-gray-600 hover:bg-gray-50"
-                            href="#">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                                    stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                            </svg>
-                            Đổi mật khẩu
-                        </a>
+
 
                         <div class="mt-4 pt-4 border-t border-gray-100">
                             <a class="flex items-center gap-3 px-6 py-3 text-sm text-red-500 hover:bg-red-50 transition font-medium"

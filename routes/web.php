@@ -35,6 +35,7 @@ use App\Http\Controllers\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Client\ChatbotController;
 use App\Http\Controllers\Client\PostController as ClientPostController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,6 +58,7 @@ Route::middleware('check.verified')->group(function () {
     // Thông tin tài khoản
     Route::get('profile/wallet', [ProfileController::class, 'user_wallet'])->name('profile.wallet');
     Route::resource('profile', ProfileController::class);
+    Route::post('prodile/password/update/{id}',[ProfileController::class,'passwordUpdate'])->name('profile.password.update');
 
     // Nạp ví (ĐÃ FIX CHUẨN XỊN)
     Route::post('/wallet/deposit',[ClientWalletController::class,'createDeposit'])->name('wallet.deposit');
@@ -127,7 +129,8 @@ Route::post('check-otp', [AuthController::class, 'check_otp'])->name('check_otp'
 // ==========================================
 // Kiểm tra xác thực email chưa
 Route::get('/email/verify', function () {
-    if (Auth::user() && Auth::user()->hasVerifiedEmail()) {
+    $user = User::findOrFail(Auth::id());
+    if ($user && $user->hasVerifiedEmail()) {
         return redirect()->route('home')->with([
             'success' => 'Đăng nhập thành công'
         ]);
@@ -237,10 +240,10 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');
         Route::post('/wallets/update', [WalletController::class, 'update'])->name('wallets.update');
         Route::get('/wallets/{id}/history', [WalletController::class, 'history'])->name('wallets.history');
-        
+
         // Giao diện xem sao kê Ví Tổng
         Route::get('/system-wallet', [WalletController::class, 'systemWallet'])->name('system_wallet');
-        
+
         // Nút xử lý cộng tiền cho User
         Route::post('/system-wallet/add-money', [WalletController::class, 'addMoneyToUser'])->name('system_wallet.add_money');
 

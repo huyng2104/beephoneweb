@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\Client;
 
+use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateUserClientRequest;
+use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
@@ -58,9 +62,26 @@ class ProfileController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateUserClientRequest $request, string $id)
     {
-        //
+        $data = $request->except(['avatar']);
+        $user = User::findOrFail($id);
+
+        try {
+            if ($request->hasFile('avatar')) {
+                if ($user->avatar) {
+                    FileHelper::delete($user->avatar);
+                }
+                $data['avatar'] = FileHelper::upload($request->file('avatar'));
+            }
+            $user->update($data);
+
+            return back()->with([
+                'success' => 'Cập nhật thông tin thành công.'
+            ]);
+        } catch (\Throwable $th) {
+            dd($th->getMessage());
+        }
     }
 
     /**
@@ -84,10 +105,38 @@ class ProfileController extends Controller
             'user' => $user
         ]);
     }
-    public function user_voucher(){
+    public function user_voucher()
+    {
         $user = Auth::user();
         return view('client.profiles.voucher')->with([
             'user' => $user
+        ]);
+    }
+    public function passwordUpdate(Request $request,   $id)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|min:8|confirmed',
+        ], [
+            'current_password.required' => 'Vui lòng nhập mật khẩu hiện tại.',
+            'password.required' => 'Vui lòng nhập mật khẩu mới.',
+            'password.min' => 'Mật khẩu mới phải có ít nhất 8 ký tự.',
+            'password.confirmed' => 'Xác nhận mật khẩu mới không trùng khớp.',
+        ]);
+
+        $user = User::findOrFail($id);
+
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors([
+                'current_password' => 'Mật khẩu hiện tại bạn nhập không chính xác.'
+            ]);
+        }
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+        return back()->with([
+            'success' => 'Đổi mật khẩu thành công!'
         ]);
     }
 }
