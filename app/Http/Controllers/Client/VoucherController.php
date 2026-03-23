@@ -50,10 +50,12 @@ class VoucherController extends Controller
 
         // 3. Nếu user ĐÃ ĐĂNG NHẬP, lấy ra danh sách ID voucher họ đã lưu
         if (Auth::check()) {
+
             $savedVoucherIds = $user
                 ->userVouchers()
-                ->pluck('vouchers.id') // Chỉ lấy cột ID
+                ->pluck('voucher_id') // Chỉ lấy cột ID
                 ->toArray(); // Chuyển về mảng phẳng [1, 2, 3]
+
         }
         return view('client.vouchers.index')->with([
             'vouchers' => $vouchers,

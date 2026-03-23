@@ -45,6 +45,10 @@ class Voucher extends Model
     {
         return $this->belongsToMany(Product::class, 'voucher_product');
     }
+     public function userVouchers()
+    {
+        return $this->belongsToMany(Voucher::class, 'user_vouchers')->wherePivot('order_id');
+    }
     public function getVoucherStatusAttribute()
     {
         if ($this->status == 0) {
