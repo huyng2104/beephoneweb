@@ -133,6 +133,12 @@
             <span>Bài viết</span>
         </a>
 
+        <a class="{{ request()->routeIs('admin.comments.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            href="{{ route('admin.comments.index') }}">
+            <span class="material-symbols-outlined">chat</span>
+            <span>Comments</span>
+        </a>
+
   <a class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.wallets.*') ? 'bg-bee text-white shadow-lg shadow-bee/30' : 'text-slate-600 dark:text-slate-400 hover:bg-bee/10 hover:text-bee' }}"
    href="{{ route('admin.wallets.index') }}">
     <span class="material-symbols-outlined transition-transform group-hover:scale-110">
@@ -149,39 +155,6 @@
             </a>
         </div>
     </nav>
-
-    @php
-        $avatarUrl =
-            auth()->check() && auth()->user()->avatar
-                ? auth()->user()->avatar
-                : 'https://lh3.googleusercontent.com/aida-public/AB6AXuCQ9FLwed6hUAodxd9ykvBX9jnJPa0SIZOAFTt7JD5S5S8LXWLFY62U-5aeNRvaZQetgkhn0Y2YgXmLc89xuKY4atiMN4hOXt6_aM2ursKgGi8pl6Gigoe6gbYZw7-1MfbjHkiROQCGnnfsRHNqbFp0QA_5PHl55Z81GnnMVM0tKXWUQDVpKrueckovvrx3oJwLl0Z1RvjLR5tvPWPMlZX24Up9_TbdPxlcAdiZW0lhBSt-Iyb0xrrtvxktfM33K4G9JbPO05fOiBwn';
-    @endphp
-    <div class="p-4 bg-slate-50 dark:bg-slate-900 m-4 rounded-xl border border-slate-100 dark:border-slate-800">
-        <div class="flex items-center gap-3 w-full">
-            @auth
-                {{-- 1. Ảnh Avatar --}}
-                <a href="{{ route('admin.users.show', Auth::user()->id) }}">
-                    <div class="w-10 h-10 rounded-full bg-slate-300 overflow-hidden shrink-0"
-                        data-alt="Avatar của {{ Auth::user()->name }}"
-                        style="background-image: url('{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) }}'); background-size: cover; background-position: center;">
-                    </div>
-                </a>
-
-                {{-- 2. Thông tin User --}}
-                <div class="overflow-hidden flex-1">
-                    <p class="text-sm font-semibold truncate text-slate-800 dark:text-white">{{ Auth::user()->name }}</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ Auth::user()->role->name_role }}</p>
-                </div>
-
-                {{-- 3. Nút Đăng xuất --}}
-                <a href="{{ route('logout') }}"
-                    class="ml-auto flex items-center justify-center w-8 h-8 rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
-                    title="Đăng xuất">
-                    <span class="material-symbols-outlined" style="font-size: 20px;">logout</span>
-                </a>
-            @endauth
-        </div>
-    </div>
 </aside>
 
 {{-- SCRIPTS XỬ LÝ DROPDOWN --}}
@@ -225,5 +198,4 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
     }
-</style>
 </style>

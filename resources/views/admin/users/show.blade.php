@@ -63,7 +63,7 @@
                         <span>Chỉnh sửa</span>
                     </button>
                 </a>
-                @if (Auth::user()->id != $user->id)
+                @if (!Auth::check() || Auth::id() != $user->id)
                     @if ($user->status == 'banned')
                         <form action="{{ route('admin.user.unblock', $user->id) }}" method="POST">
                             @csrf

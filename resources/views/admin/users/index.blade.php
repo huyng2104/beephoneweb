@@ -201,7 +201,7 @@
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                             <!-- Row 1 -->
                             @foreach ($users as $index => $user)
-                                @if (Auth::user()->id != $user->id)
+                                @if (!Auth::check() || Auth::id() != $user->id)
                                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                                         <td class="px-6 py-4 text-sm font-medium text-slate-400">{{ $index + 1 }}</td>
                                         <td class="px-6 py-4">

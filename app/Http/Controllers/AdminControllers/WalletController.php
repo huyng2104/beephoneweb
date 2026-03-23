@@ -80,8 +80,8 @@ class WalletController extends Controller
                     'balance_before' => $balanceBefore,
                     'balance_after' => $wallet->balance,
                     'description' => $desc,
-                    'reference_type' => get_class(Auth::user()),
-                    'reference_id' => Auth::user()->id,
+                    'reference_type' => Auth::check() ? get_class(Auth::user()) : null,
+                    'reference_id' => Auth::id() ? (string) Auth::id() : null,
                     'status' => 'completed'
                 ]);
             });

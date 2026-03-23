@@ -61,7 +61,7 @@
                                     <select name="role" id="role" onchange="togglePermissions()"
                                         class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
 
-                                        @if (Auth::user()->id != $user->id && Auth::user()->role->name == 'admin')
+                                        @if (!Auth::check() || (Auth::id() != $user->id && Auth::user()->role->name == 'admin'))
                                             @foreach ($roles as $role)
                                                 <option value="{{ $role->id }}"
                                                     {{ old('role', $user->role_id ?? '') == $role->id ? 'selected' : '' }}>

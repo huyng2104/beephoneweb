@@ -164,9 +164,13 @@
                             @endif
                         </td>
                         <td class="py-4 px-6 whitespace-nowrap text-right">
-                            <div class="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="flex items-center justify-end gap-3">
                                 <a href="{{ route('admin.products.show', $product->id) }}" class="text-slate-400 hover:text-primary transition-colors" title="Xem">
                                     <span class="material-symbols-outlined text-[20px]">visibility</span>
+                                </a>
+
+                                <a href="{{ route('admin.comments.index', ['product_id' => $product->id]) }}" class="text-slate-400 hover:text-sky-600 transition-colors" title="Comments">
+                                    <span class="material-symbols-outlined text-[20px]">chat</span>
                                 </a>
                                 
                                 <a href="{{ route('admin.products.edit', $product->id) }}" class="text-slate-400 hover:text-blue-600 transition-colors" title="Sửa">

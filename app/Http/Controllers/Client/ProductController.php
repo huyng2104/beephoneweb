@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\Comment;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,30 @@ class ProductController extends Controller
             ->orWhere('id', $slug)
             ->firstOrFail();
 
-        return view('client.product-detail', compact('product'));
+        $comments = Comment::with(['user', 'children.user'])
+            ->where('product_id', $product->id)
+            ->whereNull('parent_id')
+            ->latest()
+            ->get();
+
+        $ratingsQuery = Comment::query()
+            ->where('product_id', $product->id)
+            ->whereNotNull('rating');
+
+        $totalRatings = (int) $ratingsQuery->count();
+        $averageRating = $totalRatings > 0 ? round((float) $ratingsQuery->avg('rating'), 1) : 0;
+
+        $ratingCounts = Comment::query()
+            ->where('product_id', $product->id)
+            ->whereNotNull('rating')
+            ->selectRaw('rating, COUNT(*) as count')
+            ->groupBy('rating')
+            ->pluck('count', 'rating');
+
+        $ratingBreakdown = collect(range(5, 1))
+            ->mapWithKeys(fn (int $star) => [$star => (int) ($ratingCounts[$star] ?? 0)]);
+
+        return view('client.product-detail', compact('product', 'comments', 'totalRatings', 'averageRating', 'ratingBreakdown'));
     }
 
     public function index(Request $request)

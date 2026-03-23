@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 // Import Client Controllers
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\ProductController as ClientProductController;
+use App\Http\Controllers\Client\CommentController as ClientCommentController;
 
 // Import Admin & Auth Controllers
 use App\Http\Controllers\AdminControllers\CategoryController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\AdminControllers\OrderController;
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
 use App\Http\Controllers\AdminControllers\WalletController;
+use App\Http\Controllers\AdminControllers\CommentController;
 use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\WalletController as ClientWalletController;
@@ -44,6 +46,9 @@ Route::middleware('check.verified')->group(function(){
     // Chi tiết sản phẩm & Danh sách sản phẩm
     Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
+
+    // Comments (product detail)
+    Route::post('/san-pham/{slug}/comments', [ClientCommentController::class, 'store'])->name('client.comments.store');
 
     // Thông tin tài khoản
     Route::get('profile/wallet',[ProfileController::class,'user_wallet'])->name('profile.wallet');
@@ -125,9 +130,7 @@ Route::post('/email/verification-notification', function (Request $request) {
 // ĐÃ FIX: Chỉ dùng quyền admin/staff ở ngoài cùng, quyền order.view để riêng vào nhóm đơn hàng
 
 
-Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
-
-    Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->group(function () {
 
         // Bảng điều khiển
         Route::get('/', function () {
@@ -187,24 +190,24 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::post('vouchers/{id}/restore', [VoucherController::class, 'restore'])->name('vouchers.restore');
         Route::resource('vouchers', VoucherController::class);
 
-        // 7. Quản lý Đơn hàng (QUYỀN ORDER VIEW ĐƯỢC CHUYỂN VÀO ĐÂY)
-        Route::middleware('can:order.view')->group(function () {
-            Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
-            Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-            Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
-            Route::patch('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
-            Route::patch('orders/{order}/return-confirm', [OrderController::class, 'confirmReturn'])->name('orders.return.confirm');
-            Route::get('orders/{order}/print-pdf', [OrderController::class, 'printPdf'])->name('orders.print.pdf');
-        });
+        // 7. Quản lý Đơn hàng
+        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+        Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
+        Route::patch('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+        Route::patch('orders/{order}/return-confirm', [OrderController::class, 'confirmReturn'])->name('orders.return.confirm');
+        Route::get('orders/{order}/print-pdf', [OrderController::class, 'printPdf'])->name('orders.print.pdf');
 
         // 8. Quản lý bài viết
         Route::resource('posts', PostController::class);
         Route::resource('post-categories', PostCategoryController::class);
         Route::post('posts/upload', [PostController::class, 'upload'])->name('posts.upload');
 
-        // 9. Quản lý Ví tiền
+        // 9. Quản lý Comments
+        Route::resource('comments', CommentController::class)->only(['index', 'show', 'destroy']);
+
+        // 10. Quản lý Ví tiền
         Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');
         Route::post('/wallets/update-balance', [WalletController::class, 'updateBalance'])->name('wallets.update');
         Route::get('/wallets/{id}/history', [WalletController::class, 'history'])->name('wallets.history');
     });
-});
