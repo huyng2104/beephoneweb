@@ -133,10 +133,16 @@
             <span>Voucher</span>
         </a>
 
-        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        <a class="{{ request()->routeIs('admin.posts.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
             href="{{ route('admin.posts.index') }}">
             <span class="material-symbols-outlined">local_offer</span>
             <span>Bài viết</span>
+        </a>
+
+        <a class="{{ request()->routeIs('admin.banners.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            href="{{ route('admin.banners.index') }}">
+            <span class="material-symbols-outlined">ad_units</span>
+            <span>Banner</span>
         </a>
 
         <a class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.wallets.*') ? 'bg-bee text-white shadow-lg shadow-bee/30' : 'text-slate-600 dark:text-slate-400 hover:bg-bee/10 hover:text-bee' }}"

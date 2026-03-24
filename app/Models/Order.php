@@ -128,6 +128,11 @@ class Order extends Model
         return $this->hasMany(OrderItem::class)->orderBy('id');
     }
 
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(OrderStatusHistory::class)->orderByDesc('id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
