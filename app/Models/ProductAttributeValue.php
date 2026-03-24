@@ -22,4 +22,8 @@ class ProductAttributeValue extends Model
     {
         return $this->belongsTo(FilterAttribute::class);
     }
+    public function attribute()
+    {
+        return $this->belongsTo(Attribute::class, 'attribute_id');
+    }
 }

@@ -11,11 +11,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-
+use Illuminate\Support\Facades\Gate;
 class CategoryController extends Controller
 {
     public function index(Request $request): View
     {
+        Gate::authorize('category.view');
+        $requestedMode = $request->string('mode')->toString();
+
+        if ($requestedMode === 'brands') {
+            return redirect()->route('admin.brands.index');
+        }
+
         $categories = Category::query()
             ->with('parent')
             ->withCount('children')
@@ -25,8 +32,7 @@ class CategoryController extends Controller
 
         $rows = $this->flattenCategories($categories);
 
-        $requestedMode = $request->string('mode')->toString();
-        $viewMode = in_array($requestedMode, ['filters', 'brands'], true)
+        $viewMode = in_array($requestedMode, ['filters'], true)
             ? $requestedMode
             : 'structure';
 
@@ -75,6 +81,7 @@ class CategoryController extends Controller
 
     public function create(): View
     {
+        Gate::authorize('category.create');
         return view('admin.categories.create', [
             'categoryOptions' => $this->categoryOptions(),
         ]);
@@ -95,6 +102,7 @@ class CategoryController extends Controller
 
     public function edit(Category $category): View
     {
+        Gate::authorize('category.update');
         return view('admin.categories.edit', [
             'category' => $category,
             'categoryOptions' => $this->categoryOptions($category->id),
@@ -123,11 +131,51 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
+        Gate::authorize('category.delete');
         $category->delete();
 
         return redirect()
             ->route('admin.categories.index')
             ->with('status', 'Đã xóa danh mục.');
+    }
+
+    public function trash(): View
+    {
+        Gate::authorize('category.delete');
+        $categories = Category::onlyTrashed()
+            ->with('parent')
+            ->withCount('children')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $rows = $this->flattenCategories($categories);
+
+        return view('admin.categories.trash', [
+            'rows' => $rows,
+        ]);
+    }
+
+    public function restore(int $id): RedirectResponse
+    {
+        Gate::authorize('category.delete');
+        $category = Category::onlyTrashed()->findOrFail($id);
+        $category->restore();
+
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('status', 'Đã phục hồi danh mục.');
+    }
+
+    public function forceDelete(int $id): RedirectResponse
+    {
+        Gate::authorize('category.delete');
+        $category = Category::onlyTrashed()->findOrFail($id);
+        $category->forceDelete();
+
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('status', 'Đã xóa vĩnh viễn danh mục.');
     }
 
     private function validateCategory(Request $request, ?int $ignoreId = null): array

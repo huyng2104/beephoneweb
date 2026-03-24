@@ -17,15 +17,18 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // User::factory(10)->create();
-
-        User::updateOrCreate(
-            ['email' => 'admin2@example.com'],
-            [
-                'name' => 'Admin Two',
-                'password' => Hash::make('123456'),
-                'role' => 'admin',
-                'is_locked' => false,
-            ]
-        );
+        // User::factory()->create([
+        //     'name' => 'Test User',
+        //     'email' => 'test@example.com',
+        //     ]);
+        $this->call([
+            RolesSeeder::class,
+            PermissionsSeeder::class,
+            RolePermissionsSeeder::class,
+            // UserSeeder::class,
+            // ActivityLogSeeder::class,
+            VoucherSeeder::class,
+            ProductSeeder::class,
+        ]);
     }
 }

@@ -30,7 +30,6 @@ use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\WalletController as ClientWalletController;
 use App\Http\Controllers\Client\CartController;
-use App\Http\Controllers\Client\ContactController;
 use App\Http\Controllers\Client\CheckoutController;
 use App\Http\Controllers\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Client\ChatbotController;
@@ -51,11 +50,6 @@ use App\Models\User;
 Route::middleware('check.verified')->group(function () {
     // Trang chủ
     Route::get('/', [HomeController::class, 'index'])->name('home');
-
-    //contact
-    Route::get('/lien-he', [ContactController::class, 'index'])->name('contact');
-    Route::post('/lien-he', [ContactController::class, 'submit'])->name('contact.submit');
-    Route::get('/lien-he-v2', function() { return view('client.Contact & Support.index'); })->name('contact.v2');
 
     // Chi tiết sản phẩm & Danh sách sản phẩm
     Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />   
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Gán thuộc tính lọc theo danh mục</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
@@ -237,7 +237,8 @@
                             <a href="{{ route('admin.brands.edit', $brand) }}" class="bg-white p-4 rounded-xl border border-slate-100 flex flex-col items-center gap-2 hover:border-amber-400 transition-colors">
                                 <div class="size-14 rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden">
                                     @if ($brand->logo_url)
-                                    <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" class="w-full h-full object-contain">
+                                    <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                                    <span class="material-symbols-outlined text-slate-300 text-[28px] hidden">verified</span>
                                     @else
                                     <span class="material-symbols-outlined text-slate-300 text-[28px]">verified</span>
                                     @endif

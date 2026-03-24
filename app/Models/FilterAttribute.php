@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FilterAttribute extends Model
 {
+    protected $table = 'filter_attributes';
+
     protected $fillable = [
         'name',
         'code',
@@ -27,18 +29,14 @@ class FilterAttribute extends Model
             ->withTimestamps();
     }
 
-    public function productValues(): HasMany
+    public function productAttributeValues(): HasMany
     {
         return $this->hasMany(ProductAttributeValue::class);
     }
 
     public function suggestedValuesArray(): array
     {
-        if (!$this->suggested_values) {
-            return [];
-        }
-
-        return collect(explode(',', $this->suggested_values))
+        return collect(explode(',', (string) $this->suggested_values))
             ->map(fn($value) => trim($value))
             ->filter()
             ->values()
