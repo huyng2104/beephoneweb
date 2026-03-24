@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
+use App\Models\OrderStatusHistory;
 
 class OrderController extends Controller
 {
@@ -50,7 +52,7 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-        $order->load('items');
+        $order->load(['items', 'statusHistories.user']);
 
         $statusLabels = Order::statusLabels();
         $returnStatusLabels = Order::returnStatusLabels();
@@ -103,6 +105,14 @@ class OrderController extends Controller
 
         $order->update($updateData);
 
+        // Lưu lịch sử
+        OrderStatusHistory::create([
+            'order_id' => $order->id,
+            'user_id' => Auth::id(),
+            'status' => $nextStatus,
+            'note' => 'Cập nhật trạng thái bởi quản trị viên',
+        ]);
+
         return back()->with('status', 'Đã cập nhật trạng thái đơn hàng.');
     }
 
@@ -125,6 +135,14 @@ class OrderController extends Controller
             'cancelled_at' => now(),
         ]);
 
+        // Lưu lịch sử
+        OrderStatusHistory::create([
+            'order_id' => $order->id,
+            'user_id' => Auth::id(),
+            'status' => Order::STATUS_CANCELLED,
+            'note' => 'Lý do hủy: ' . $validated['cancellation_reason'],
+        ]);
+
         return back()->with('status', 'Đã hủy đơn hàng.');
     }
 
@@ -145,6 +163,14 @@ class OrderController extends Controller
             'return_note' => $validated['return_note'] ?? null,
             'return_requested_at' => $order->return_requested_at ?? now(),
             'return_confirmed_at' => now(),
+        ]);
+
+        // Lưu lịch sử
+        OrderStatusHistory::create([
+            'order_id' => $order->id,
+            'user_id' => Auth::id(),
+            'status' => '(Đổi/Trả) ' . Order::RETURN_CONFIRMED,
+            'note' => 'Ghi chú đổi trả: ' . ($validated['return_note'] ?? 'Không có'),
         ]);
 
         return back()->with('status', 'Đã xác nhận đổi/trả hàng.');

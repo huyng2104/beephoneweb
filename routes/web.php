@@ -24,6 +24,7 @@ use App\Http\Controllers\AdminControllers\VoucherController;
 use App\Http\Controllers\AdminControllers\UserController;
 use App\Http\Controllers\AdminControllers\OrderController;
 use App\Http\Controllers\AdminControllers\PointController;
+use App\Http\Controllers\AdminControllers\BannerController;
 
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
@@ -263,7 +264,13 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::post('posts/toggle-status/{id}', [PostController::class, 'toggleStatus'])
             ->name('posts.toggleStatus');
 
-        // 9. Quản lý Ví tiền
+        // 9. Quản lý Banner
+        Route::get('banners/trash', [BannerController::class, 'trash'])->name('banners.trash');
+        Route::post('banners/{id}/restore', [BannerController::class, 'restore'])->name('banners.restore');
+        Route::delete('banners/{id}/force-delete', [BannerController::class, 'forceDelete'])->name('banners.force_delete');
+        Route::resource('banners', BannerController::class);
+
+        // 10. Quản lý Ví tiền
         Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');
         Route::post('/wallets/update', [WalletController::class, 'update'])->name('wallets.update');
         Route::get('/wallets/{id}/history', [WalletController::class, 'history'])->name('wallets.history');
@@ -274,7 +281,7 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         // Nút xử lý cộng tiền cho User
         Route::post('/system-wallet/add-money', [WalletController::class, 'addMoneyToUser'])->name('system_wallet.add_money');
 
-        // 10. Quản lý Điểm thưởng (Bee Point)
+        // 11. Quản lý Điểm thưởng (Bee Point)
         Route::get('/points', [PointController::class, 'index'])->name('points.index');
         Route::post('/points/settings', [PointController::class, 'updateSettings'])->name('points.settings.update');
     });
