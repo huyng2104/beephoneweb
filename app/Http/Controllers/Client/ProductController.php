@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -23,6 +25,24 @@ class ProductController extends Controller
     {
         // 1. Khởi tạo query gốc
         $query = Product::with(['brand', 'categories'])->where('status', 1);
+
+        // 1.1 Tìm kiếm theo từ khóa (hỗ trợ gần đúng cơ bản bằng tách token)
+        $search = trim((string) $request->input('search', ''));
+        if ($search !== '') {
+            $tokens = collect(preg_split('/\s+/u', Str::lower($search)))
+                ->filter(fn($token) => mb_strlen($token) >= 2)
+                ->values();
+
+            $query->where(function ($q) use ($search, $tokens) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('slug', 'like', '%' . Str::slug($search) . '%')
+                  ->orWhere('sku', 'like', '%' . $search . '%');
+
+                foreach ($tokens as $token) {
+                    $q->orWhere('name', 'like', '%' . $token . '%');
+                }
+            });
+        }
 
         // 2. Lọc theo Danh mục (Nếu URL có chứa ?category=id)
         if ($request->has('category') && $request->category != '') {
@@ -127,5 +147,88 @@ class ProductController extends Controller
         }
 
         return view('client.products-list', compact('products', 'brands', 'currentCategory', 'sort'));
+    }
+
+    public function searchSuggestions(Request $request)
+    {
+        $keyword = trim((string) $request->input('q', ''));
+
+        $trending = OrderItem::query()
+            ->selectRaw('product_name, SUM(quantity) as sold_qty')
+            ->groupBy('product_name')
+            ->orderByDesc('sold_qty')
+            ->limit(6)
+            ->pluck('product_name')
+            ->values();
+
+        $bestSellerIds = OrderItem::query()
+            ->selectRaw('product_id, SUM(quantity) as sold_qty')
+            ->whereNotNull('product_id')
+            ->groupBy('product_id')
+            ->orderByDesc('sold_qty')
+            ->limit(4)
+            ->pluck('product_id')
+            ->toArray();
+
+        $bestSellerProducts = Product::query()
+            ->whereIn('id', $bestSellerIds)
+            ->where('status', 'active')
+            ->get(['id', 'name', 'slug', 'price', 'sale_price', 'thumbnail'])
+            ->sortBy(function ($p) use ($bestSellerIds) {
+                return array_search($p->id, $bestSellerIds, true);
+            })
+            ->values()
+            ->map(function ($p) {
+                return [
+                    'name' => $p->name,
+                    'url' => route('client.product.detail', ['slug' => $p->slug ?: $p->id]),
+                    'price' => (int) ($p->sale_price > 0 ? $p->sale_price : $p->price),
+                    'thumbnail' => $p->thumbnail ? asset('storage/' . ltrim($p->thumbnail, '/')) : null,
+                ];
+            });
+
+        $suggestions = collect();
+        if ($keyword !== '') {
+            $tokens = collect(preg_split('/\s+/u', Str::lower($keyword)))
+                ->filter(fn($token) => mb_strlen($token) >= 2)
+                ->values();
+
+            $candidateQuery = Product::query()
+                ->where('status', 'active')
+                ->where(function ($q) use ($keyword, $tokens) {
+                    $q->where('name', 'like', '%' . $keyword . '%')
+                      ->orWhere('slug', 'like', '%' . Str::slug($keyword) . '%')
+                      ->orWhere('sku', 'like', '%' . $keyword . '%');
+                    foreach ($tokens as $token) {
+                        $q->orWhere('name', 'like', '%' . $token . '%');
+                    }
+                })
+                ->limit(20)
+                ->get(['id', 'name', 'slug']);
+
+            $suggestions = $candidateQuery
+                ->map(function ($p) use ($keyword) {
+                    similar_text(Str::lower($keyword), Str::lower($p->name), $percent);
+                    return [
+                        'name' => $p->name,
+                        'url' => route('client.product.detail', ['slug' => $p->slug ?: $p->id]),
+                        'score' => (float) $percent,
+                    ];
+                })
+                ->sortByDesc('score')
+                ->take(6)
+                ->values()
+                ->map(fn($item) => [
+                    'name' => $item['name'],
+                    'url' => $item['url'],
+                ]);
+        }
+
+        return response()->json([
+            'query' => $keyword,
+            'suggestions' => $suggestions,
+            'trending' => $trending,
+            'best_sellers' => $bestSellerProducts,
+        ]);
     }
 }

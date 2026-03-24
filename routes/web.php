@@ -64,6 +64,7 @@ Route::middleware('check.verified')->group(function () {
     // Chatbot API
     Route::get('/api/chatbot/categories', [ChatbotController::class, 'getCategories']);
     Route::get('/api/chatbot/questions/{category}', [ChatbotController::class, 'getQuestions']);
+    Route::get('/api/search/suggestions', [ClientProductController::class, 'searchSuggestions'])->name('client.search.suggestions');
 
     // Chi tiết sản phẩm & Danh sách sản phẩm
     Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
