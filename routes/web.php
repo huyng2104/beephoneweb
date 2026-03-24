@@ -51,6 +51,13 @@ Route::middleware('check.verified')->group(function () {
     // Trang chủ
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
+    //contact
+    Route::get('/lien-he', [App\Http\Controllers\Client\ContactController::class, 'index'])->name('contact');
+    Route::post('/lien-he', [App\Http\Controllers\Client\ContactController::class, 'submit'])->name('contact.submit');
+    
+    // So sánh: view file Contact & Support (tạm thời)
+    Route::get('/lien-he-v2', function() { return view('client.Contact & Support.index'); })->name('contact.v2');
+
     // Chi tiết sản phẩm & Danh sách sản phẩm
     Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
@@ -240,6 +247,9 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');
         Route::post('/wallets/update', [WalletController::class, 'update'])->name('wallets.update');
         Route::get('/wallets/{id}/history', [WalletController::class, 'history'])->name('wallets.history');
+
+        // 10. Quản lý Chatbot FAQ
+        Route::resource('chatbot-faqs', \App\Http\Controllers\AdminControllers\ChatbotFaqController::class);
 
         // Giao diện xem sao kê Ví Tổng
         Route::get('/system-wallet', [WalletController::class, 'systemWallet'])->name('system_wallet');
