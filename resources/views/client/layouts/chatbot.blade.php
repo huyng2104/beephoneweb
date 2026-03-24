@@ -24,7 +24,7 @@
                 <span class="material-symbols-outlined text-[#181611] text-sm">smart_toy</span>
             </div>
             <div class="bg-white dark:bg-slate-700 p-3 rounded-2xl rounded-tl-none shadow-sm text-slate-800 dark:text-white max-w-[80%]">
-                Dạ em chào anh/chị! Em là trợ lý AI của BeePhone. Anh/chị đang tìm mua điện thoại khoảng bao nhiêu tiền ạ?
+                Dạ em chào anh/chị! Em là trợ lý AI của BeePhone. Anh/chị đang cần tư vấn về sản phẩm hay hỗ trợ gì ạ?
             </div>
         </div>
     </div>

@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\ProductController as ClientProductController;
 
+// Import API Controllers
+use App\Http\Controllers\Api\ChatbotController;
+
 // Import Admin & Auth Controllers
 use App\Http\Controllers\AdminControllers\CategoryController;
 use App\Http\Controllers\AdminControllers\CategoryFilterController;
@@ -25,14 +28,16 @@ use App\Http\Controllers\AdminControllers\PointController;
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
 use App\Http\Controllers\AdminControllers\WalletController;
+use App\Http\Controllers\AdminControllers\SupportController;
+use App\Http\Controllers\AdminControllers\CustomerActivityController;
 
 use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\WalletController as ClientWalletController;
 use App\Http\Controllers\Client\CartController;
+use App\Http\Controllers\Client\ContactController;
 use App\Http\Controllers\Client\CheckoutController;
 use App\Http\Controllers\Client\OrderController as ClientOrderController;
-use App\Http\Controllers\Client\ChatbotController;
 use App\Http\Controllers\Client\PostController as ClientPostController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
 use App\Models\User;
@@ -50,6 +55,16 @@ use App\Models\User;
 Route::middleware('check.verified')->group(function () {
     // Trang chủ
     Route::get('/', [HomeController::class, 'index'])->name('home');
+
+    // Contact & Support
+    Route::get('/lien-he', [ContactController::class, 'index'])->name('contact');
+    Route::post('/lien-he', [ContactController::class, 'submit'])->name('contact.submit');
+    Route::get('/lien-he-v2', function() { return view('client.Contact & Support.index'); })->name('contact.v2');
+
+    // Chatbot API
+    Route::get('/api/chatbot/categories', [ChatbotController::class, 'getCategories']);
+    Route::get('/api/chatbot/questions/{category}', [ChatbotController::class, 'getQuestions']);
+    Route::get('/api/search/suggestions', [ClientProductController::class, 'searchSuggestions'])->name('client.search.suggestions');
 
     // Chi tiết sản phẩm & Danh sách sản phẩm
     Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
@@ -172,6 +187,9 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
             return view('admin.dashboard.index');
         })->name('dashboard');
 
+        // Thống kê hoạt động khách hàng
+        Route::get('customer-activity', [CustomerActivityController::class, 'index'])->name('customer-activity.index');
+
         // Quản lý Users
         Route::resource('users', UserController::class);
         Route::post('user/{id}/block', [UserController::class, 'block'])->name('user.block');
@@ -183,7 +201,11 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
         Route::delete('categories/{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('categories.force_delete');
         Route::resource('categories', CategoryController::class)->except(['show']);
-
+        // 4. Quản lý Hỗ trợ (Support Ticket)
+        Route::get('support', [SupportController::class, 'index'])->name('support.index');
+        Route::get('support/create', [SupportController::class, 'create'])->name('support.create');
+        Route::post('support', [SupportController::class, 'store'])->name('support.store');
+        Route::resource('support', SupportController::class)->except(['index', 'create', 'store']);
         Route::get('brands/trash', [BrandController::class, 'trash'])->name('brands.trash');
         Route::post('brands/{id}/restore', [BrandController::class, 'restore'])->name('brands.restore');
         Route::delete('brands/{id}/force-delete', [BrandController::class, 'forceDelete'])->name('brands.force_delete');
