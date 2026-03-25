@@ -22,11 +22,13 @@ return new class extends Migration
             $table->longText('address')->nullable();
             $table->enum('status',['inactive','active','banned'])->default('inactive');
             $table->timestamp('email_verified_at')->nullable();
+            $table->boolean('is_locked')->default(false);
             $table->string('password');
             $table->foreignId('role_id')->nullable()->constrained();
             $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
