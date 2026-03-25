@@ -69,6 +69,8 @@
             }
         }
     </style>
+
+    @stack('styles')
 </head>
 
 <body class="bg-background-light dark:bg-background-dark text-[#181611] dark:text-white transition-colors duration-200">

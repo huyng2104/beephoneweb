@@ -41,6 +41,7 @@
             color: #231e0f;
         }
     </style>
+    @stack('styles')
 </head>
 
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">

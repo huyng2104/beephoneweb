@@ -202,7 +202,9 @@ class CheckoutController extends Controller
             if ($request->payment_method === 'vnpay') {
                 if ($finalAmount <= 0) {
                     $order->update(['payment_status' => 'paid']);
-                    return redirect()->route('client.checkout.success')->with('success', 'Đơn hàng thành công!');
+                    return redirect()->route('client.checkout.success')
+                        ->with('success', 'Đơn hàng thành công!')
+                        ->with('last_order_id', $order->id);
                 }
 
                 $vnp_Url = env('VNPAY_URL');
@@ -248,7 +250,9 @@ class CheckoutController extends Controller
                 return redirect($vnp_Url);
             }
 
-            return redirect()->route('client.checkout.success')->with('success', 'Bạn đã đặt hàng thành công! Mã đơn: ' . $orderCode);
+            return redirect()->route('client.checkout.success')
+                ->with('success', 'Bạn đã đặt hàng thành công! Mã đơn: ' . $orderCode)
+                ->with('last_order_id', $order->id);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -289,7 +293,9 @@ class CheckoutController extends Controller
                 if ($order) {
                     $order->update(['payment_status' => 'paid']); 
                 }
-                return redirect()->route('client.checkout.success')->with('success', 'Thanh toán VNPAY thành công!');
+                return redirect()->route('client.checkout.success')
+                    ->with('success', 'Thanh toán VNPAY thành công!')
+                    ->with('last_order_id', $order?->id);
             } else {
                 if ($order) {
                     $order->update(['status' => 'cancelled']);
@@ -304,9 +310,22 @@ class CheckoutController extends Controller
     // 4. Trang thông báo Đặt hàng thành công
     public function success()
     {
-        if (!session('success')) {
+        if (!session('success') && !session('last_order_id')) {
             return redirect()->route('home');
         }
-        return view('client.checkout.success');
+
+        $order = null;
+        $orderId = session('last_order_id');
+        if ($orderId) {
+            $order = Order::query()
+                ->with(['items.product'])
+                ->find($orderId);
+
+            if ($order && $order->user_id && Auth::check() && $order->user_id !== Auth::id()) {
+                $order = null;
+            }
+        }
+
+        return view('client.checkout.success', compact('order'));
     }
 }

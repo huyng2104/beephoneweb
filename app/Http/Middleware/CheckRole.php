@@ -16,9 +16,22 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next,...$roles): Response
     {
+        $redirectRoute = in_array('admin', $roles, true) ? 'admin.login' : 'login';
+
         $user = Auth::user();
-        if(!in_array($user->role->name,$roles)){
-            abort(403);
+        if (!$user) {
+            return redirect()->route($redirectRoute);
+        }
+
+        $currentRole = $user->role?->name ?? $user->role_slug ?? null;
+        if (!$currentRole || !in_array($currentRole, $roles, true)) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()
+                ->route($redirectRoute)
+                ->with('error', 'tk user không được đăng nhập vào admin');
         }
         return $next($request);
     }
