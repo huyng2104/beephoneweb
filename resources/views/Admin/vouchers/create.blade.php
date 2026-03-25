@@ -1,48 +1,23 @@
 @extends('admin.layouts.app')
 @section('content')
     <div class="p-8 flex flex-col gap-8">
-        <div class="flex flex-wrap justify-between items-end gap-4 mb-0">
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center gap-3">
-                    <h1 class="text-slate-900 dark:text-white text-3xl font-black tracking-tight">{{ $voucher->name }}
-                    </h1>
-                    @php
-                        $color = match ($voucher->voucher_status) {
-                            'Tạm dừng' => 'yellow',
-                            'Hết lượn dùng' => 'gray',
-                            'Đã Hết hạn' => 'red',
-                            default => 'green',
-                        };
-                    @endphp
-                    <span
-                        class="px-2.5 py-1 rounded-full bg-{{ $color }}-600 text-white text-xs font-bold uppercase tracking-wider">
-                        {{ $voucher->voucher_status }}
-                    </span>
-                </div>
-                <p class="text-slate-500 text-base">
-                    Cập nhật lần cuối: {{ $voucher->updated_at->diffForHumans() }}
-                </p>
-            </div>
-
-        </div>
         <!-- Create/Edit Promotion Section -->
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 pb-20">
             <div class="xl:col-span-2 flex flex-col gap-6">
                 <div class="bg-white dark:bg-gray-900 border border-[#e6e3db] rounded-xl p-8">
                     <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
                         <span class="material-symbols-outlined text-primary">add_circle</span>
-                        Sửa mã giảm giá
+                        Chi tiết mã giảm giá mới
                     </h3>
-                    <form method="post" action="{{ route('admin.vouchers.update', $voucher->id) }}" class="space-y-8">
+                    <form method="post" action="{{ route('admin.vouchers.store') }}" class="space-y-8">
                         @csrf
-                        @method('PUT')
                         <!-- Basic Info -->
                         <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="flex flex-col gap-2">
                                 <label class="text-sm font-bold text-[#181611]">Tên chương trình *</label>
                                 <input class="border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary"
-                                    placeholder="Ví dụ: Sale hè rực rỡ" type="text"
-                                    value="{{ old('name', $voucher->name) }}" name="name" />
+                                    placeholder="Ví dụ: Sale hè rực rỡ" type="text" value="{{ old('name') }}"
+                                    name="name" />
                                 @error('name')
                                     <span class="text-red-600">{{ $message }}</span>
                                 @enderror
@@ -52,8 +27,8 @@
                                 <div class="flex gap-2">
                                     <input id="voucherCode"
                                         class="flex-1 border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary  "
-                                        placeholder="Ví dụ: SUMMER24" type="text"
-                                        value="{{ old('code', $voucher->code) }}" name="code" />
+                                        placeholder="Ví dụ: SUMMER24" type="text" value="{{ old('code') }}"
+                                        name="code" />
 
                                     <button id="generateCode"
                                         class="px-3 bg-gray-100 rounded-lg text-xs  text-gray-500 hover:bg-gray-200 transition-colors "
@@ -69,7 +44,7 @@
                             <div class="md:col-span-2 flex flex-col gap-2">
                                 <label class="text-sm font-bold text-[#181611]">Mô tả</label>
                                 <textarea name="description" class="border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary"
-                                    placeholder="Nội dung hiển thị cho khách hàng..." rows="2">{{ old('description', $voucher->description) }}</textarea>
+                                    placeholder="Nội dung hiển thị cho khách hàng..." rows="2">{{ old('description') }}</textarea>
                             </div>
                         </section>
                         <hr class="border-[#e6e3db]" />
@@ -82,19 +57,13 @@
                                     <label class="text-sm font-bold  text-[#181611]">Loại giảm giá</label>
                                     <select name="discount_type"
                                         class="border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary">
-
                                         <option value="">-- Loại --</option>
-
-                                        <option value="percent"
-                                            {{ old('discount_type', $voucher->discount_type) == 'percent' ? 'selected' : '' }}>
+                                        <option value="percent" {{ old('discount_type') == 'percent' ? 'selected' : '' }}>
                                             Giảm theo %
                                         </option>
-
-                                        <option value="fixed"
-                                            {{ old('discount_type', $voucher->discount_type) == 'fixed' ? 'selected' : '' }}>
+                                        <option value="fixed" {{ old('discount_type') == 'fixed' ? 'selected' : '' }}>
                                             Giảm theo tiền
                                         </option>
-
                                     </select>
                                     @error('discount_type')
                                         <span class="text-red-600">{{ $message }}</span>
@@ -105,8 +74,7 @@
                                     <div class="relative">
                                         <input name="discount_value"
                                             class="w-full border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary"
-                                            placeholder="10" value="{{ old('discount_value', $voucher->discount_value) }}"
-                                            type="number" />
+                                            placeholder="10" value="{{ old('discount_value') }}" type="number" />
                                     </div>
                                     @error('discount_value')
                                         <span class="text-red-600">{{ $message }}</span>
@@ -118,8 +86,7 @@
                                     <div class="relative">
                                         <input name="max_discount"
                                             class="w-full border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary"
-                                            placeholder="500.000" value="{{ old('max_discount', $voucher->max_discount) }}"
-                                            type="number" />
+                                            placeholder="500.000" value="{{ old('max_discount') }}" type="number" />
                                         <span
                                             class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#8a8060] font-bold">đ</span>
                                     </div>
@@ -134,9 +101,7 @@
                                     <div class="relative">
                                         <input name="min_order_value"
                                             class="w-full border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary"
-                                            placeholder="1.000.000"
-                                            value="{{ old('min_order_value', $voucher->min_order_value) }}"
-                                            type="number" />
+                                            placeholder="1.000.000" value="{{ old('min_order_value') }}" type="number" />
                                         <span
                                             class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#8a8060] font-bold">đ</span>
                                     </div>
@@ -148,8 +113,8 @@
                                     <label class="text-sm font-bold text-[#181611]">Tổng số mã phát
                                         hành</label>
                                     <input class="border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary"
-                                        placeholder="100" value="{{ old('usage_limit', $voucher->usage_limit) }}"
-                                        type="number" name="usage_limit" />
+                                        placeholder="100" value="{{ old('usage_limit') }}" type="number"
+                                        name="usage_limit" />
                                     @error('usage_limit')
                                         <span class="text-red-600">{{ $message }}</span>
                                     @enderror
@@ -157,8 +122,7 @@
                                 <div class="flex flex-col gap-2">
                                     <label class="text-sm font-bold text-[#181611]">Giới hạn mỗi khách</label>
                                     <input class="border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary"
-                                        type="number"
-                                        value="{{ old('usage_limit_per_user', $voucher->usage_limit_per_user) }}"
+                                        type="number" value="{{ old('usage_limit_per_user') }}"
                                         name="usage_limit_per_user" />
                                     @error('usage_limit_per_user')
                                         <span class="text-red-600">{{ $message }}</span>
@@ -176,8 +140,7 @@
                                         class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8060] text-lg">calendar_today</span>
                                     <input name="start_date"
                                         class="w-full pl-10 border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary"
-                                        type="date"
-                                        value="{{ old('start_date', \Carbon\Carbon::parse($voucher->start_date)->format('Y-m-d')) }}" />
+                                        type="date" value="{{ old('start_date') }}" />
                                 </div>
                                 @error('start_date')
                                     <span class="text-red-600">{{ $message }}</span>
@@ -190,16 +153,15 @@
                                         class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8060] text-lg">event_busy</span>
                                     <input name="end_date"
                                         class="w-full pl-10 border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary"
-                                        type="date"
-                                        value="{{ old('end_date', \Carbon\Carbon::parse($voucher->end_date)->format('Y-m-d')) }}" />
+                                        type="date" value="{{ old('end_date') }}" />
                                 </div>
                                 @error('end_date')
                                     <span class="text-red-600">{{ $message }}</span>
                                 @enderror
                             </div>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="allStore" name="status" value="1"
-                                    {{ old('status', $voucher->status) == 1 ? 'checked' : '' }} class="accent-black">
+                                <input type="checkbox" id="allStore" name="status" checked value="1"
+                                    class="accent-black">
                                 <span class="font-semibold">Trạng thái hoạt động</span>
                             </label>
                             <div class="md:col-span-2 space-y-4">
@@ -216,22 +178,18 @@
                                         <span>+</span>
                                     </button>
 
-                                    <div id="categoryBox"
-                                        class="{{ old('categories', $voucher->categories->pluck('id')->toArray()) ? '' : 'hidden' }} p-4 bg-white border-t">
-
+                                    <div id="categoryBox" class="{{ old('categories') ? '' : 'hidden' }}  p-4 bg-white border-t">
                                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
 
                                             @if (!$categories->isEmpty())
                                                 @foreach ($categories as $category)
                                                     <label
                                                         class="flex items-center gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
-
                                                         <input type="checkbox" name="categories[]"
                                                             value="{{ $category->id }}" class="accent-black"
-                                                            {{ in_array($category->id, old('categories', $voucher->categories->pluck('id')->toArray())) ? 'checked' : '' }}>
+                                                            {{ in_array($category->id, old('categories', [])) ? 'checked' : '' }}>
 
                                                         {{ $category->name }}
-
                                                     </label>
                                                 @endforeach
                                             @else
@@ -250,27 +208,25 @@
                                         <span>+</span>
                                     </button>
 
-                                    <div id="productBox"
-                                        class="{{ old('products', $voucher->products->pluck('id')->toArray()) ? '' : 'hidden' }} p-4 bg-white border-t">
-
+                                    <div id="productBox" class="{{ old('products') ? '' : 'hidden' }}  p-4 bg-white border-t">
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-
                                             @if ($products->isEmpty())
                                                 <span class="text-red-500">Chưa có sản phẩm!</span>
                                             @else
                                                 @foreach ($products as $product)
                                                     <label
                                                         class="flex items-center gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
-
                                                         <input type="checkbox" name="products[]"
-                                                            value="{{ $product->id }}" class="accent-black"
-                                                            {{ in_array($product->id, old('products', $voucher->products->pluck('id')->toArray())) ? 'checked' : '' }}>
+                                                            value="{{ $product->id }}"
+                                                            {{ in_array($product->id, old('products', [])) ? 'checked' : '' }}
+                                                            class="accent-black">
 
                                                         {{ $product->name }}
-
                                                     </label>
                                                 @endforeach
                                             @endif
+
+
 
                                         </div>
                                     </div>
@@ -284,27 +240,24 @@
                                         <span>+</span>
                                     </button>
 
-                                    <div id="brandBox"
-                                        class="{{ old('brands', $voucher->brands ?? []) ? '' : 'hidden' }} p-4 bg-white border-t">
-
+                                    <div id="brandBox" class="{{ old('brands') ? '' : 'hidden' }}  p-4 bg-white border-t">
                                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+
 
                                             @if (!$brands->isEmpty())
                                                 @foreach ($brands as $brand)
                                                     <label
                                                         class="flex items-center gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
-
                                                         <input type="checkbox" name="brands[]"
-                                                            value="{{ $brand->id }}" class="accent-black"
-                                                            {{ in_array($brand->id, old('brands', $voucher->brands->pluck('id')->toArray() ?? [])) ? 'checked' : '' }}>
-
+                                                            value="{{ $brand->id }}"
+                                                            {{ in_array($brand->id, old('brands', [])) ? 'checked' : '' }}
+                                                            class="accent-black">
                                                         {{ $brand->name }}
                                                     </label>
                                                 @endforeach
                                             @else
                                                 <span class="text-red-500">Chưa có thương hiệu!</span>
                                             @endif
-
                                         </div>
                                     </div>
                                 </div>
