@@ -70,7 +70,6 @@
             sessionStorage.setItem('beephone_chat_state', 'closed');
         });
 
-        // XỬ LÝ GỬI TIN NHẮN (Đã tích hợp Lớp Giáp chống Spam)
         function sendMessage() {
             let message = $('#chat-input').val().trim();
             if (message === '') return;
@@ -133,12 +132,25 @@
                     $('#send-chat').prop('disabled', false).css('opacity', '1');
                     $('#chat-input').prop('disabled', false).attr('placeholder', 'Nhập câu hỏi...').focus();
                 },
-                error: function() {
+                error: function(xhr, status, error) {
                     $('#' + loadingId).remove();
-                    $('#chat-box').append('<div class="text-center text-xs text-red-500 mt-2">Lỗi kết nối. Vui lòng thử lại!</div>');
-                    scrollToBottom();
+                    
+                    // Lấy lỗi thật sự từ Laravel trả về
+                    let errorMsg = "Lỗi kết nối máy chủ!";
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    } else if (xhr.status === 419) {
+                        errorMsg = "Phiên làm việc hết hạn, vui lòng F5 tải lại trang!";
+                    }
 
-                    // 2. MỞ KHOÁ LẠI KHI LỖI
+                    // In cả lỗi màu đỏ ra Console để Dev dễ soi
+                    console.error("LỖI BACKEND TRẢ VỀ:", xhr.responseText);
+
+                    $('#chat-box').append(`<div class="text-center text-xs text-red-500 mt-2 font-bold">${errorMsg}</div>`);
+                    scrollToBottom();
+                    saveChatHistory();
+
+                    // MỞ KHOÁ LẠI KHI LỖI
                     $('#send-chat').prop('disabled', false).css('opacity', '1');
                     $('#chat-input').prop('disabled', false).attr('placeholder', 'Nhập câu hỏi...').focus();
                 }

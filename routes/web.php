@@ -10,8 +10,7 @@ use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\ProductController as ClientProductController;
 
 // Import API Controllers
-use App\Http\Controllers\Api\ChatbotController;
-
+use App\Http\Controllers\Client\ChatbotController;
 // Import Admin & Auth Controllers
 use App\Http\Controllers\AdminControllers\CategoryController;
 use App\Http\Controllers\AdminControllers\CategoryFilterController;
