@@ -66,6 +66,12 @@ class PostController extends Controller
             ->take(3)
             ->get();
 
-        return view('client.posts.show', compact('post', 'relatedPosts'));
+        // bài xem nhiều
+        $mostViewed = Post::where('status', 1)
+            ->orderByDesc('views')
+            ->take(5)
+            ->get();
+
+        return view('client.posts.show', compact('post', 'relatedPosts', 'mostViewed'));
     }
 }
