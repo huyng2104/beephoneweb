@@ -142,6 +142,22 @@ class RoleController extends Controller
 
     public function listMembers(Request $request)
     {
+        // Giả định quan hệ trong Model User của bạn tên là 'role'
+        $totalUsers = User::whereHas('role', function ($q) {
+            $q->where('name', '!=', 'user');
+        })->count();
+
+        $bannedUsers = User::whereHas('role', function ($q) {
+            $q->where('name', '!=', 'user');
+        })->where('status', 'banned')->count();
+
+        $newUsers = User::whereHas('role', function ($q) {
+            $q->where('name', '!=', 'user');
+        })->where('created_at', '>=', now()->subDays(7))->count();
+
+        $activeUsers = User::whereHas('role', function ($q) {
+            $q->where('name', '!=', 'user');
+        })->where('status', 'active')->count();
         $roles = Role::whereNotIn('name', ['user', 'admin'])
             ->orderBy('id', 'desc')
             ->get();
@@ -183,7 +199,11 @@ class RoleController extends Controller
         $users = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
         return view('admin.members.index')->with([
             'users' => $users,
-            'roles' => $roles
+            'roles' => $roles,
+            'totalUsers' => $totalUsers,
+            'bannedUsers' => $bannedUsers,
+            'newUsers' => $newUsers,
+            'activeUsers' => $activeUsers,
         ]);
     }
 }

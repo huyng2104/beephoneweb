@@ -27,25 +27,25 @@
                 </a>
             </div>
             <!-- Stats Bar (Optional UI touch) -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng người dùng</p>
-                    <p class="text-2xl font-black mt-1">{{ $users->total() }}</p>
+                    <p class="text-2xl font-black mt-1">{{ number_format($totalUsers) }}</p>
                 </div>
-                {{-- <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Khách hàng</p>
-                    <p class="text-2xl font-black mt-1 text-primary">1,120</p>
-                </div>
+
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Nhân viên</p>
-                    <p class="text-2xl font-black mt-1 text-blue-500">{{ $totalStaff }}</p>
-                </div> --}}
-                @php
-                    $bannedCount = $users->getCollection()->where('status', 'banned')->count();
-                @endphp
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Mới (7 ngày qua)</p>
+                    <p class="text-2xl font-black mt-1 text-blue-500">+{{ number_format($newUsers) }}</p>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Đang hoạt động</p>
+                    <p class="text-2xl font-black mt-1 text-green-500">{{ number_format($activeUsers) }}</p>
+                </div>
+
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Bị khóa</p>
-                    <p class="text-2xl font-black mt-1 text-red-500">{{ $bannedCount }}</p>
+                    <p class="text-2xl font-black mt-1 text-red-500">{{ number_format($bannedUsers) }}</p>
                 </div>
             </div>
             <!-- Filters & Table -->

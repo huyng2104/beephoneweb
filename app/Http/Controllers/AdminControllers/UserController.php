@@ -23,6 +23,22 @@ class UserController extends Controller
     public function index(Request $request)
     {
         Gate::authorize('customer.view');
+        // Hàm này giúp lọc ra những User CÓ (whereHas) mối quan hệ 'role' thỏa mãn điều kiện bên trong
+        $totalUsers = User::whereHas('role', function ($query) {
+            $query->where('name', 'user'); // Sửa chữ 'name' thành tên cột lưu chữ 'user' trong bảng roles của bạn
+        })->count();
+
+        $bannedUsers = User::whereHas('role', function ($query) {
+            $query->where('name', 'user');
+        })->where('status', 'banned')->count();
+
+        $newUsers = User::whereHas('role', function ($query) {
+            $query->where('name', 'user');
+        })->where('created_at', '>=', now()->subDays(7))->count();
+
+        $activeUsers = User::whereHas('role', function ($query) {
+            $query->where('name', 'user');
+        })->where('status', 'active')->count();
         $query = User::with('role')
             ->whereHas('role', function ($query) {
                 $query->where('name', '=', 'user');
@@ -66,6 +82,10 @@ class UserController extends Controller
         return view('admin.users.index')->with([
             'users' => $users,
             'totalStaff' => $totalStaff,
+            'totalUsers' => $totalUsers,
+            'bannedUsers' => $bannedUsers,
+            'newUsers' => $newUsers,
+            'activeUsers' => $activeUsers,
         ]);
     }
 
@@ -123,6 +143,7 @@ class UserController extends Controller
             return redirect()->route('admin.users.index')->with([
                 'success' => 'Thêm người dùng thành công!'
             ]);
+
         } catch (\Exception $e) {
             if ($path_avatar) {
                 FileHelper::delete($path_avatar);

@@ -55,73 +55,85 @@
             <div id="menu-products"
                 class="overflow-hidden transition-all duration-300 ease-in-out {{ $isProductGroupActive ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0' }} flex flex-col space-y-1">
 
-                <a href="{{ route('admin.products.index') }}"
-                    class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.products.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                @can('product.view')
+                    <a href="{{ route('admin.products.index') }}"
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.products.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
 
-                    <div
-                        class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.products.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                    </div>
+                        <div
+                            class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.products.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                        </div>
 
-                    <div
-                        class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.products.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                    </div>
+                        <div
+                            class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.products.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                        </div>
 
-                    Danh sách SP
-                </a>
+                        Danh sách SP
+                    </a>
+                @endcan
 
-                <a href="{{ route('admin.attributes.index') }}"
-                    class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.attributes.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                @can('attribute.view')
+                    <a href="{{ route('admin.attributes.index') }}"
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.attributes.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
 
-                    <div
-                        class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.attributes.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                    </div>
+                        <div
+                            class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.attributes.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                        </div>
 
-                    <div
-                        class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.attributes.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                    </div>
+                        <div
+                            class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.attributes.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                        </div>
 
-                    Thuộc tính
-                </a>
+                        Thuộc tính
+                    </a>
+                @endcan
 
-                <a href="{{ route('admin.categories.index') }}"
-                    class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.categories.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                @can('category.view')
+                    <a href="{{ route('admin.categories.index') }}"
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.categories.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
 
-                    <div
-                        class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.categories.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                    </div>
-                    <div
-                        class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.categories.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                    </div>
-                    Danh mục
-                </a>
+                        <div
+                            class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.categories.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                        </div>
+                        <div
+                            class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.categories.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                        </div>
+                        Danh mục
+                    </a>
+                @endcan
 
-                <a href="{{ route('admin.brands.index') }}"
-                    class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.brands.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
-                    <div
-                        class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.brands.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                    </div>
-                    <div
-                        class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.brands.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                    </div>
-                    Thương hiệu
-                </a>
+                @can('brand.view')
+                    <a href="{{ route('admin.brands.index') }}"
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.brands.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        <div
+                            class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.brands.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                        </div>
+                        <div
+                            class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.brands.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                        </div>
+                        Thương hiệu
+                    </a>
+                @endcan
             </div>
         </div>
 
         {{-- Các Menu Khác --}}
-        <a class="{{ request()->routeIs('admin.orders.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ route('admin.orders.index') }}">
-            <span class="material-symbols-outlined">shopping_cart</span>
-            <span>Đơn hàng</span>
-        </a>
-
-        <li class="mb-1 list-none">
-            <a class="{{ request()->routeIs('admin.users.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-                href="{{ route('admin.users.index') }}">
-                <span class="material-symbols-outlined">group</span>
-                <span>Người dùng</span>
+        @can('order.view')
+            <a class="{{ request()->routeIs('admin.orders.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                href="{{ route('admin.orders.index') }}">
+                <span class="material-symbols-outlined">shopping_cart</span>
+                <span>Đơn hàng</span>
             </a>
-        </li>
+        @endcan
+
+        @can('customer.view')
+            <li class="mb-1 list-none">
+                <a class="{{ request()->routeIs('admin.users.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                    href="{{ route('admin.users.index') }}">
+                    <span class="material-symbols-outlined">group</span>
+                    <span>Người dùng</span>
+                </a>
+            </li>
+        @endcan
 
         <li class="mb-1 list-none">
             <div id="btn-toggle-permission"
@@ -166,11 +178,13 @@
                 </li>
             </ul>
         </li>
-        <a class="{{ request()->routeIs('admin.vouchers.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ route('admin.vouchers.index') }}">
-            <span class="material-symbols-outlined">confirmation_number</span>
-            <span>Voucher</span>
-        </a>
+        @can('voucher.view')
+            <a class="{{ request()->routeIs('admin.vouchers.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                href="{{ route('admin.vouchers.index') }}">
+                <span class="material-symbols-outlined">confirmation_number</span>
+                <span>Voucher</span>
+            </a>
+        @endcan
 
         <a class="{{ request()->routeIs('admin.posts.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
             href="{{ route('admin.posts.index') }}">

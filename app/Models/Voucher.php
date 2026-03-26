@@ -22,6 +22,7 @@ class Voucher extends Model
         'start_date',
         'end_date',
         'status',
+        'points_required'
     ];
     protected $casts = [
         'start_date' => 'datetime',
