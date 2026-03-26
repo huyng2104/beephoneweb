@@ -20,8 +20,11 @@ class PostController extends Controller
         }
 
         // bài viết
-        $posts = $query->latest()->paginate(6);
-        $posts->appends($request->all());
+        // $posts = $query->latest()->paginate(6);
+        // $posts->appends($request->all());
+        $posts = $query->latest()
+            ->paginate(4)
+            ->withQueryString();
 
         // bài nổi bật
         $featuredPost = Post::where('status', 1)
