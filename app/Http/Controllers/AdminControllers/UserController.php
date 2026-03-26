@@ -14,24 +14,58 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Gate;
+
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         Gate::authorize('customer.view');
-        $query = User::orderBy('id', 'desc');
-        $users = $query->paginate(10);
+        $query = User::with('role')
+            ->whereHas('role', function ($query) {
+                $query->where('name', '=', 'user');
+            })
+            ->orderBy('id', 'desc');
+
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('id', $search); // ID khớp 100%
+            });
+        }
+
+        // 🚦 2. Lọc theo trạng thái dropdown
+        if ($request->filled('status')) {
+            $status = $request->input('status');
+
+            // Bạn quy ước active/locked là gì trong DB (Ví dụ: cột is_active boolean)
+            if ($status == 'active') {
+                $query->where('status', 'active');
+            } elseif ($status == 'inactive') {
+                $query->where('status', 'inactive');
+            } elseif ($status == 'banned') {
+                $query->where('status', 'banned');
+            } elseif ($status == 'delete') {
+                // 🗑️ CHỈ lấy những người dùng đã bị xóa mềm (deleted_at IS NOT NULL)
+                $query->onlyTrashed();
+            }
+        }
+        $users = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+
+
         $totalStaff = User::whereHas('role', function ($query) {
             $query->where('name', 'staff');
         })->count();
-        $totalBanned = User::where('status', 'banned')->count();
+
+
         return view('admin.users.index')->with([
             'users' => $users,
             'totalStaff' => $totalStaff,
-            'totalBanned' => $totalBanned
         ]);
     }
 
@@ -141,10 +175,7 @@ class UserController extends Controller
         }
 
         $role = Role::find($request->role);
-        $user_permissions = ($role && $role->name == 'staff')
-            ? ($request->permissions ?? [])
-            : [];
-
+        $user_permissions = $request->permissions ?? [];
         $data = [
             'name' => $request->name,
             'email' => $request->email,
@@ -214,7 +245,8 @@ class UserController extends Controller
         ]);
         return back()->with('success', 'Đã khôi phục người dùng');
     }
-    public function resetPw($id){
+    public function resetPw($id)
+    {
         $user = User::findOrFail($id);
         $password = Str::random(8);
         $user->update([
@@ -224,5 +256,15 @@ class UserController extends Controller
             'success' => 'Đã khôi phục mật khẩu',
             'new_password' => $password
         ]);
+    }
+    public function restore($id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+
+        // ♻️ Khôi phục lại trạng thái bình thường (deleted_at về NULL)
+        $user->restore();
+
+        return back()
+            ->with('success', "Đã khôi phục thành công tài khoản của {$user->name}!");
     }
 }

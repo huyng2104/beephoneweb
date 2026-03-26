@@ -115,12 +115,57 @@
             <span>Đơn hàng</span>
         </a>
 
-        <a class="{{ request()->routeIs('admin.users.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ route('admin.users.index') }}">
-            <span class="material-symbols-outlined">group</span>
-            <span>Người dùng</span>
-        </a>
+        <li class="mb-1 list-none">
+            <a class="{{ request()->routeIs('admin.users.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                href="{{ route('admin.users.index') }}">
+                <span class="material-symbols-outlined">group</span>
+                <span>Người dùng</span>
+            </a>
+        </li>
 
+        <li class="mb-1 list-none">
+            <div id="btn-toggle-permission"
+                class="px-3 py-2 flex items-center justify-between text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white transition-colors">
+                <span class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Phân quyền
+                </span>
+
+                <svg id="icon-arrow" xmlns="http://www.w3.org/2000/svg"
+                    class="w-4 h-4 transition-transform duration-200 {{ request()->routeIs('admin.role.*') || request()->routeIs('admin.member*') ? 'rotate-180' : '' }}"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+
+            <ul id="menu-permission-sub"
+                class="space-y-1 mt-1 list-none transition-all duration-300 {{ request()->routeIs('admin.role.*') || request()->routeIs('admin.member*') ? '' : 'hidden' }}">
+
+                <li>
+                    <a href="{{ route('admin.role.index') }}"
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.role.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        <div
+                            class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.role.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                        </div>
+                        Quản lý nhóm
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('admin.member') }}"
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.member*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        <div
+                            class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.member*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                        </div>
+                        Quản lý thành viên
+                    </a>
+                </li>
+            </ul>
+        </li>
         <a class="{{ request()->routeIs('admin.vouchers.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
             href="{{ route('admin.vouchers.index') }}">
             <span class="material-symbols-outlined">confirmation_number</span>
@@ -216,6 +261,26 @@
             icon.classList.remove('rotate-180');
         }
     }
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const btnToggle = document.getElementById("btn-toggle-permission");
+        const subMenu = document.getElementById("menu-permission-sub");
+        const arrowIcon = document.getElementById("icon-arrow");
+
+        // Xử lý mũi tên xoay ban đầu nếu trang con đang hoạt động
+        if (!subMenu.classList.contains('hidden')) {
+            arrowIcon.classList.add('rotate-180');
+        }
+
+        btnToggle.addEventListener("click", function() {
+            // Đóng/Mở Sub Menu
+            subMenu.classList.toggle("hidden");
+
+            // Xoay mũi tên lên/xuống
+            arrowIcon.classList.toggle("rotate-180");
+        });
+    });
 </script>
 
 <style>

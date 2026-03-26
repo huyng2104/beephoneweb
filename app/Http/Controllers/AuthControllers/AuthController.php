@@ -33,11 +33,19 @@ class AuthController extends Controller
     }
     public function postLogin(LoginRequest $request)
     {
+        $user = User::withTrashed()->where('email', $request->email)->first();
+        if ($user->trashed()) {
+            return back()->withErrors([
+                'email' => 'Tài khoản của bạn đã bị xóa khỏi hệ thống.'
+            ])->onlyInput('email');
+        }
         $data = [
             'email' => $request->email,
             'password' => $request->password,
         ];
+
         $status = User::select('status', 'email_verified_at')->where('email', $request->email)->first();
+
         if ($status->status != 'active') {
             return back()->withErrors([
                 'email' => 'Tài khoản hiện chưa kích hoạt hoặc bị khóa'

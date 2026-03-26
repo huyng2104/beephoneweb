@@ -25,6 +25,7 @@ use App\Http\Controllers\AdminControllers\BannerController;
 
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
+use App\Http\Controllers\AdminControllers\RoleController;
 use App\Http\Controllers\AdminControllers\WalletController;
 
 use App\Http\Controllers\Client\PaymentController;
@@ -164,7 +165,7 @@ Route::post('/email/verification-notification', function (Request $request) {
 
 // ĐÃ FIX: Chỉ dùng quyền admin/staff ở ngoài cùng, quyền order.view để riêng vào nhóm đơn hàng
 
-Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
+Route::middleware(['auth', 'verified','role'])->group(function () {
 
     Route::prefix('admin')->name('admin.')->group(function () {
 
@@ -178,7 +179,7 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::post('user/{id}/block', [UserController::class, 'block'])->name('user.block');
         Route::post('user/{id}/unblock', [UserController::class, 'unBlock'])->name('user.unblock');
         Route::post('user/{id}/reset', [UserController::class, 'resetPw'])->name('resetPw');
-
+        Route::post('user/restore/{id}',[UserController::class,'restore'])->name('user.restore');
         // 1. Quản lý Danh mục & Thương hiệu
         Route::get('categories/trash', [CategoryController::class, 'trash'])->name('categories.trash');
         Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
@@ -262,5 +263,9 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         // 11. Quản lý Điểm thưởng (Bee Point)
         Route::get('/points', [PointController::class, 'index'])->name('points.index');
         Route::post('/points/settings', [PointController::class, 'updateSettings'])->name('points.settings.update');
+
+        // Quản lý phân quyền
+        Route::resource('role', RoleController::class);
+        Route::get('member',[RoleController::class,'listMembers'])->name('member');
     });
 });

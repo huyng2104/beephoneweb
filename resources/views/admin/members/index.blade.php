@@ -1,11 +1,9 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Quản lý người dùng')
+@section('title', 'Quản lý thành viên hệ thống')
 
 @section('content')
     <main class="flex-1 flex flex-col overflow-hidden">
-
-
         @include('popup_notify.index')
 
         <!-- Body Content -->
@@ -13,36 +11,27 @@
             <!-- Breadcrumbs & Actions -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Quản lý người
-                        dùng</h2>
-                    <p class="text-slate-500 text-sm mt-1">Xem và quản lý tất cả tài khoản người dùng trên hệ thống
+                    <h2 class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Quản lý thành viên</h2>
+                    <p class="text-slate-500 text-sm mt-1">Xem và quản lý tất cả tài khoản thành viên trên hệ thống
                     </p>
                 </div>
                 <a href="{{ route('admin.users.create') }}">
                     <button
                         class="bg-primary hover:bg-primary/90 text-slate-900 font-bold px-5 py-2.5 rounded-xl shadow-sm shadow-primary/20 flex items-center gap-2 transition-all">
                         <span class="material-symbols-outlined">person_add</span>
-                        Thêm người dùng mới
+                        Thêm thành viên mới
                     </button>
                 </a>
             </div>
             <!-- Stats Bar (Optional UI touch) -->
+            @php
+               $bannedCount = $users->getCollection()->where('status', 'banned')->count();
+            @endphp
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng người dùng</p>
                     <p class="text-2xl font-black mt-1">{{ $users->total() }}</p>
                 </div>
-                {{-- <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Khách hàng</p>
-                    <p class="text-2xl font-black mt-1 text-primary">1,120</p>
-                </div>
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Nhân viên</p>
-                    <p class="text-2xl font-black mt-1 text-blue-500">{{ $totalStaff }}</p>
-                </div> --}}
-                @php
-                    $bannedCount = $users->getCollection()->where('status', 'banned')->count();
-                @endphp
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Bị khóa</p>
                     <p class="text-2xl font-black mt-1 text-red-500">{{ $bannedCount }}</p>
@@ -52,7 +41,8 @@
             <div
                 class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <!-- Filter Row -->
-                <form action="{{ route('admin.users.index') }}" method="GET" id="filter-form">
+                <!-- Filter Row -->
+                <form action="{{ route('admin.member') }}" method="GET" id="filter-form">
                     <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-wrap gap-4 items-center">
 
                         <div class="flex-1 min-w-[300px] relative">
@@ -64,22 +54,36 @@
                         </div>
 
                         <div class="flex gap-2">
+
+                            <select name="role" onchange="this.form.submit()"
+                                class="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:ring-primary focus:border-primary max-w-[150px]">
+                                <option value="">Tất cả vai trò</option>
+                                {{-- Lặp qua biến $roles được truyền từ Controller --}}
+                                @isset($roles)
+                                    @foreach ($roles as $role)
+                                        <option value="{{ $role->id }}"
+                                            {{ request('role') == $role->id ? 'selected' : '' }}>
+                                            {{ ucfirst($role->name) }}
+                                        </option>
+                                    @endforeach
+                                @endisset
+                            </select>
+
                             <select name="status" onchange="this.form.submit()"
-                                class="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:ring-primary focus:border-primary">
+                                class="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:ring-primary focus:border-primary max-w-[150px]">
                                 <option value="">Trạng thái</option>
                                 <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Hoạt động
                                 </option>
                                 <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Chưa kích
-                                    hoạt
-                                </option>
+                                    hoạt</option>
                                 <option value="banned" {{ request('status') == 'banned' ? 'selected' : '' }}>Bị khóa
                                 </option>
                                 <option value="delete" {{ request('status') == 'delete' ? 'selected' : '' }}>Đã xóa
                                 </option>
                             </select>
 
-                            @if (request()->filled('search') || request()->filled('status'))
-                                <a href="{{ route('admin.users.index') }}"
+                            @if (request()->filled('search') || request()->filled('status') || request()->filled('role'))
+                                <a href="{{ route('admin.member') }}"
                                     class="bg-slate-100 dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-red-500 transition-colors"
                                     title="Xóa tất cả bộ lọc">
                                     <span class="material-symbols-outlined">filter_list_off</span>
@@ -89,7 +93,7 @@
                             <button type="submit"
                                 class="bg-primary hover:bg-primary/90 p-2 rounded-lg border border-transparent flex items-center justify-center text-slate-900 transition-colors font-medium text-sm gap-1">
                                 <span class="material-symbols-outlined text-lg">filter_list</span>
-                                Tìm kiếm
+                                <span class="hidden sm:inline">Lọc</span>
                             </button>
                         </div>
                     </div>
@@ -132,7 +136,6 @@
                                         </td>
                                         @php
                                             $role_color = match ($user->role->name) {
-                                                'staff' => 'blue',
                                                 'admin' => 'purple',
                                                 default => 'slate',
                                             };
