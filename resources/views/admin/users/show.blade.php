@@ -175,28 +175,39 @@
                                         </div>
                                     </div>
                                     <div class="space-y-2">
-                                        <p class="text-sm text-slate-600 dark:text-slate-400">Các quyền cụ thể:</p>
                                         @switch($user->role->name)
-                                            @case('staff')
-                                                <div class="flex flex-wrap gap-2">
-                                                    @foreach ($user->permissions as $permission)
-                                                        <span
-                                                            class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">•
-                                                            {{ $permission->name }}</span>
-                                                    @endforeach
-                                                </div>
-                                            @break
-
                                             @case('admin')
                                                 <span
                                                     class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">•
                                                     Toàn quyền truy cập hệ thống</span>
                                             @break
 
-                                            @default
+                                            @case('user')
                                                 <span
                                                     class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">•
                                                     Mua hàng</span>
+                                            @break
+
+                                            @default
+                                                <p class="text-sm text-slate-600 dark:text-slate-400">Quyền mặc định theo vai trò:
+                                                </p>
+                                                @foreach ($user->role->permissions as $permission)
+                                                    <span
+                                                        class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">•
+                                                        {{ $permission->name }}</span>
+                                                @endforeach
+
+                                                <p class="text-sm text-slate-600 dark:text-slate-400">Quyền cấp riêng:</p>
+                                                @if ($user->permissions)
+                                                    @foreach ($user->permissions as $pms)
+                                                        <span
+                                                            class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">•
+                                                            {{ $pms->name }}</span>
+                                                    @endforeach
+                                                @else
+                                                    <span>Không có</span>
+                                                @endif
+
                                         @endswitch
                                     </div>
                                 </div>
@@ -207,41 +218,274 @@
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-xl p-6 mb-8 border border-primary/10 shadow-sm">
-            <div class="flex-1">
-                <p class="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">Lịch sử
-                    hoạt động gần đây</p>
-                <div class="space-y-4">
-                    @foreach ($user->activityLogs()->latest()->take(5)->get() as $log)
-                        <div class="flex gap-4">
-                            <div class="relative flex flex-col items-center">
-                                <div class="size-3 bg-slate-300 rounded-full z-10"></div>
-                                <div class="w-0.5 h-full bg-slate-200 dark:bg-slate-700 absolute top-2">
+
+        {{-- lịch sử đặt hàng --}}
+
+       
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+    <div class="lg:col-span-12 space-y-8"> {{-- 🔥 Thêm space-y-8 để các card cách nhau đẹp --}}
+        
+        <div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-primary/10 shadow-sm">
+            <div class="p-8">
+                <div>
+                    <h3 class="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100 mb-6">
+                        <span class="w-1.5 h-6 bg-primary rounded-full"></span> Vai trò &amp; Phân quyền
+                    </h3>
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="flex-1 p-6 bg-background-light dark:bg-slate-800/50 rounded-xl border border-primary/5">
+                            <div class="flex items-center gap-3 mb-4">
+                                <span class="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">verified_user</span>
+                                <div>
+                                    <p class="text-xs font-bold uppercase text-slate-500">Vai trò chính</p>
+                                    <p class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ $user->role->name }}</p>
                                 </div>
                             </div>
-                            <div>
-                                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    {{ $log->description }}
-                                    @if ($log->model)
-                                        - <a class="text-blue-500" href="#">{{ $log->model->name ?? '' }}</a>
-                                    @endif
-                                </p>
+                            <div class="flex flex-wrap gap-2"> {{-- 🔥 Thêm flex-wrap gap-2 để tag hiển thị hàng ngang đẹp --}}
+                                @switch($user->role->name)
+                                    @case('admin')
+                                        <span class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">• Toàn quyền truy cập hệ thống</span>
+                                    @break
 
-                                <p class="text-xs text-slate-500">
-                                    {{ $log->created_at->format('H:i') }}, Ngày {{ $log->created_at->format('d/m/Y') }}
-                                </p>
+                                    @case('user')
+                                        <span class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">• Mua hàng</span>
+                                    @break
+
+                                    @default
+                                        <div class="w-full mb-1">
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Quyền mặc định theo vai trò:</p>
+                                        </div>
+                                        @foreach ($user->role->permissions as $permission)
+                                            <span class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">• {{ $permission->name }}</span>
+                                        @endforeach
+
+                                        <div class="w-full mt-3 mb-1">
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Quyền cấp riêng:</p>
+                                        </div>
+                                        @forelse ($user->permissions as $pms)
+                                            <span class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">• {{ $pms->name }}</span>
+                                        @empty
+                                            <span class="text-xs text-slate-400 italic">Không có quyền riêng</span>
+                                        @endforelse
+                                @endswitch
                             </div>
                         </div>
-                    @endforeach
-                    {{-- @dd($user->activityLogs) --}}
-                    <button class="text-primary text-xs font-bold hover:underline">Xem tất cả
-                        lịch sử</button>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-primary/10 shadow-sm">
+    <div class="p-8">
+        <h3 class="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100 mb-6">
+            <span class="w-1.5 h-6 bg-primary rounded-full"></span> Lịch sử đặt hàng
+        </h3>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+                <thead class="bg-slate-50 dark:bg-slate-800/50">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">Mã Đơn</th>
+                        <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">Ngày đặt</th>
+                        <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">Tổng tiền</th>
+                        <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">Trạng thái</th>
+                        <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    
+                    {{-- 🔥 Đã thêm collect()->sortByDesc('created_at') ở đây --}}
+                    @forelse (collect($user->orders ?? [])->sortByDesc('created_at') as $order)
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <td class="px-4 py-4 font-medium text-slate-900 dark:text-slate-100">#{{ $order->order_code ?? $order->id }}</td>
+                            <td class="px-4 py-4 text-slate-500 dark:text-slate-400">{{ $order->created_at->format('d/m/Y') }}</td>
+                            <td class="px-4 py-4 font-semibold text-slate-900 dark:text-slate-100">{{ number_format($order->total_price ?? 0) }}đ</td>
+                            <td class="px-4 py-4">
+                                @php
+    $status_class = match($order->status ?? 'pending') {
+        'completed', 'received' => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', // Gộp chung màu xanh lá
+        'shipping' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+        'cancelled' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+        'pending' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', // Cố định màu vàng cho Chờ xác nhận
+        default => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400', // Màu xám cho trường hợp lạ
+    };
+
+    $status_text = match($order->status ?? 'pending') {
+        'pending' => 'Chờ xác nhận',
+        'shipping' => 'Đang giao',
+        'received' => 'Đã nhận',
+        'completed' => 'Thành công',
+        'cancelled' => 'Đã hủy',
+        default => 'Chờ xử lý', // Đóng vai trò bao quát tất cả các trường hợp còn lại
+    };
+@endphp
+                                <span class="px-2.5 py-1 text-xs font-bold rounded-full {{ $status_class }}">
+                                    {{ $status_text }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 text-center">
+                                <a href="{{ route('admin.orders.show',$order->id) }}" class="text-primary hover:underline text-xs font-bold flex items-center justify-center gap-1">
+                                    Xem chi tiết
+                                    <span class="material-symbols-outlined text-sm">chevron_right</span>
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-slate-400 dark:text-slate-500 italic">
+                                Người dùng này chưa có đơn hàng nào.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+    </div>
+</div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-6 mb-8 border border-primary/10 shadow-sm">
+    <div class="flex-1">
+        <p class="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">Lịch sử hoạt động gần đây</p>
+
+        <div class="space-y-6">
+
+            @foreach ($activities as $activitie)
+                @php
+                    // 1. Phân loại màu sắc Badge
+                    $badge_class = match ($activitie->log_name) {
+                        'voucher' => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+                        'user' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                        'product' => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                        'order' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+                        default => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
+                    };
+
+                    // 2. Dịch hành động tiếng Việt
+                    $action_text = match ($activitie->description) {
+                        'created' => 'đã thêm mới',
+                        'updated' => 'đã cập nhập',
+                        'deleted' => 'đã xóa ',
+                        default => $activitie->description,
+                    };
+
+                    // 3. Cá nhân hóa người dùng ("Bạn" hoặc Tên)
+                    $isMe = auth()->check() && $activitie->causer_id === auth()->id();
+                    $causer_name = $isMe ? 'Bạn' : $activitie->causer?->name ?? 'Hệ thống';
+
+                    // 4. Đọc dữ liệu Cũ & Mới từ mảng properties JSON
+$new_attributes = $activitie->properties['attributes'] ?? [];
+$old_attributes = $activitie->properties['old'] ?? [];
+
+// 🔥 Độ ưu tiên lấy tên: Tìm DB Thật -> Tìm mảng Mới (New JSON) -> Tìm mảng Cũ (Old JSON khi Xóa)
+$subject_display =
+    $activitie->subject?->name ??
+    ($activitie->subject?->code ??
+        ($activitie->subject?->order_code ??
+            ($new_attributes['order_code'] ??
+                ($new_attributes['code'] ??
+                    ($new_attributes['name'] ?? 
+                        ($old_attributes['order_code'] ?? // 👈 Fallback cho khi bị Xóa
+                            ($old_attributes['code'] ?? 
+                                ($old_attributes['name'] ?? null))))))));
+                    // 5. Gom nhóm các trường thay đổi
+                    $changed_fields = [];
+                    if ($activitie->description === 'updated') {
+                        foreach ($new_attributes as $key => $newValue) {
+                            if (!in_array($key, ['created_at', 'updated_at', 'deleted_at'])) {
+                                $oldValue = $old_attributes[$key] ?? null;
+
+                                if ($oldValue !== $newValue) {
+                                    $changed_fields[$key] = [
+                                        'old' => $oldValue,
+                                        'new' => $newValue,
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                @endphp
+
+                <div class="relative pl-6 border-l-2 border-slate-200 dark:border-slate-700 ml-3">
+                    <span class="absolute -left-[9px] top-4 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-slate-900 border-2 border-blue-500">
+                        <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                    </span>
+
+                    <div class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
+                        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-700">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 text-xs font-bold rounded-full {{ $badge_class }}">
+                                    {{ strtoupper($activitie->log_name ?? 'HỆ THỐNG') }}
+                                </span>
+
+                                <span class="text-sm text-slate-600 dark:text-slate-300">
+                                    <strong class="{{ $isMe ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white' }}">
+                                        {{ $causer_name }}
+                                    </strong>
+                                    {{ $action_text }}
+                                    <span class="font-bold text-slate-800 dark:text-white">
+                                        {{ $subject_display ? $subject_display : "ID: {$activitie->subject_id}" }}
+                                    </span>
+                                </span>
+                            </div>
+
+                            <div class="text-right whitespace-nowrap">
+                                <div class="text-xs font-bold text-slate-600 dark:text-slate-400">
+                                    {{ $activitie->created_at->format('H:i') }}
+                                </div>
+                                <div class="text-[10px] text-slate-400">
+                                    {{ $activitie->created_at->format('d/m/Y') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Bảng thay đổi dữ liệu --}}
+                        @if ($activitie->description === 'updated' && !empty($changed_fields))
+                            <div class="mt-3 space-y-2">
+                                <div class="text-xs font-semibold text-slate-500 mb-1">Dữ liệu thay đổi:</div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    @foreach ($changed_fields as $field => $data)
+                                        <div class="p-2 border border-slate-100 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 flex flex-col justify-center text-xs">
+                                            <div class="font-bold text-slate-700 dark:text-slate-300 mb-1 truncate">
+                                                📋 {{ strtoupper($field) }}
+                                            </div>
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="line-through decoration-red-400 text-slate-400 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded">
+                                                    {{ is_array($data['old']) ? json_encode($data['old']) : $data['old'] ?? 'Trống' }}
+                                                </span>
+
+                                                <span class="text-slate-400">➔</span>
+
+                                                <span class="text-green-700 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded">
+                                                    {{ is_array($data['new']) ? json_encode($data['new']) : $data['new'] ?? 'Trống' }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+
+        </div>
+
+        {{-- Phân trang --}}
+        @if ($activities->hasPages())
+            <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+                {{ $activities->links() }}
+            </div>
+        @endif
+
+    </div>
+</div>
     </main>
     @if (session('new_password'))
-        <div id="password-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] p-4">
+        <div id="password-modal"
+            class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] p-4">
 
             <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 text-center border border-gray-100">
 
