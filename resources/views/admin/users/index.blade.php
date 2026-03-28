@@ -4,25 +4,9 @@
 
 @section('content')
     <main class="flex-1 flex flex-col overflow-hidden">
-        <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3">
-    @include('popup_notify.index')
-<script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const toasts = document.querySelectorAll('.toast-message');
 
-                toasts.forEach(function(toast) {
-                    setTimeout(() => {
-                        // Thêm hiệu ứng trượt sang phải trước khi xóa
-                        toast.classList.add('translate-x-full', 'opacity-0');
 
-                        // Đợi hiệu ứng chạy xong (300ms) rồi mới xóa khỏi DOM
-                        setTimeout(() => {
-                            toast.remove();
-                        }, 300);
-                    }, 3000); // 3000ms = 3 giây (Bạn có thể tăng lên nếu muốn)
-                });
-            });
-        </script>
+        @include('popup_notify.index')
 
         <!-- Body Content -->
         <div class="flex-1 overflow-y-auto p-8 space-y-6">
@@ -43,56 +27,73 @@
                 </a>
             </div>
             <!-- Stats Bar (Optional UI touch) -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng người dùng</p>
-                    <p class="text-2xl font-black mt-1">{{ $users->total() }}</p>
+                    <p class="text-2xl font-black mt-1">{{ number_format($totalUsers) }}</p>
                 </div>
+
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Khách hàng</p>
-                    <p class="text-2xl font-black mt-1 text-primary">1,120</p>
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Mới (7 ngày qua)</p>
+                    <p class="text-2xl font-black mt-1 text-blue-500">+{{ number_format($newUsers) }}</p>
                 </div>
+
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Nhân viên</p>
-                    <p class="text-2xl font-black mt-1 text-blue-500">{{ $totalStaff }}</p>
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Đang hoạt động</p>
+                    <p class="text-2xl font-black mt-1 text-green-500">{{ number_format($activeUsers) }}</p>
                 </div>
+
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Bị khóa</p>
-                    <p class="text-2xl font-black mt-1 text-red-500">{{ $totalBanned }}</p>
+                    <p class="text-2xl font-black mt-1 text-red-500">{{ number_format($bannedUsers) }}</p>
                 </div>
             </div>
             <!-- Filters & Table -->
             <div
                 class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <!-- Filter Row -->
-                <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-wrap gap-4 items-center">
-                    <div class="flex-1 min-w-[300px] relative">
-                        <span
-                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                        <input
-                            class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg pl-10 focus:ring-primary focus:border-primary text-sm"
-                            placeholder="Tìm tên, email hoặc ID..." type="text" />
+                <form action="{{ route('admin.users.index') }}" method="GET" id="filter-form">
+                    <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-wrap gap-4 items-center">
+
+                        <div class="flex-1 min-w-[300px] relative">
+                            <span
+                                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                            <input name="search" value="{{ request('search') }}"
+                                class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg pl-10 focus:ring-primary focus:border-primary text-sm"
+                                placeholder="Tìm tên, email hoặc ID..." type="text" />
+                        </div>
+
+                        <div class="flex gap-2">
+                            <select name="status" onchange="this.form.submit()"
+                                class="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:ring-primary focus:border-primary">
+                                <option value="">Trạng thái</option>
+                                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Hoạt động
+                                </option>
+                                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Chưa kích
+                                    hoạt
+                                </option>
+                                <option value="banned" {{ request('status') == 'banned' ? 'selected' : '' }}>Bị khóa
+                                </option>
+                                <option value="delete" {{ request('status') == 'delete' ? 'selected' : '' }}>Đã xóa
+                                </option>
+                            </select>
+
+                            @if (request()->filled('search') || request()->filled('status'))
+                                <a href="{{ route('admin.users.index') }}"
+                                    class="bg-slate-100 dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-red-500 transition-colors"
+                                    title="Xóa tất cả bộ lọc">
+                                    <span class="material-symbols-outlined">filter_list_off</span>
+                                </a>
+                            @endif
+
+                            <button type="submit"
+                                class="bg-primary hover:bg-primary/90 p-2 rounded-lg border border-transparent flex items-center justify-center text-slate-900 transition-colors font-medium text-sm gap-1">
+                                <span class="material-symbols-outlined text-lg">filter_list</span>
+                                Tìm kiếm
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex gap-2">
-                        <select
-                            class="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:ring-primary focus:border-primary">
-                            <option value="">Tất cả vai trò</option>
-                            <option value="admin">Quản trị viên</option>
-                            <option value="staff">Nhân viên</option>
-                            <option value="customer">Khách hàng</option>
-                        </select>
-                        <select
-                            class="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:ring-primary focus:border-primary">
-                            <option value="">Trạng thái</option>
-                            <option value="active">Hoạt động</option>
-                            <option value="locked">Bị khóa</option>
-                        </select>
-                        <button
-                            class="bg-slate-100 dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-primary transition-colors">
-                            <span class="material-symbols-outlined">filter_list</span>
-                        </button>
-                    </div>
-                </div>
+                </form>
                 <!-- Table -->
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
@@ -195,16 +196,29 @@
                                                     </form>
                                                 @endif
 
-                                                <form action="{{ route('admin.users.destroy', $user->id) }}"
-                                                    method="post">
-                                                    @csrf
-                                                    @method('delete')
-                                                    <button onclick="return(confirm('Xóa người dùng'))"
-                                                        class="p-2 text-slate-400 hover:text-red-600 transition-colors"
-                                                        title="Xóa tài khoản">
-                                                        <span class="material-symbols-outlined text-lg">delete</span>
-                                                    </button>
-                                                </form>
+                                                @if ($user->deleted_at === null)
+                                                    <form action="{{ route('admin.users.destroy', $user->id) }}"
+                                                        method="post">
+                                                        @csrf
+                                                        @method('delete')
+                                                        <button onclick="return(confirm('Xóa người dùng'))"
+                                                            class="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                                                            title="Xóa tài khoản">
+                                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <form action="{{ route('admin.user.restore', $user->id) }}"
+                                                        method="post">
+                                                        @csrf
+                                                        <button onclick="return(confirm('Khôi phục người dùng'))"
+                                                            class="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                                                            title="Khôi phục tài khoản">
+                                                            <span
+                                                                class="material-symbols-outlined">restore_from_trash</span>
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

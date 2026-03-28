@@ -38,16 +38,34 @@ class AppServiceProvider extends ServiceProvider
 
             return null;
         });
+// <<<<<<< vinh1
 
-        // Only define permission gates if the table exists (prevents boot-time SQL errors on fresh DBs).
-        if (Schema::hasTable('permissions')) {
-            $permissions = Permission::select('id', 'slug')->get();
+//         // Only define permission gates if the table exists (prevents boot-time SQL errors on fresh DBs).
+//         if (Schema::hasTable('permissions')) {
+//             $permissions = Permission::select('id', 'slug')->get();
 
-            foreach ($permissions as $permission) {
-                Gate::define($permission->slug, function ($user) use ($permission) {
-                    return $user->permissions->contains('id', $permission->id);
-                });
-            }
+//             foreach ($permissions as $permission) {
+//                 Gate::define($permission->slug, function ($user) use ($permission) {
+//                     return $user->permissions->contains('id', $permission->id);
+//                 });
+//             }
+// =======
+        $permissions = Permission::select('id', 'slug')->get();
+
+        foreach ($permissions as $permission) {
+
+            Gate::define($permission->slug, function ($user) use ($permission) {
+                $hasDirectPermission = $user->permissions->contains('slug', $permission->slug);
+
+                if ($hasDirectPermission) {
+                    return true; // Nếu có quyền riêng lẻ thì cho qua luôn, không cần check Role nữa
+                }
+                $userRole = $user->role;
+                if ($userRole && $userRole->permissions->contains('slug', $permission->slug)) {
+                    return true; // Có quyền trong Role thì cho qua
+                }
+            });
+// >>>>>>> main
         }
 
         VerifyEmail::toMailUsing(function ($notifiable, $url) {

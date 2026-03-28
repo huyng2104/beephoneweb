@@ -14,7 +14,11 @@ class PostController extends Controller
 
     public function index()
     {
-        $posts = Post::with(['category', 'user'])->latest()->get();
+        // $posts = Post::with(['category', 'user'])->latest()->get();
+
+        $posts = Post::with(['category', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(5); // mỗi trang 5 bài
 
         return view('admin.posts.index', compact('posts'));
     }

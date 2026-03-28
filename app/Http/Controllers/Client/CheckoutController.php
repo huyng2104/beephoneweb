@@ -8,13 +8,20 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use App\Models\Cart;
+use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Voucher;
+use App\Models\Wallet;
+use App\Models\WalletTransaction;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderPlacedMail;
 
 class CheckoutController extends Controller
 {
-    // 1. Hiện giao diện Thanh toán
+    /**
+     * 1. HÀM INDEX: Hiển thị giao diện trang Thanh toán
+     */
     public function index()
     {
         $cart = Cart::with(['items.product', 'items.variant.attributeValues.attribute'])
@@ -23,11 +30,20 @@ class CheckoutController extends Controller
                 else $q->where('session_id', Session::getId());
             })->first();
 
+        // ---------------- THÊM ĐOẠN NÀY LÀ XONG ----------------
+        // Lọc giỏ hàng: CHỈ giữ lại các item có ID nằm trong Session đã chọn
+        $selectedIds = session('selected_cart_items', []);
+        if (!empty($selectedIds)) {
+            // Ép cái relationship items chỉ lấy những món khách chọn
+            $cart->setRelation('items', $cart->items->whereIn('id', $selectedIds));
+        }
+        // --------------------------------------------------------
+
         if (!$cart || $cart->items->count() == 0) {
-            return redirect()->route('client.products.index')->with('error', 'Giỏ hàng của bạn đang trống!');
+            return redirect()->route('client.products.index')->with('error', 'Không có sản phẩm nào để thanh toán!');
         }
 
-        // Tính tổng tiền gốc
+        // Tính tổng tiền gốc (Chỉ tính các món đã chọn)
         $totalPrice = 0;
         foreach ($cart->items as $item) {
             $price = $item->product->sale_price > 0 ? $item->product->sale_price : $item->product->price;
@@ -40,7 +56,9 @@ class CheckoutController extends Controller
         return view('client.checkout.index', compact('cart', 'totalPrice'));
     }
 
-    // 2. Xử lý lưu Đơn hàng vào DB
+    /**
+     * 2. HÀM PROCESS: Xử lý lưu Đơn hàng vào Database
+     */
     public function process(Request $request)
     {
         $request->validate([
@@ -56,8 +74,14 @@ class CheckoutController extends Controller
                 else $q->where('session_id', Session::getId());
             })->first();
 
+        // Lọc giỏ hàng: CHỈ xử lý các item khách đã tích chọn
+        $selectedIds = session('selected_cart_items', []);
+        if (!empty($selectedIds)) {
+            $cart->setRelation('items', $cart->items->whereIn('id', $selectedIds));
+        }
+
         if (!$cart || $cart->items->count() == 0) {
-            return redirect()->route('client.products.index')->with('error', 'Giỏ hàng trống!');
+            return redirect()->route('client.products.index')->with('error', 'Giỏ hàng trống hoặc chưa chọn sản phẩm!');
         }
 
         DB::beginTransaction();
@@ -125,23 +149,23 @@ class CheckoutController extends Controller
                 $stockObj->decrement('stock', $item->quantity);
             }
 
-            // 2.3 XỬ LÝ VOUCHER & TÍNH TỔNG TIỀN CUỐI CÙNG
+            // 2.3 XỬ LÝ VOUCHER (Upsert chống lỗi Duplicate 1062)
             $discountAmount = 0;
             if (session()->has('voucher')) {
                 $voucherSession = session('voucher');
                 $discountAmount = $voucherSession['discount_amount'];
 
-                // Tìm voucher trong DB để cập nhật số lần dùng
                 $voucher = Voucher::find($voucherSession['id']);
                 if ($voucher) {
-                    // 1. Tăng lượt sử dụng trong bảng vouchers
                     $voucher->increment('used_count');
 
-                    // 2. Ghi nhận vào bảng pivot user_vouchers (nếu khách đã đăng nhập)
                     if (Auth::check()) {
-                        $voucher->users()->attach(Auth::id(), [
-                            'order_id' => $order->id,
-                            'used_at' => now()
+                        $user = Auth::user();
+                        $user->userVouchers()->syncWithoutDetaching([
+                            $voucher->id => [
+                                'order_id' => $order->id,
+                                'used_at' => now()
+                            ]
                         ]);
                     }
                 }
@@ -150,21 +174,17 @@ class CheckoutController extends Controller
             $finalAmount = $totalPrice - $discountAmount;
             if ($finalAmount < 0) $finalAmount = 0;
 
-            // Cập nhật lại số tiền chính xác cho đơn hàng
             $order->update([
                 'total_price' => $totalPrice, 
                 'total_amount' => $finalAmount 
             ]);
 
-            // ==========================================
-            // LOGIC THANH TOÁN BẰNG VÍ BEE PAY
-            // ==========================================
+            // 2.4 LOGIC THANH TOÁN BẰNG VÍ BEE PAY
             if ($request->payment_method === 'wallet') {
                 $user = Auth::user();
                 if (!$user) throw new \Exception('Vui lòng đăng nhập để thanh toán bằng Ví Bee Pay!');
 
-                $wallet = \App\Models\Wallet::where('user_id', $user->id)->first();
-
+                $wallet = Wallet::where('user_id', $user->id)->first();
                 if (!$wallet || $wallet->balance < $finalAmount) {
                     throw new \Exception('Số dư Ví Bee Pay không đủ. Vui lòng nạp thêm tiền!');
                 }
@@ -172,8 +192,7 @@ class CheckoutController extends Controller
                 $balanceBefore = $wallet->balance;
                 $wallet->decrement('balance', $finalAmount);
 
-                // Ghi lịch sử giao dịch ví
-                \App\Models\WalletTransaction::create([
+                WalletTransaction::create([
                     'wallet_id' => $wallet->id,
                     'type' => 'payment',
                     'amount' => $finalAmount,
@@ -187,18 +206,44 @@ class CheckoutController extends Controller
 
                 $order->update(['payment_status' => 'paid']);
             }
-            // ==========================================
 
-            // 2.4 Dọn dẹp Giỏ hàng và Session
-            $cart->items()->delete();
-            $cart->delete();
+            // ==========================================
+            // 2.5 DỌN DẸP GIỎ HÀNG (CHỈ XÓA MÓN ĐÃ MUA)
+            // ==========================================
+            if (!empty($selectedIds)) {
+                // Chỉ xóa các item được tích chọn thanh toán
+                CartItem::whereIn('id', $selectedIds)->delete();
+            } else {
+                $cart->items()->delete(); // Mặc định thì xóa hết (nếu có lỗi gì đó)
+            }
+
+            // Kiểm tra xem giỏ hàng còn món nào không, nếu không còn thì xóa luôn cái vỏ Cart
+            if ($cart->items()->count() == 0) {
+                $cart->delete();
+            }
+
+            // Xóa session voucher và session chọn món để khách mua đơn tiếp theo
             session()->forget('voucher'); 
+            session()->forget('selected_cart_items');
 
             DB::commit();
 
             // ==========================================
-            // LOGIC VNPAY
+            // LƯU SESSION ID ĐỂ HIỂN THỊ GIAO DIỆN SUCCESS
             // ==========================================
+            session(['new_order_id' => $order->id]);
+
+            // Gửi email
+            $customerEmail = $order->customer_email;
+            if (!empty($customerEmail)) {
+                try {
+                    Mail::to($customerEmail)->send(new OrderPlacedMail($order));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Lỗi gửi email xác nhận đơn: ' . $e->getMessage());
+                }
+            }
+
+            // 2.6 LOGIC VNPAY
             if ($request->payment_method === 'vnpay') {
                 if ($finalAmount <= 0) {
                     $order->update(['payment_status' => 'paid']);
@@ -260,7 +305,9 @@ class CheckoutController extends Controller
         }
     }
 
-    // 3. Hàm xử lý kết quả VNPAY trả về
+    /**
+     * 3. HÀM XỬ LÝ VNPAY_RETURN
+     */
     public function vnpay_return(Request $request)
     {
         $vnp_HashSecret = env('VNPAY_HASH_SECRET');
@@ -289,6 +336,11 @@ class CheckoutController extends Controller
         $order = Order::find($request->vnp_TxnRef);
 
         if ($secureHash == $vnp_SecureHash) {
+            // LƯU SESSION ĐỂ HIỆN TRANG SUCCESS (NẾU KHÁCH TỪ VNPAY QUAY VỀ)
+            if ($order) {
+                session(['new_order_id' => $order->id]);
+            }
+
             if ($request->vnp_ResponseCode == '00') {
                 if ($order) {
                     $order->update(['payment_status' => 'paid']); 
@@ -307,25 +359,56 @@ class CheckoutController extends Controller
         }
     }
 
-    // 4. Trang thông báo Đặt hàng thành công
+    /**
+     * 4. TRANG SUCCESS
+     */
     public function success()
     {
-        if (!session('success') && !session('last_order_id')) {
+// <<<<<<< vinh1
+//         if (!session('success') && !session('last_order_id')) {
+//             return redirect()->route('home');
+//         }
+
+//         $order = null;
+//         $orderId = session('last_order_id');
+//         if ($orderId) {
+//             $order = Order::query()
+//                 ->with(['items.product'])
+//                 ->find($orderId);
+
+//             if ($order && $order->user_id && Auth::check() && $order->user_id !== Auth::id()) {
+//                 $order = null;
+//             }
+//         }
+
+//         return view('client.checkout.success', compact('order'));
+// =======
+        // Phải có 1 trong 2 thông báo success hoặc có ID đơn hàng mới cho xem
+        if (!session('success') || !session('new_order_id')) {
             return redirect()->route('home');
         }
 
-        $order = null;
-        $orderId = session('last_order_id');
-        if ($orderId) {
-            $order = Order::query()
-                ->with(['items.product'])
-                ->find($orderId);
+        // Truy vấn lấy đơn hàng và danh sách món hàng
+        $order = Order::with('items')->find(session('new_order_id'));
 
-            if ($order && $order->user_id && Auth::check() && $order->user_id !== Auth::id()) {
-                $order = null;
-            }
+        // Nếu vì lý do tâm linh nào đó mất đơn hàng thì đuổi về home
+        if (!$order) {
+            return redirect()->route('home');
         }
 
         return view('client.checkout.success', compact('order'));
+    }
+
+    /**
+     * 5. HỦY MÃ GIẢM GIÁ TẠI CHECKOUT
+     */
+    public function removeVoucher()
+    {
+        session()->forget('voucher');
+        return response()->json([
+            'success' => true, 
+            'message' => 'Đã hủy mã giảm giá!'
+        ]);
+// >>>>>>> main
     }
 }

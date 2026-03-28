@@ -74,11 +74,19 @@ class AuthController extends Controller
     }
     public function postLogin(LoginRequest $request)
     {
+        $user = User::withTrashed()->where('email', $request->email)->first();
+        if ($user->trashed()) {
+            return back()->withErrors([
+                'email' => 'Tài khoản của bạn đã bị xóa khỏi hệ thống.'
+            ])->onlyInput('email');
+        }
         $data = [
             'email' => $request->email,
             'password' => $request->password,
         ];
+
         $status = User::select('status', 'email_verified_at')->where('email', $request->email)->first();
+
         if ($status->status != 'active') {
             return back()->withErrors([
                 'email' => 'Tài khoản hiện chưa kích hoạt hoặc bị khóa'
@@ -107,22 +115,30 @@ class AuthController extends Controller
 
         if (Auth::attempt($data)) {
             $request->session()->regenerate();
-            activity_log('login', 'Đăng nhập hệ thống');
+// <<<<<<< vinh1
+//             activity_log('login', 'Đăng nhập hệ thống');
 
-            $user = Auth::user();
-            $role = $user?->role?->name ?? $user?->role_slug ?? null;
+//             $user = Auth::user();
+//             $role = $user?->role?->name ?? $user?->role_slug ?? null;
 
-            // If a normal user tries to enter /admin via intended redirect, kick them back to login.
-            if ($intendedPath !== '' && str_starts_with($intendedPath, '/admin') && $role !== 'admin') {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
+//             // If a normal user tries to enter /admin via intended redirect, kick them back to login.
+//             if ($intendedPath !== '' && str_starts_with($intendedPath, '/admin') && $role !== 'admin') {
+//                 Auth::logout();
+//                 $request->session()->invalidate();
+//                 $request->session()->regenerateToken();
 
-                return redirect()->route('admin.login')->with('error', 'tk user không được đăng nhập vào admin');
-            }
+//                 return redirect()->route('admin.login')->with('error', 'tk user không được đăng nhập vào admin');
+//             }
 
-            $request->session()->forget('admin_login_attempt');
-            return redirect()->intended('/')->with(['success' => 'Đăng nhập thành công']);
+//             $request->session()->forget('admin_login_attempt');
+//             return redirect()->intended('/')->with(['success' => 'Đăng nhập thành công']);
+// =======
+            return redirect()->intended('/')->with(
+                [
+                    'success' => 'Đăng nhập thành công'
+                ]
+            );
+// >>>>>>> main
         }
         return back()->withErrors([
             'password' => 'Password không chính xác'
@@ -193,7 +209,7 @@ class AuthController extends Controller
 
     public function logOut(Request $request)
     {
-        activity_log('logout', 'Đăng xuất');
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
