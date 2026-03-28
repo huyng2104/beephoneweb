@@ -64,6 +64,8 @@ Route::middleware(['auth', 'check.verified'])->group(function () {
     Route::get('profile/wallet', [ProfileController::class, 'user_wallet'])->name('profile.wallet');
     Route::resource('profile', ProfileController::class);
     Route::post('prodile/password/update/{id}',[ProfileController::class,'passwordUpdate'])->name('profile.password.update');
+    // Kích hoạt ví
+    Route::post('wallet/active/{id}',[ClientWalletController::class,'active_wallet'])->name('wallet.active');
 
     // Nạp ví (ĐÃ FIX CHUẨN XỊN)
     Route::post('/wallet/deposit',[ClientWalletController::class,'createDeposit'])->name('wallet.deposit');
@@ -73,6 +75,10 @@ Route::middleware(['auth', 'check.verified'])->group(function () {
     Route::post('/wallet/withdrawal', [ClientWalletController::class, 'withdrawalPost'])->name('wallet.withdrawal');
     Route::post('/wallet/withdrawal/cancelled/{id}', [ClientWalletController::class, 'withdrawalCancelled'])->name('wallet.withdrawal.cancelled');
 
+    // Thêm Ngân hàng người dùng
+    Route::post('wallet/bank-account/{id}',[ClientWalletController::class,'addBankAccount'])->name('wallet.bank-account');
+    // Gỡ ngân hàng người dùng
+    Route::post('wallet/remove/bank-account/{id}',[ClientWalletController::class,'removeBankAccount'])->name('wallet.remove.bank-account');
     // QUẢN LÝ GIỎ HÀNG
     Route::post('/cart/add', [CartController::class, 'add'])->name('client.cart.add');
     Route::get('/cart/count', [CartController::class, 'count'])->name('client.cart.count');

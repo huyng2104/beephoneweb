@@ -10,14 +10,14 @@
                 <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
                     <div class="relative group">
                         {{-- Khối logic lấy 2 chữ cái đầu của Tên (Hỗ trợ tiếng Việt có dấu) --}}
-                        {{-- @php
+                        @php
                             $words = explode(' ', trim($user->name));
                             $initials = mb_substr($words[0], 0, 1, 'UTF-8'); // Chữ cái của họ/từ đầu tiên
                             if (count($words) > 1) {
                                 $initials .= mb_substr(end($words), 0, 1, 'UTF-8'); // Chữ cái của tên/từ cuối cùng
                             }
                             $initials = mb_strtoupper($initials, 'UTF-8'); // Viết hoa toàn bộ (vd: vt -> VT)
-                        @endphp --}}
+                        @endphp
 
                         {{-- Đã thay cụm 'ring-4 ring-primary...' thành 'border-4 border-black' --}}
                         <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-32 h-32  shadow-lg overflow-hidden flex items-center justify-center relative"
@@ -148,7 +148,7 @@
             </div>
         </div>
         <!-- Content Tabs & Sections -->
-        
+
 
         {{-- lịch sử đặt hàng --}}
 
@@ -366,7 +366,7 @@
                                                         }
                                                     }
                                                 }
-                 @endphp 
+                 @endphp
 
                             <div class="relative pl-6 border-l-2 border-slate-200 dark:border-slate-700 ml-3">
                                 <span
