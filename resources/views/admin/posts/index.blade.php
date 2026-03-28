@@ -107,6 +107,10 @@ font-weight: 500;
                                 href="{{ route('admin.post-categories.index') }}">
                                 <p class="text-sm font-bold leading-normal tracking-[0.015em]">Quản lý danh mục</p>
                             </a>
+                            {{-- <a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-[#8a8060] dark:text-[#b5ae98] pb-[13px] pt-4 hover:text-primary transition-colors"
+                                href="#">
+                                <p class="text-sm font-bold leading-normal tracking-[0.015em]">Bình luận</p>
+                            </a> --}}
                         </div>
                         <!-- Toolbar & Filters -->
                         <div class="p-6 space-y-4">
@@ -123,31 +127,6 @@ font-weight: 500;
                                     </div>
                                     <div class="flex gap-2 items-center">
                                         <span class="text-sm font-bold text-[#8a8060] mr-2">Bộ lọc:</span>
-                                        {{-- <div class="flex gap-2">
-                                            <button
-                                                class="flex h-9 items-center justify-center gap-x-2 rounded-lg bg-primary/10 text-primary px-4 border border-primary/20">
-                                                <p class="text-xs font-bold leading-normal uppercase">Tất cả</p>
-                                            </button>
-                                            <button
-                                                class="flex h-9 items-center justify-center gap-x-2 rounded-lg bg-[#f5f3f0] dark:bg-[#3d3a30] text-[#181611] dark:text-white px-4">
-                                                <p class="text-xs font-bold leading-normal uppercase">Tin công nghệ</p>
-                                                <span class="material-symbols-outlined text-sm">expand_more</span>
-                                            </button>
-                                            <button
-                                                class="flex h-9 items-center justify-center gap-x-2 rounded-lg bg-[#f5f3f0] dark:bg-[#3d3a30] text-[#181611] dark:text-white px-4">
-                                                <p class="text-xs font-bold leading-normal uppercase">Cẩm nang</p>
-                                                <span class="material-symbols-outlined text-sm">expand_more</span>
-                                            </button>
-                                            <button
-                                                class="flex h-9 items-center justify-center gap-x-2 rounded-lg bg-[#f5f3f0] dark:bg-[#3d3a30] text-[#181611] dark:text-white px-4">
-                                                <p class="text-xs font-bold leading-normal uppercase">Đánh giá</p>
-                                                <span class="material-symbols-outlined text-sm">expand_more</span>
-                                            </button>
-                                        </div>
-                                        <button
-                                            class="p-2 text-[#181611] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-                                            <span class="material-symbols-outlined">filter_list</span>
-                                        </button> --}}
                                         <select name="category_id" class="h-9 rounded-lg border border-[#e6e3db] px-3">
 
                                             <option value="">Tất cả</option>
