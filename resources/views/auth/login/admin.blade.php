@@ -129,11 +129,12 @@
                     <p class="text-slate-500 dark:text-slate-400 font-medium">Đăng nhập vào tài khoản Bee Phone của bạn
                         để tiếp tục.</p>
                     <p class="mt-3 text-sm font-semibold text-slate-400 dark:text-slate-500">
-                        đây là trang đăng nhập cilent
+                        đây là trang đăng nhập admin
                     </p>
                 </div>
-                <form class="space-y-6" method="post" action="{{ route('login.post') }}">
+                <form class="space-y-6" method="post" action="{{ route('admin.login.post') }}">
                     @csrf
+                    <input type="hidden" name="admin_login" value="1">
                     <div class="space-y-2">
                         <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Email</label>
                         <div class="relative">
@@ -201,7 +202,7 @@
                 </div> --}}
                 <p class="text-center text-slate-600 dark:text-slate-400 font-medium mt-10">
                     Chưa có tài khoản? <a class="text-primary font-black hover:underline"
-                        href="{{ route('register') }}">Đăng ký
+                        href="{{ route('admin.register') }}">Đăng ký
                         ngay</a>
                 </p>
             </div>

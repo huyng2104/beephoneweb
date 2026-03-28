@@ -38,6 +38,9 @@ use App\Http\Controllers\Client\ChatbotController;
 use App\Http\Controllers\Client\PostController as ClientPostController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
 use App\Models\User;
+use App\Http\Controllers\AdminControllers\CommentController as AdminCommentController;
+use App\Http\Controllers\CommentController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -49,7 +52,7 @@ use App\Models\User;
 // HỆ THỐNG CLIENT (Public)
 // ==========================================
 
-Route::middleware('check.verified')->group(function () {
+Route::middleware(['auth', 'check.verified'])->group(function () {
     // Trang chủ
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -119,10 +122,26 @@ Route::post('/thanh-toan/remove-voucher', [CheckoutController::class, 'removeVou
 // ==========================================
 // ĐĂNG NHẬP / ĐĂNG KÝ / QUÊN MẬT KHẨU
 // ==========================================
+// (LOCAL DEV) Tắt login/register để vào thẳng dashboard:
 Route::get('login', [AuthController::class, 'login'])->name('login');
 Route::get('register', [AuthController::class, 'register'])->name('register');
 Route::post('login/post', [AuthController::class, 'postLogin'])->name('login.post');
 Route::post('register/post', [AuthController::class, 'postRegister'])->name('register.post');
+
+// ==========================================
+// ADMIN AUTH (LOGIN/REGISTER) - SEPARATE PAGES
+// ==========================================
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('login', [AuthController::class, 'adminLogin'])->name('login');
+    Route::post('login/post', [AuthController::class, 'postAdminLogin'])->name('login.post');
+    Route::get('register', [AuthController::class, 'adminRegister'])->name('register');
+    Route::post('register/post', [AuthController::class, 'postAdminRegister'])->name('register.post');
+});
+
+// (LOCAL DEV) Vẫn cần route('login') để tránh lỗi "Route [login] not defined" từ blade/middleware auth.
+// Redirect thẳng vào dashboard, kết hợp với middleware local.admin để auto-login.
+
+// Giữ logout nếu bạn vẫn muốn thoát session khi cần.
 Route::get('logout', [AuthController::class, 'logOut'])->name('logout');
 
 // Quên mật khẩu
@@ -165,12 +184,29 @@ Route::post('/email/verification-notification', function (Request $request) {
 
 // ĐÃ FIX: Chỉ dùng quyền admin/staff ở ngoài cùng, quyền order.view để riêng vào nhóm đơn hàng
 
+// <<<<<<< vinh1
+// // (LOCAL DEV) Auto-login admin để vào thẳng dashboard
+// // When accessing /admin, always go to admin login (if already logged in as admin, go to dashboard).
+// Route::get('/admin', function () {
+//     if (Auth::check()) {
+//         $user = Auth::user();
+//         $role = $user?->role?->name ?? $user?->role_slug ?? null;
+//         if ($role === 'admin') {
+//             return redirect()->route('admin.dashboard');
+//         }
+//     }
+//     return redirect()->route('admin.login');
+// });
+
+// Route::middleware(['admin.login_attempt', 'auth', 'role:admin'])->group(function () {
+// =======
 Route::middleware(['auth', 'verified','role'])->group(function () {
+// >>>>>>> main
 
     Route::prefix('admin')->name('admin.')->group(function () {
 
         // Bảng điều khiển
-        Route::get('/', function () {
+        Route::get('/dashboard', function () {
             return view('admin.dashboard.index');
         })->name('dashboard');
 
@@ -224,6 +260,15 @@ Route::middleware(['auth', 'verified','role'])->group(function () {
         Route::post('products', [AdminProductController::class, 'store'])->name('products.store');
         Route::resource('products', AdminProductController::class)->except(['create', 'store']);
 
+        // 5.1 Quản lý Comments (Admin)
+        Route::get('comments', [AdminCommentController::class, 'index'])->name('comments.index');
+        Route::post('comments/{comment}/reply', [AdminCommentController::class, 'reply'])->name('comments.reply');
+        Route::delete('comments/{comment}', [AdminCommentController::class, 'destroy'])->name('comments.destroy');
+
+        // Link từ danh sách sản phẩm -> trang quản lý comments (lọc theo product nếu cần)
+        // Xem comment theo từng sản phẩm (UI giống trang com/showcom, khác với trang quản lý comment dạng bảng)
+        Route::get('products/{product}/comments', [AdminProductController::class, 'comments'])->name('products.comments');
+
         // 6. Quản lý Vouchers
         Route::post('vouchers/{id}/restore', [VoucherController::class, 'restore'])->name('vouchers.restore');
         Route::resource('vouchers', VoucherController::class);
@@ -269,3 +314,6 @@ Route::middleware(['auth', 'verified','role'])->group(function () {
         Route::get('member',[RoleController::class,'listMembers'])->name('member');
     });
 });
+// Public product routes and comment endpoints
+Route::get('/products/{product}', [ClientProductController::class, 'show'])->name('products.show');
+Route::post('/products/{product}/comments', [CommentController::class, 'store'])->name('products.comments.store');

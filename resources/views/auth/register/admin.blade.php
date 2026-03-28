@@ -7,10 +7,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Đăng nhập - Bee Phone</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap"
-        rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap"
-        rel="stylesheet" />
+
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
@@ -45,11 +42,9 @@
 </head>
 
 <body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display">
-    @include('popup_notify.index')
-<main class="min-h-screen flex">
+    <main class="min-h-screen flex">
         <!-- Left Side: Marketing/Visual Panel (Hidden on small screens) -->
-        <section
-            class="hidden lg:flex w-1/2 bg-slate-900 items-center justify-center p-8 relative overflow-hidden group">
+        <section class="hidden lg:flex w-1/2 bg-slate-900  justify-center p-8 relative overflow-hidden group">
             <div class="absolute inset-0 bg-gradient-to-br from-primary/80 via-slate-900 to-slate-900 z-0"></div>
             <div
                 class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiIGZpbGw9Im5vbmUiLz4KPHBhdGggZD0iTTAgMTBoNDBNMTAgMHY0ME0wIDIwaDQwTTIwIDB2NDBNMCAzMGg0ME0zMCAwdjQwIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiIHN0cm9rZS13aWR0aD0iMSIvPgo8L3N2Zz4=')] opacity-30 z-0">
@@ -61,7 +56,7 @@
             <div class="absolute bottom-10 left-10 w-80 h-80 rounded-full bg-blue-500/20 blur-[80px]"></div>
 
             <div
-                class="relative z-10 w-full max-w-lg bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-3xl shadow-2xl transition-transform duration-500 hover:scale-[1.02]">
+                class="relative z-10 w-full m-10 max-w-lg bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-3xl shadow-2xl transition-transform duration-500 hover:scale-[1.02]">
 
                 <div class="flex items-center gap-5 mb-8">
                     <div
@@ -125,34 +120,59 @@
             </div>
             <div class="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
                 <div class="mb-10">
-                    <h1 class="text-4xl font-black text-slate-900 dark:text-white mb-3">Chào mừng trở lại!</h1>
-                    <p class="text-slate-500 dark:text-slate-400 font-medium">Đăng nhập vào tài khoản Bee Phone của bạn
-                        để tiếp tục.</p>
+                    <h1 class="text-4xl font-black text-slate-900 dark:text-white mb-3">Đăng ký tài khoản</h1>
+                    <p class="text-slate-500 dark:text-slate-400 font-medium">Vui lòng điền đủ thông tin để tiếp tục để
+                        tiếp tục.</p>
                     <p class="mt-3 text-sm font-semibold text-slate-400 dark:text-slate-500">
-                        đây là trang đăng nhập cilent
+                        đây là trang đăng nhập admin
                     </p>
                 </div>
-                <form class="space-y-6" method="post" action="{{ route('login.post') }}">
+                <form class="space-y-6" method="post" action="{{ route('admin.register.post') }}">
                     @csrf
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Họ và tên</label>
+                        <div class="relative">
+                            <span
+                                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">person</span>
+                            <input name="name" value="{{ old('name') }}"
+                                class="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-slate-900 dark:text-white"
+                                placeholder="Nguyễn Văn A" type="text" />
+                        </div>
+                        @error('name')
+                            <span class="text-red-500 text-sm block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Số điện thoại</label>
+                        <div class="relative">
+                            <span
+                                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">call</span>
+                            <input name="phone" value="{{ old('phone') }}"
+                                class="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-slate-900 dark:text-white"
+                                placeholder="0912345678" type="tel" />
+                        </div>
+                        @error('phone')
+                            <span class="text-red-500 text-sm block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
                     <div class="space-y-2">
                         <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Email</label>
                         <div class="relative">
                             <span
                                 class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">mail</span>
-                            <input name="email" value="{{old('email')}}"
+                            <input name="email" value="{{ old('email') }}"
                                 class="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-slate-900 dark:text-white"
-                                placeholder="example@email.com" type="text" />
-
+                                placeholder="example@email.com" type="email" />
                         </div>
                         @error('email')
-                            <span class="text-red-500">{{ $message }}</span>
+                            <span class="text-red-500 text-sm block">{{ $message }}</span>
                         @enderror
                     </div>
+
                     <div class="space-y-2">
-                        <div class="flex justify-between items-center">
-                            <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Mật khẩu</label>
-                            <a class="text-xs font-bold text-primary hover:underline" href="{{route('reset-password')}}">Quên mật khẩu?</a>
-                        </div>
+                        <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Mật khẩu</label>
                         <div class="relative">
                             <span
                                 class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">lock</span>
@@ -167,13 +187,35 @@
                             </button>
                         </div>
                         @error('password')
-                            <span class="text-red-500">{{ $message }}</span>
+                            <span class="text-red-500 text-sm block">{{ $message }}</span>
                         @enderror
                     </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Xác nhận mật khẩu</label>
+                        <div class="relative">
+                            <span
+                                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">lock_reset</span>
+
+                            <input name="comfirm_password"
+                                class="w-full pl-12 pr-12 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-slate-900 dark:text-white"
+                                placeholder="••••••••" type="password" />
+
+                            <button onclick="toggle(this)"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                type="button">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </button>
+                        </div>
+                        @error('comfirm_password')
+                            <span class="text-red-500 text-sm block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
                     <button
-                        class="w-full bg-primary hover:bg-primary/90 text-slate-900 font-black py-4 rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] text-lg"
+                        class="w-full bg-primary hover:bg-primary/90 text-slate-900 font-black py-4 rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] text-lg mt-4"
                         type="submit">
-                        Đăng nhập
+                        Đăng ký tài khoản
                     </button>
                 </form>
                 {{-- <div class="relative my-10">
@@ -200,8 +242,8 @@
                     </button>
                 </div> --}}
                 <p class="text-center text-slate-600 dark:text-slate-400 font-medium mt-10">
-                    Chưa có tài khoản? <a class="text-primary font-black hover:underline"
-                        href="{{ route('register') }}">Đăng ký
+                    Đã có tài khoản? <a class="text-primary font-black hover:underline"
+                        href="{{ route('admin.login') }}">Đăng nhập
                         ngay</a>
                 </p>
             </div>

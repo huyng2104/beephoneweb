@@ -123,6 +123,9 @@
                     <h1 class="text-4xl font-black text-slate-900 dark:text-white mb-3">Đăng ký tài khoản</h1>
                     <p class="text-slate-500 dark:text-slate-400 font-medium">Vui lòng điền đủ thông tin để tiếp tục để
                         tiếp tục.</p>
+                    <p class="mt-3 text-sm font-semibold text-slate-400 dark:text-slate-500">
+                        đây là trang đăng nhập user
+                    </p>
                 </div>
                 <form class="space-y-6" method="post" action="{{ route('register.post') }}">
                     @csrf
@@ -239,8 +242,8 @@
                     </button>
                 </div> --}}
                 <p class="text-center text-slate-600 dark:text-slate-400 font-medium mt-10">
-                    Chưa có tài khoản? <a class="text-primary font-black hover:underline"
-                        href="{{ route('register') }}">Đăng ký
+                    Đã có tài khoản? <a class="text-primary font-black hover:underline"
+                        href="{{ route('login') }}">Đăng nhập
                         ngay</a>
                 </p>
             </div>

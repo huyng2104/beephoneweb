@@ -24,12 +24,53 @@ class AuthController extends Controller
         }
         return redirect()->route('home');
     }
+    public function adminLogin(Request $request)
+    {
+        if (Auth::check()) {
+            $user = Auth::user();
+            $role = $user?->role?->name ?? $user?->role_slug ?? null;
+            if ($role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+            return redirect()->route('home');
+        }
+
+        return view('auth.login.admin');
+    }
     public function register()
     {
         if (!Auth::check()) {
             return view('auth.register.index');
         }
         return redirect()->route('/');
+    }
+    public function adminRegister(Request $request)
+    {
+        if (!app()->environment('local')) {
+            abort(404);
+        }
+
+        if (Auth::check()) {
+            $user = Auth::user();
+            $role = $user?->role?->name ?? $user?->role_slug ?? null;
+            if ($role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+            return redirect()->route('home');
+        }
+
+        return view('auth.register.admin');
+    }
+
+    public function postAdminLogin(LoginRequest $request)
+    {
+        $request->merge(['admin_login' => '1']);
+        $request->session()->put('admin_login_attempt', true);
+        if (!$request->session()->has('url.intended')) {
+            $request->session()->put('url.intended', route('admin.dashboard'));
+        }
+
+        return $this->postLogin($request);
     }
     public function postLogin(LoginRequest $request)
     {
@@ -52,13 +93,52 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
+        $intended = $request->session()->get('url.intended');
+        $intendedPath = is_string($intended) ? (parse_url($intended, PHP_URL_PATH) ?: '') : '';
+        $isAdminAttempt = (bool) $request->boolean('admin_login')
+            || (bool) $request->session()->get('admin_login_attempt', false)
+            || ($intendedPath !== '' && str_starts_with($intendedPath, '/admin'));
+
+        // Block non-admin accounts from logging in when trying to access /admin
+        if ($isAdminAttempt) {
+            $user = User::query()->with('role')->where('email', $request->email)->first();
+            $role = $user?->role?->name ?? $user?->role_slug ?? null;
+
+            if ($role !== 'admin') {
+                $request->session()->forget('url.intended');
+                $request->session()->forget('admin_login_attempt');
+                return back()
+                    ->with(['error' => 'tk user không được đăng nhập vào admin'])
+                    ->onlyInput('email');
+            }
+        }
+
         if (Auth::attempt($data)) {
             $request->session()->regenerate();
+// <<<<<<< vinh1
+//             activity_log('login', 'Đăng nhập hệ thống');
+
+//             $user = Auth::user();
+//             $role = $user?->role?->name ?? $user?->role_slug ?? null;
+
+//             // If a normal user tries to enter /admin via intended redirect, kick them back to login.
+//             if ($intendedPath !== '' && str_starts_with($intendedPath, '/admin') && $role !== 'admin') {
+//                 Auth::logout();
+//                 $request->session()->invalidate();
+//                 $request->session()->regenerateToken();
+
+//                 return redirect()->route('admin.login')->with('error', 'tk user không được đăng nhập vào admin');
+//             }
+
+//             $request->session()->forget('admin_login_attempt');
+//             return redirect()->intended('/')->with(['success' => 'Đăng nhập thành công']);
+// =======
             return redirect()->intended('/')->with(
                 [
                     'success' => 'Đăng nhập thành công'
                 ]
             );
+// >>>>>>> main
         }
         return back()->withErrors([
             'password' => 'Password không chính xác'
@@ -90,6 +170,43 @@ class AuthController extends Controller
             ]);
         }
     }
+    public function postAdminRegister(StoreRegister $request)
+    {
+        if (!app()->environment('local')) {
+            abort(404);
+        }
+
+        $role = Role::where('name', 'admin')->first();
+        if (!$role) {
+            return back()->withInput()->with([
+                'error' => 'Không tìm thấy quyền admin'
+            ]);
+        }
+
+        $data = [
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'phone'    => $request->phone,
+            'password' => Hash::make($request->password),
+            'role_id' => $role->id,
+            'status' => 'active'
+        ];
+
+        try {
+            DB::transaction(function () use ($data) {
+                $user = User::create($data);
+                $user->sendEmailVerificationNotification();
+            });
+            return redirect()->route('admin.login')->with([
+                'success' => 'Tạo tài khoản admin thành công!'
+            ]);
+        } catch (\Exception $e) {
+            return back()->withInput()->with([
+                'error' => 'Lỗi thêm vào cơ sở dữ liệu. Vui lòng thử lại!'
+            ]);
+        }
+    }
+
     public function logOut(Request $request)
     {
 
