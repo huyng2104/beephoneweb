@@ -110,45 +110,62 @@ font-weight: 500;
                         </div>
                         <!-- Toolbar & Filters -->
                         <div class="p-6 space-y-4">
-                            {{-- <div class="flex flex-wrap items-center justify-between gap-4">
-                                <div class="flex flex-1 min-w-[300px] max-w-md">
-                                    <div class="relative w-full">
-                                        <span
-                                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8060]">search</span>
-                                        <input
-                                            class="w-full pl-10 pr-4 py-2 rounded-lg border border-[#e6e3db] dark:border-[#3d3a30] bg-[#f8f8f5] dark:bg-[#3d3a30] text-[#181611] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                            placeholder="Tìm kiếm theo tiêu đề hoặc tác giả..." type="text" />
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <form method="GET" action="{{ route('admin.posts.index') }}" class="flex gap-4 flex-wrap">
+                                    <div class="flex flex-1 min-w-[300px] max-w-md">
+                                        <div class="relative w-full">
+                                            <span
+                                                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8060]">search</span>
+                                            <input name="keyword" value="{{ request('keyword') }}"
+                                                class="w-full pl-10 pr-4 py-2 rounded-lg border border-[#e6e3db] dark:border-[#3d3a30] bg-[#f8f8f5] dark:bg-[#3d3a30] text-[#181611] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                                placeholder="Tìm kiếm theo tiêu đề hoặc tác giả..." type="text" />
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="flex gap-2 items-center">
-                                    <span class="text-sm font-bold text-[#8a8060] mr-2">Bộ lọc:</span>
-                                    <div class="flex gap-2">
+                                    <div class="flex gap-2 items-center">
+                                        <span class="text-sm font-bold text-[#8a8060] mr-2">Bộ lọc:</span>
+                                        {{-- <div class="flex gap-2">
+                                            <button
+                                                class="flex h-9 items-center justify-center gap-x-2 rounded-lg bg-primary/10 text-primary px-4 border border-primary/20">
+                                                <p class="text-xs font-bold leading-normal uppercase">Tất cả</p>
+                                            </button>
+                                            <button
+                                                class="flex h-9 items-center justify-center gap-x-2 rounded-lg bg-[#f5f3f0] dark:bg-[#3d3a30] text-[#181611] dark:text-white px-4">
+                                                <p class="text-xs font-bold leading-normal uppercase">Tin công nghệ</p>
+                                                <span class="material-symbols-outlined text-sm">expand_more</span>
+                                            </button>
+                                            <button
+                                                class="flex h-9 items-center justify-center gap-x-2 rounded-lg bg-[#f5f3f0] dark:bg-[#3d3a30] text-[#181611] dark:text-white px-4">
+                                                <p class="text-xs font-bold leading-normal uppercase">Cẩm nang</p>
+                                                <span class="material-symbols-outlined text-sm">expand_more</span>
+                                            </button>
+                                            <button
+                                                class="flex h-9 items-center justify-center gap-x-2 rounded-lg bg-[#f5f3f0] dark:bg-[#3d3a30] text-[#181611] dark:text-white px-4">
+                                                <p class="text-xs font-bold leading-normal uppercase">Đánh giá</p>
+                                                <span class="material-symbols-outlined text-sm">expand_more</span>
+                                            </button>
+                                        </div>
                                         <button
-                                            class="flex h-9 items-center justify-center gap-x-2 rounded-lg bg-primary/10 text-primary px-4 border border-primary/20">
-                                            <p class="text-xs font-bold leading-normal uppercase">Tất cả</p>
-                                        </button>
-                                        <button
-                                            class="flex h-9 items-center justify-center gap-x-2 rounded-lg bg-[#f5f3f0] dark:bg-[#3d3a30] text-[#181611] dark:text-white px-4">
-                                            <p class="text-xs font-bold leading-normal uppercase">Tin công nghệ</p>
-                                            <span class="material-symbols-outlined text-sm">expand_more</span>
-                                        </button>
-                                        <button
-                                            class="flex h-9 items-center justify-center gap-x-2 rounded-lg bg-[#f5f3f0] dark:bg-[#3d3a30] text-[#181611] dark:text-white px-4">
-                                            <p class="text-xs font-bold leading-normal uppercase">Cẩm nang</p>
-                                            <span class="material-symbols-outlined text-sm">expand_more</span>
-                                        </button>
-                                        <button
-                                            class="flex h-9 items-center justify-center gap-x-2 rounded-lg bg-[#f5f3f0] dark:bg-[#3d3a30] text-[#181611] dark:text-white px-4">
-                                            <p class="text-xs font-bold leading-normal uppercase">Đánh giá</p>
-                                            <span class="material-symbols-outlined text-sm">expand_more</span>
+                                            class="p-2 text-[#181611] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                                            <span class="material-symbols-outlined">filter_list</span>
+                                        </button> --}}
+                                        <select name="category_id" class="h-9 rounded-lg border border-[#e6e3db] px-3">
+
+                                            <option value="">Tất cả</option>
+
+                                            @foreach ($categories as $category)
+                                                <option value="{{ $category->id }}"
+                                                    {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                                    {{ $category->name }}
+                                                </option>
+                                            @endforeach
+
+                                        </select>
+                                        <button class="px-4 py-2 bg-primary text-white rounded-lg">
+                                            Tìm kiếm
                                         </button>
                                     </div>
-                                    <button
-                                        class="p-2 text-[#181611] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-                                        <span class="material-symbols-outlined">filter_list</span>
-                                    </button>
-                                </div>
-                            </div> --}}
+                                </form>
+                            </div>
                             <!-- Data Table -->
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse">
@@ -255,7 +272,6 @@ font-weight: 500;
                                 </table>
                             </div>
                             <!-- Pagination -->
-                            <!-- Pagination -->
                             <div
                                 class="flex items-center justify-between py-4 border-t border-[#e6e3db] dark:border-[#3d3a30]">
 
@@ -273,7 +289,7 @@ font-weight: 500;
                                             <span class="material-symbols-outlined">chevron_left</span>
                                         </span>
                                     @else
-                                        <a href="{{ $posts->previousPageUrl() }}"
+                                        <a href="{{ $posts->appends(request()->query())->previousPageUrl() }}"
                                             class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] hover:bg-gray-50">
                                             <span class="material-symbols-outlined">chevron_left</span>
                                         </a>
@@ -288,7 +304,7 @@ font-weight: 500;
                                                 {{ $i }}
                                             </span>
                                         @else
-                                            <a href="{{ $posts->url($i) }}"
+                                            <a href="{{ $posts->appends(request()->query())->url($i) }}"
                                                 class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] hover:bg-gray-50">
                                                 {{ $i }}
                                             </a>
@@ -298,7 +314,7 @@ font-weight: 500;
 
                                     {{-- Next --}}
                                     @if ($posts->hasMorePages())
-                                        <a href="{{ $posts->nextPageUrl() }}"
+                                        <a href="{{ $posts->appends(request()->query())->nextPageUrl() }}"
                                             class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] hover:bg-gray-50">
                                             <span class="material-symbols-outlined">chevron_right</span>
                                         </a>
@@ -310,6 +326,43 @@ font-weight: 500;
                                     @endif
 
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Summary Footer Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div
+                            class="bg-white dark:bg-[#2c2818] p-5 rounded-xl border border-[#e6e3db] dark:border-[#3d3a30] shadow-sm flex items-center gap-4">
+                            <div
+                                class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                <span class="material-symbols-outlined">article</span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-[#8a8060] uppercase tracking-wider">Tổng bài viết</p>
+                                <p class="text-2xl font-black text-[#181611] dark:text-white">
+                                    {{ number_format($totalPosts) }}</p>
+                            </div>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-[#2c2818] p-5 rounded-xl border border-[#e6e3db] dark:border-[#3d3a30] shadow-sm flex items-center gap-4">
+                            <div
+                                class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                                <span class="material-symbols-outlined">trending_up</span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-[#8a8060] uppercase tracking-wider">Lượt xem tháng này</p>
+                                <p class="text-2xl font-black text-[#181611] dark:text-white">
+                                    {{ number_format($viewsThisMonth) }}</p>
+                            </div>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-[#2c2818] p-5 rounded-xl border border-[#e6e3db] dark:border-[#3d3a30] shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                <span class="material-symbols-outlined">category</span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-[#8a8060] uppercase tracking-wider">Danh mục hoạt động</p>
+                                <p class="text-2xl font-black text-[#181611] dark:text-white">{{ $totalCategories }}</p>
                             </div>
                         </div>
                     </div>
