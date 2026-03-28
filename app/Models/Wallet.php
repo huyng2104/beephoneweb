@@ -9,8 +9,19 @@ class Wallet extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'balance', 'status'];
-
+    protected $fillable = [
+        'user_id',
+        'balance',
+        'status',
+        'wallet_pin',
+        'pin_attempts',
+        'locked_until',
+        'version',
+        'lock_reason'
+    ];
+    protected $casts = [
+        'wallet_pin' => 'hashed', // Tự động mã hóa Bcrypt mỗi khi lưu
+    ];
     // Mối quan hệ: Một ví thuộc về 1 User
     public function user()
     {

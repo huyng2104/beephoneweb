@@ -96,20 +96,10 @@ class ProfileController extends Controller
   public function user_wallet()
     {
         $user = Auth::user();
-        
+
         if (!$user) {
             abort(404);
         }
-
-        // 1. Luôn đảm bảo tạo ví nếu chưa có
-        Wallet::firstOrCreate(
-            ['user_id' => $user->id],
-            ['balance' => 0, 'status' => 'active']
-        );
-
-        // 2. DÒNG BÙA CHÚ GIẢI CỨU: Bắt user load lại cái ví mới tạo!
-        $user->load('wallet');
-
         return view('client.profiles.wallet')->with([
             'user' => $user
         ]);
