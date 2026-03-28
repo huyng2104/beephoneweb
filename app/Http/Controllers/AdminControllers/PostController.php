@@ -13,27 +13,6 @@ class PostController extends Controller
 {
     public function index(Request $request)
     {
-        // $posts = Post::with(['category', 'user'])->latest()->get();
-
-        // $posts = Post::with(['category', 'user'])
-        //     ->orderBy('created_at', 'desc')
-        //     ->paginate(5); // mỗi trang 5 bài
-
-        // // thống kê
-        // $totalPosts = Post::count();
-
-        // $viewsThisMonth = Post::whereMonth('created_at', now()->month)
-        //     ->sum('views');
-
-        // $totalCategories = PostCategory::count();
-
-        // return view('admin.posts.index', compact(
-        //     'posts',
-        //     'totalPosts',
-        //     'viewsThisMonth',
-        //     'totalCategories'
-        // ));
-
         $query = Post::with(['category', 'user']);
 
         // tìm kiếm
