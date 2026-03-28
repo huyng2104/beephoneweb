@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Gate;
-use Spatie\Activitylog\Models\Activity;
 
 class UserController extends Controller
 {
@@ -144,6 +143,7 @@ class UserController extends Controller
             return redirect()->route('admin.users.index')->with([
                 'success' => 'Thêm người dùng thành công!'
             ]);
+
         } catch (\Exception $e) {
             if ($path_avatar) {
                 FileHelper::delete($path_avatar);
@@ -160,19 +160,10 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        
         Gate::authorize('customer.view');
-        $user = User::with(['orders' => function($query) {
-        $query->latest(); // 👈 Tương đương với orderBy('created_at', 'desc')
-    }])->findOrFail($id);
-        $activities = Activity::with('subject')
-            ->where('causer_type', 'App\Models\User')
-            ->where('causer_id', $user->id)
-            ->latest()
-            ->paginate(5);
+        $user = User::findOrFail($id);
         return view('admin.users.show')->with([
             'user' => $user,
-            'activities' => $activities
         ]);
     }
 

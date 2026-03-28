@@ -37,7 +37,6 @@ use App\Http\Controllers\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Client\ChatbotController;
 use App\Http\Controllers\Client\PostController as ClientPostController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
-use App\Http\Controllers\Client\SupportController;
 use App\Models\User;
 
 /*
@@ -62,9 +61,9 @@ Route::middleware('check.verified')->group(function () {
     Route::get('profile/wallet', [ProfileController::class, 'user_wallet'])->name('profile.wallet');
     Route::resource('profile', ProfileController::class);
     Route::post('prodile/password/update/{id}', [ProfileController::class, 'passwordUpdate'])->name('profile.password.update');
-    Route::post('prodile/password/update/{id}',[ProfileController::class,'passwordUpdate'])->name('profile.password.update');
     // Kích hoạt ví
-    Route::post('wallet/active/{id}',[ClientWalletController::class,'active_wallet'])->name('wallet.active');
+    Route::post('wallet/active/{id}', [ClientWalletController::class, 'active_wallet'])->name('wallet.active');
+    Route::post('prodile/password/update/{id}', [ProfileController::class, 'passwordUpdate'])->name('profile.password.update');
 
     // Nạp ví (ĐÃ FIX CHUẨN XỊN)
     Route::post('/wallet/deposit', [ClientWalletController::class, 'createDeposit'])->name('wallet.deposit');
@@ -74,10 +73,6 @@ Route::middleware('check.verified')->group(function () {
     Route::post('/wallet/withdrawal', [ClientWalletController::class, 'withdrawalPost'])->name('wallet.withdrawal');
     Route::post('/wallet/withdrawal/cancelled/{id}', [ClientWalletController::class, 'withdrawalCancelled'])->name('wallet.withdrawal.cancelled');
 
-    // Thêm Ngân hàng người dùng
-    Route::post('wallet/bank-account/{id}',[ClientWalletController::class,'addBankAccount'])->name('wallet.bank-account');
-    // Gỡ ngân hàng người dùng
-    Route::post('wallet/remove/bank-account/{id}',[ClientWalletController::class,'removeBankAccount'])->name('wallet.remove.bank-account');
     // QUẢN LÝ GIỎ HÀNG
     Route::post('/cart/add', [CartController::class, 'add'])->name('client.cart.add');
     Route::get('/cart/count', [CartController::class, 'count'])->name('client.cart.count');
@@ -122,10 +117,6 @@ Route::middleware('check.verified')->group(function () {
     Route::get('/khuyen-mai', [App\Http\Controllers\Client\VoucherController::class, 'index'])->name('vouchers.index');
     Route::post('/khuyen-mai/luu/{id}', [App\Http\Controllers\Client\VoucherController::class, 'saveVoucher'])->name('vouchers.save');
     Route::post('/khuyen-mai/bo-luu/{id}', [App\Http\Controllers\Client\VoucherController::class, 'delete'])->name('vouchers.delete');
-
-    // HỖ TRỢ
-    Route::get('supports', [SupportController::class, 'index'])
-        ->name('client.supports.index');
 });
 
 // ==========================================
@@ -254,6 +245,9 @@ Route::middleware(['auth', 'verified', 'role'])->group(function () {
         Route::post('posts/upload', [PostController::class, 'upload'])->name('posts.upload');
         Route::post('posts/toggle-status/{id}', [PostController::class, 'toggleStatus'])
             ->name('posts.toggleStatus');
+
+        // Quản lý yêu cầu hỗ trợ
+        
 
         // 9. Quản lý Banner
         Route::get('banners/trash', [BannerController::class, 'trash'])->name('banners.trash');

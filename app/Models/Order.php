@@ -4,12 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
+
 class Order extends Model
 {
-        use LogsActivity;
-
     protected $fillable = [
         'order_code',
         'user_id',
@@ -139,12 +136,5 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll()
-            ->useLogName('order')
-            ->logOnlyDirty();
     }
 }

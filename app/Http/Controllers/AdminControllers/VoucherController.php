@@ -14,7 +14,6 @@ use App\Models\Order;
 
 class VoucherController extends Controller
 {
-
     /**
      * Display a listing of the resource.
      */
