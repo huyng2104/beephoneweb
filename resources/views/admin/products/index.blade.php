@@ -168,11 +168,7 @@
                                 <a href="{{ route('admin.products.show', $product->id) }}" class="text-slate-400 hover:text-primary transition-colors" title="Xem">
                                     <span class="material-symbols-outlined text-[20px]">visibility</span>
                                 </a>
-                                <a href="{{ route('admin.products.comments', $product->id) }}" 
-   class="text-slate-400 hover:text-blue-600 transition-colors" 
-   title="Xem bình luận">
-    <span class="material-symbols-outlined text-[20px]">comment</span>
-</a>
+                                
                                 <a href="{{ route('admin.products.edit', $product->id) }}" class="text-slate-400 hover:text-blue-600 transition-colors" title="Sửa">
                                     <span class="material-symbols-outlined text-[20px]">edit</span>
                                 </a>

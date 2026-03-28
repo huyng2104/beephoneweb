@@ -1,4 +1,4 @@
-﻿<aside
+<aside
     class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col fixed h-full z-50">
     <div class="p-6 flex items-center gap-3">
         <div class="bg-primary rounded-lg p-1.5 flex items-center justify-center">
@@ -6,22 +6,22 @@
         </div>
         <div>
             <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">Bee Phone</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Admin Panel</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Hệ thống quản trị</p>
         </div>
     </div>
 
     <nav class="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto custom-scrollbar">
-        {{-- Dashboard --}}
+        {{-- Bảng điều khiển --}}
         <a class="{{ request()->is('admin') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
             href="{{ url('admin') }}">
             <span class="material-symbols-outlined">dashboard</span>
-            <span>Dashboard</span>
+            <span>Bảng điều khiển</span>
         </a>
 
-        {{-- PRODUCTS (DROPDOWN) --}}
+        {{-- NHÓM SẢN PHẨM (DROPDOWN) --}}
         @php
 
-            // Check whether any product-related route is active
+            // Kiểm tra xem user có đang ở bất kỳ route nào thuộc Sản phẩm không
             $isProductGroupActive = request()->routeIs(
                 'admin.products.*',
                 'admin.attributes.*',
@@ -29,6 +29,13 @@
                 'admin.brands.*',
             );
 
+            // Kiểm tra xem user có đang ở bất kỳ route nào thuộc Sản phẩm không
+            $isProductGroupActive = request()->routeIs(
+                'admin.products.*',
+                'admin.attributes.*',
+                'admin.categories.*',
+                'admin.brands.*',
+            );
 
         @endphp
 
@@ -37,7 +44,7 @@
                 class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors {{ $isProductGroupActive ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }}">
                 <div class="flex items-center gap-3">
                     <span class="material-symbols-outlined">inventory_2</span>
-                    <span>Products</span>
+                    <span>Sản phẩm</span>
                 </div>
                 <span id="icon-products"
                     class="material-symbols-outlined text-[18px] transition-transform duration-300 {{ $isProductGroupActive ? 'rotate-180' : '' }}">
@@ -195,20 +202,20 @@
             href="{{ route('admin.wallets.index') }}">
             <span class="material-symbols-outlined transition-transform group-hover:scale-110">
                 account_balance_wallet
-             </span>
-            <span class="font-medium">Wallets</span>
+            </span>
+            <span class="font-medium">Quản lý ví</span>
         </a>
         <a class="{{ request()->routeIs('admin.points.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
             href="{{ route('admin.points.index') }}">
             <span class="material-symbols-outlined">stars</span>
-            <span>Reward Points</span>
+            <span>Điểm thưởng</span>
         </a>
 
         <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
             <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium transition-colors"
                 href="#">
                 <span class="material-symbols-outlined">settings</span>
-                <span>Settings</span>
+                <span>Cài đặt</span>
             </a>
         </div>
     </nav>
@@ -222,30 +229,24 @@
     <div class="p-4 bg-slate-50 dark:bg-slate-900 m-4 rounded-xl border border-slate-100 dark:border-slate-800">
         <div class="flex items-center gap-3 w-full">
             @auth
-                {{-- 1. áº¢nh Avatar --}}
+                {{-- 1. Ảnh Avatar --}}
                 <a href="{{ route('admin.users.show', Auth::user()->id) }}">
                     <div class="w-10 h-10 rounded-full bg-slate-300 overflow-hidden shrink-0"
-                        data-alt="Avatar of {{ Auth::user()->name }}"
+                        data-alt="Avatar của {{ Auth::user()->name }}"
                         style="background-image: url('{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) }}'); background-size: cover; background-position: center;">
                     </div>
                 </a>
 
-                {{-- 2. User info --}}
+                {{-- 2. Thông tin User --}}
                 <div class="overflow-hidden flex-1">
                     <p class="text-sm font-semibold truncate text-slate-800 dark:text-white">{{ Auth::user()->name }}</p>
-                    @php
-                        $roleLabel = Auth::user()->role?->name_role
-                            ?? Auth::user()->role?->name
-                            ?? Auth::user()->role_slug
-                            ?? 'admin';
-                    @endphp
-                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ $roleLabel }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ Auth::user()->role->name_role }}</p>
                 </div>
 
-                {{-- 3. Logout button --}}
+                {{-- 3. Nút Đăng xuất --}}
                 <a href="{{ route('logout') }}"
                     class="ml-auto flex items-center justify-center w-8 h-8 rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
-                    title="Logout">
+                    title="Đăng xuất">
                     <span class="material-symbols-outlined" style="font-size: 20px;">logout</span>
                 </a>
             @endauth
@@ -253,24 +254,24 @@
     </div>
 </aside>
 
-{{-- DROPDOWN SCRIPTS --}}
+{{-- SCRIPTS XỬ LÝ DROPDOWN --}}
 <script>
     function toggleSidebarMenu(menuId, iconId) {
         const menu = document.getElementById(menuId);
         const icon = document.getElementById(iconId);
 
-        // Toggle menu by changing max-height classes
+        // Đóng/Mở menu bằng cách thay đổi class max-h
         if (menu.classList.contains('max-h-0')) {
-            // Open menu
+            // Mở menu
             menu.classList.remove('max-h-0', 'opacity-0');
             menu.classList.add('max-h-96', 'opacity-100', 'mt-1');
-            // Rotate icon
+            // Xoay icon
             icon.classList.add('rotate-180');
         } else {
-            // Close menu
+            // Đóng menu
             menu.classList.add('max-h-0', 'opacity-0');
             menu.classList.remove('max-h-96', 'opacity-100', 'mt-1');
-            // Reset icon
+            // Trả icon về cũ
             icon.classList.remove('rotate-180');
         }
     }
@@ -297,7 +298,7 @@
 </script>
 
 <style>
-    /* Thin scrollbar for long menus */
+    /* Style thu gọn thanh cuộn nếu menu dài quá */
     .custom-scrollbar::-webkit-scrollbar {
         width: 4px;
     }
@@ -315,4 +316,4 @@
         background: #94a3b8;
     }
 </style>
-
+</style>
