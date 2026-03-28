@@ -15,12 +15,6 @@ class CheckVerifiedIfAuthenticated
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Local/dev convenience: don't block browsing the client site by email verification.
-        // Keep the middleware in place so production can still enforce verification.
-        if (app()->environment(['local', 'testing'])) {
-            return $next($request);
-        }
-
         if ($request->user() && !$request->user()->hasVerifiedEmail()) {
             return redirect()->route('verification.notice');
         }

@@ -12,36 +12,19 @@ use App\Models\PointHistory;
 class OrderController extends Controller
 {
     // Hiển thị danh sách đơn hàng
-    public function index(Request $request)
+    public function index()
     {
         // 1. Lấy thông tin user đang đăng nhập
-        if ($request->boolean('skip_review')) {
-            $request->session()->forget('review_order_id');
-            return redirect()->route('client.orders.index');
-        }
-
         $user = Auth::user(); 
 
         // 2. Lấy danh sách đơn hàng
-        $orders = Order::with(['items', 'items.product'])
+        $orders = Order::with('items')
             ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        $reviewOrder = null;
-        $reviewOrderId = $request->session()->get('review_order_id');
-        if (is_numeric($reviewOrderId)) {
-            $reviewOrder = Order::with(['items', 'items.product'])
-                ->where('user_id', Auth::id())
-                ->find((int) $reviewOrderId);
-        }
-
         // 3. Nhớ truyền thêm biến $user vào compact() nhé
-        if ($reviewOrderId !== null) {
-            $request->session()->forget('review_order_id');
-        }
-
-        return view('client.profiles.orders', compact('orders', 'user', 'reviewOrder'));
+        return view('client.profiles.orders', compact('orders', 'user'));
     }
 
     // Hiển thị chi tiết 1 đơn hàng (Sẽ làm sau nếu bro cần)
@@ -98,9 +81,7 @@ class OrderController extends Controller
                 $msg .= ' Bạn được cộng thêm ' . $pointsEarned . ' Bee Point vào tài khoản!';
             }
 
-            return redirect()->back()
-                ->with('success', $msg)
-                ->with('review_order_id', $order->id);
+            return redirect()->back()->with('success', $msg);
         }
 
         return redirect()->back()->with('error', 'Trạng thái đơn hàng không hợp lệ!');
