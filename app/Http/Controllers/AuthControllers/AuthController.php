@@ -54,7 +54,6 @@ class AuthController extends Controller
 
         if (Auth::attempt($data)) {
             $request->session()->regenerate();
-            activity_log('login', 'Đăng nhập hệ thống');
             return redirect()->intended('/')->with(
                 [
                     'success' => 'Đăng nhập thành công'
@@ -93,7 +92,7 @@ class AuthController extends Controller
     }
     public function logOut(Request $request)
     {
-        activity_log('logout', 'Đăng xuất');
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
