@@ -11,22 +11,46 @@ class CheckRole
 {
     /**
      * Handle an incoming request.
+     *
+     * Hỗ trợ dùng middleware theo 2 kiểu:
+     * - 'role' (không tham số): chặn role 'user' vào Admin
+     * - 'role:admin,editor,...': chỉ cho phép các role được liệt kê
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
         $user = Auth::user();
 
-        // 1. Kiểm tra xem người dùng đã đăng nhập chưa (Chống lỗi sập trang nếu chưa đăng nhập)
         if (!$user) {
             return redirect()->route('login'); // Hoặc abort(401);
         }
 
-        // 2. Chặn tuyệt đối role 'user' không cho vào admin
-        if ($user->role?->name === 'user') {
-            abort(403, 'Tài khoản thành viên không thể truy cập khu vực Admin!');
+        $roleName = $user->role?->name ?? $user->role ?? null;
+
+        $allowedRoles = [];
+        foreach ($roles as $role) {
+            if ($role === null || $role === '') {
+                continue;
+            }
+
+            // Hỗ trợ cú pháp 'admin|editor' nếu có
+            $allowedRoles = array_merge(
+                $allowedRoles,
+                array_values(array_filter(explode('|', (string) $role)))
+            );
         }
 
-        // 3. Nếu là Admin, Editor, Manager,... (khác 'user') -> Cho đi tiếp
+        if (count($allowedRoles) === 0) {
+            if ($roleName === 'user') {
+                abort(403, 'Tài khoản thành viên không thể truy cập khu vực Admin!');
+            }
+
+            return $next($request);
+        }
+
+        if (!$roleName || !in_array($roleName, $allowedRoles, true)) {
+            abort(403, 'Bạn không có quyền truy cập!');
+        }
+
         return $next($request);
     }
 }
