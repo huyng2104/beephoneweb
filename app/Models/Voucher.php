@@ -22,6 +22,7 @@ class Voucher extends Model
         'start_date',
         'end_date',
         'status',
+        'points_required'
     ];
     protected $casts = [
         'start_date' => 'datetime',
@@ -44,6 +45,10 @@ class Voucher extends Model
     public function products()
     {
         return $this->belongsToMany(Product::class, 'voucher_product');
+    }
+     public function userVouchers()
+    {
+        return $this->belongsToMany(Voucher::class, 'user_vouchers')->wherePivot('order_id');
     }
     public function getVoucherStatusAttribute()
     {

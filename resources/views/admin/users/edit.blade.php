@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Thêm người dùng mới - Bee Phone Admin')
+@section('title', 'Sửa người dùng mới')
 
 @section('content')
 
@@ -11,7 +11,7 @@
                 @csrf
                 @method('PUT')
                 <div class="mb-8">
-                    <h1 class="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Thêm người dùng
+                    <h1 class="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Sửa người dùng
                         mới</h1>
                     <p class="text-slate-500 mt-1">Điền đầy đủ các thông tin bên dưới để tạo tài khoản truy cập hệ
                         thống.</p>
@@ -58,20 +58,16 @@
                                 <div class="space-y-2">
                                     <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Vai trò</label>
 
-                                    <select name="role" id="role" onchange="togglePermissions()"
+                                    {{-- Đã thêm ID cho thẻ select để JS có thể tìm thấy --}}
+                                    <select name="role" id="role_select"
                                         class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
-
-                                        @if (Auth::user()->id != $user->id && Auth::user()->role->name == 'admin')
-                                            @foreach ($roles as $role)
-                                                <option value="{{ $role->id }}"
-                                                    {{ old('role', $user->role_id ?? '') == $role->id ? 'selected' : '' }}>
-                                                    {{ $role->name }}
-                                                </option>
-                                            @endforeach
-                                        @else
-                                            <option value="{{ $user->role->id }}">{{ $user->role->name }}</option>
-                                        @endif
-
+                                        @foreach ($roles as $role)
+                                            <option value="{{ $role->id }}"
+                                                data-role-name="{{ strtolower($role->name) }}"
+                                                {{ old('role', $user->role_id ?? '') == $role->id ? 'selected' : '' }}>
+                                                {{ $role->name }}
+                                            </option>
+                                        @endforeach
                                     </select>
 
                                     @error('role')
@@ -153,41 +149,76 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="permissions-box"
-                            class="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
-                            <h4 class="font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-primary">security</span>
-                                Phân quyền truy cập
-                            </h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        @php
+                            // Kiểm tra lúc mới load, role hiện tại có phải là user hoặc admin không
+                            $initialRoleName = isset($user) && $user->role ? strtolower($user->role->name) : '';
+                            // Ưu tiên old() nếu submit lỗi, nếu không lấy role hiện tại
+                            $currentRoleName = old('role')
+                                ? strtolower($roles->where('id', old('role'))->first()->name ?? '')
+                                : $initialRoleName;
 
-                                @foreach ($permissions as $permission)
-                                    <label class="flex items-center gap-3 cursor-pointer group">
-                                        @php
-                                            // 1. Kiểm tra xem User hiện tại có đang sở hữu quyền này trong Database không
-                                            $hasUserPermission =
-                                                isset($user) && $user->permissions->contains('id', $permission->id);
+                            $isHidden = in_array($currentRoleName, ['user', 'admin']);
+                        @endphp
 
-                                            // 2. Ưu tiên lấy old() nếu form bị lỗi, ngược lại lấy quyền gốc của User
-                                            $isChecked = old('permissions')
-                                                ? in_array($permission->id, old('permissions'))
-                                                : $hasUserPermission;
-                                        @endphp
+                        {{-- Bọc toàn bộ phần quyền vào 1 div có ID --}}
+                        <div id="custom_permissions_block" class="{{ $isHidden ? 'hidden' : 'block' }} mt-6">
+                            <div
+                                class="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
+                                <h4 class="font-bold mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">security</span>
+                                    Phân quyền truy cập (Quyền cấp riêng)
+                                </h4>
 
-                                        <input type="checkbox" name="permissions[]" value="{{ $permission->id }}"
-                                            class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
-                                            {{ $isChecked ? 'checked' : '' }}>
+                                @php
+                                    $rolePermissionIds = [];
+                                    if (isset($user) && $user->role) {
+                                        $rolePermissionIds = $user->role->permissions->pluck('id')->toArray();
+                                    }
 
-                                        <span
-                                            class="text-sm text-slate-700 dark:text-slate-300 group-hover:text-slate-900 transition-colors">
-                                            {{ $permission->name }}
-                                        </span>
-                                    </label>
-                                @endforeach
-                                {{-- @error('permissions')
-                                    <span class="text-red-500 text-sm">{{ $message }}</span>
-                                @enderror --}}
+                                    $groupedPermissions = $permissions->groupBy(function ($item) {
+                                        return explode('.', $item->slug)[0];
+                                    });
+                                @endphp
 
+                                <div class="space-y-6">
+                                    @foreach ($groupedPermissions as $groupName => $groupPermissions)
+                                        <div
+                                            class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                                            <h4
+                                                class="font-bold text-slate-800 dark:text-slate-200 capitalize mb-4 border-b border-slate-200 dark:border-slate-600 pb-2">
+                                                Phân quyền {{ $groupName }}
+                                            </h4>
+
+                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                @foreach ($groupPermissions as $permission)
+                                                    @if (!in_array($permission->id, $rolePermissionIds))
+                                                        <label class="flex items-center gap-3 cursor-pointer group">
+                                                            @php
+                                                                $hasUserPermission =
+                                                                    isset($user) &&
+                                                                    $user->permissions->contains('id', $permission->id);
+                                                                $oldPermissions = old('permissions');
+                                                                $isChecked = is_array($oldPermissions)
+                                                                    ? in_array($permission->id, $oldPermissions)
+                                                                    : $hasUserPermission;
+                                                            @endphp
+
+                                                            <input type="checkbox" name="permissions[]"
+                                                                value="{{ $permission->id }}"
+                                                                class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary transition-all"
+                                                                {{ $isChecked ? 'checked' : '' }}>
+
+                                                            <span
+                                                                class="text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:text-primary transition-colors">
+                                                                {{ $permission->name }}
+                                                            </span>
+                                                        </label>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                         <div class="mt-8 flex items-center gap-4 pb-12">
@@ -278,18 +309,32 @@
         }
     </script>
     <script>
-        function togglePermissions() {
-            let select = document.getElementById('role');
-            let box = document.getElementById('permissions-box');
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleSelect = document.getElementById('role_select');
+            const permissionsBlock = document.getElementById('custom_permissions_block');
 
-            // Lấy cái chữ đang hiển thị trong thẻ select (ví dụ: 'Admin', 'Staff',...)
-            let roleName = select.options[select.selectedIndex].text.trim().toLowerCase();
+            if (roleSelect && permissionsBlock) {
+                roleSelect.addEventListener('change', function() {
+                    // Lấy option đang được chọn
+                    const selectedOption = this.options[this.selectedIndex];
+                    // Đọc thuộc tính data-role-name mà ta đã gài ở trên (sẽ là 'user', 'admin', 'staff'...)
+                    const roleName = selectedOption.getAttribute('data-role-name');
 
-            // Nếu chữ là 'staff' thì hiện, ngược lại ẩn đi (dùng CSS display)
-            box.style.display = (roleName === 'staff') ? 'block' : 'none';
-        }
+                    // Nếu role là 'user' hoặc 'admin' thì thêm class hidden để ẩn
+                    if (roleName === 'user' || roleName === 'admin') {
+                        permissionsBlock.classList.add('hidden');
+                        permissionsBlock.classList.remove('block');
 
-        // Chạy luôn 1 lần khi trang vừa load xong để kiểm tra trạng thái ban đầu
-        togglePermissions();
+                        // Tùy chọn: Xóa các ô checkbox đã check nếu người dùng ẩn khung này đi
+                        const checkboxes = permissionsBlock.querySelectorAll('input[type="checkbox"]');
+                        checkboxes.forEach(cb => cb.checked = false);
+                    } else {
+                        // Nếu là role khác (staff, manager...) thì hiện lên
+                        permissionsBlock.classList.remove('hidden');
+                        permissionsBlock.classList.add('block');
+                    }
+                });
+            }
+        });
     </script>
 @endsection

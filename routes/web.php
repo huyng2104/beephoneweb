@@ -21,9 +21,12 @@ use App\Http\Controllers\AdminControllers\VoucherController;
 use App\Http\Controllers\AdminControllers\UserController;
 use App\Http\Controllers\AdminControllers\OrderController;
 use App\Http\Controllers\AdminControllers\PointController;
+use App\Http\Controllers\AdminControllers\BannerController;
 
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
+use App\Http\Controllers\AdminControllers\TicketController;
+use App\Http\Controllers\AdminControllers\RoleController;
 use App\Http\Controllers\AdminControllers\WalletController;
 
 use App\Http\Controllers\Client\PaymentController;
@@ -36,7 +39,6 @@ use App\Http\Controllers\Client\ChatbotController;
 use App\Http\Controllers\Client\PostController as ClientPostController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
 use App\Models\User;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -65,10 +67,13 @@ Route::middleware('check.verified')->group(function () {
     // Thông tin tài khoản
     Route::get('profile/wallet', [ProfileController::class, 'user_wallet'])->name('profile.wallet');
     Route::resource('profile', ProfileController::class);
-    Route::post('prodile/password/update/{id}',[ProfileController::class,'passwordUpdate'])->name('profile.password.update');
+    Route::post('prodile/password/update/{id}', [ProfileController::class, 'passwordUpdate'])->name('profile.password.update');
+    // Kích hoạt ví
+    Route::post('wallet/active/{id}', [ClientWalletController::class, 'active_wallet'])->name('wallet.active');
+    Route::post('prodile/password/update/{id}', [ProfileController::class, 'passwordUpdate'])->name('profile.password.update');
 
     // Nạp ví (ĐÃ FIX CHUẨN XỊN)
-    Route::post('/wallet/deposit',[ClientWalletController::class,'createDeposit'])->name('wallet.deposit');
+    Route::post('/wallet/deposit', [ClientWalletController::class, 'createDeposit'])->name('wallet.deposit');
     Route::get('/wallet/vnpay-return', [ClientWalletController::class, 'vnpayReturn'])->name('wallet.vnpay.return');
 
     // Rút ví
@@ -82,13 +87,13 @@ Route::middleware('check.verified')->group(function () {
     Route::post('/cart/update', [CartController::class, 'update'])->name('client.cart.update');
     Route::post('/cart/remove', [CartController::class, 'remove'])->name('client.cart.remove');
     Route::post('/cart/apply-voucher', [CartController::class, 'applyVoucher'])->name('client.cart.apply_voucher');
-
+    Route::post('/cart/checkout-select', [App\Http\Controllers\Client\CartController::class, 'checkoutSelect'])->name('client.cart.checkout_select');
     // THANH TOÁN (CHECKOUT)
     Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('client.checkout.index');
     Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('client.checkout.process');
     Route::get('/dat-hang-thanh-cong', [CheckoutController::class, 'success'])->name('client.checkout.success');
     Route::get('/vnpay/response', [App\Http\Controllers\Client\CheckoutController::class, 'vnpay_return'])->name('vnpay.return');
-
+    Route::post('/thanh-toan/remove-voucher', [CheckoutController::class, 'removeVoucher'])->name('client.checkout.remove_voucher');
     // QUẢN LÝ ĐƠN HÀNG CỦA KHÁCH
     Route::middleware(['auth'])->group(function () {
         Route::get('/don-mua', [ClientOrderController::class, 'index'])->name('client.orders.index');
@@ -106,14 +111,19 @@ Route::middleware('check.verified')->group(function () {
     Route::post('/bee-point/redeem', [App\Http\Controllers\Client\PointController::class, 'redeem'])->name('client.points.redeem');
 
     // Voucher người dùng
-    Route::get('user/vouchers' ,[ProfileController::class,'user_voucher'])->name('user.vouchers');
+    Route::get('user/vouchers', [ProfileController::class, 'user_voucher'])->name('user.vouchers');
     Route::delete('user/vouchers/{id}', [ClientVoucherController::class, 'delete'])->name('user.vouchers.delete');
 
     // Danh sách vouchers
-    Route::get('vouchers' ,[ClientVoucherController::class,'index'])->name('vouchers');
+    Route::get('vouchers', [ClientVoucherController::class, 'index'])->name('vouchers');
 
     // Lưu voucher người dùng
     Route::post('vouchers/save/{id}', [ClientVoucherController::class, 'saveVoucher'])->name('vouchers.save');
+
+    // QUẢN LÝ VOUCHER (KHUYẾN MÃI) - KHÁCH HÀNG
+    Route::get('/khuyen-mai', [App\Http\Controllers\Client\VoucherController::class, 'index'])->name('vouchers.index');
+    Route::post('/khuyen-mai/luu/{id}', [App\Http\Controllers\Client\VoucherController::class, 'saveVoucher'])->name('vouchers.save');
+    Route::post('/khuyen-mai/bo-luu/{id}', [App\Http\Controllers\Client\VoucherController::class, 'delete'])->name('vouchers.delete');
 });
 
 // ==========================================
@@ -165,7 +175,7 @@ Route::post('/email/verification-notification', function (Request $request) {
 
 // ĐÃ FIX: Chỉ dùng quyền admin/staff ở ngoài cùng, quyền order.view để riêng vào nhóm đơn hàng
 
-Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
+Route::middleware(['auth', 'verified', 'role'])->group(function () {
 
     Route::prefix('admin')->name('admin.')->group(function () {
 
@@ -179,7 +189,7 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::post('user/{id}/block', [UserController::class, 'block'])->name('user.block');
         Route::post('user/{id}/unblock', [UserController::class, 'unBlock'])->name('user.unblock');
         Route::post('user/{id}/reset', [UserController::class, 'resetPw'])->name('resetPw');
-
+        Route::post('user/restore/{id}', [UserController::class, 'restore'])->name('user.restore');
         // 1. Quản lý Danh mục & Thương hiệu
         Route::get('categories/trash', [CategoryController::class, 'trash'])->name('categories.trash');
         Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
@@ -243,7 +253,19 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::post('posts/toggle-status/{id}', [PostController::class, 'toggleStatus'])
             ->name('posts.toggleStatus');
 
-        // 9. Quản lý Ví tiền
+        // Quản lý yêu cầu hỗ trợ
+        Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
+        Route::get('/tickets/{id}', [TicketController::class, 'show'])->name('tickets.show');
+        Route::post('/tickets/{id}/status', [TicketController::class, 'updateStatus'])
+            ->name('tickets.updateStatus');
+
+        // 9. Quản lý Banner
+        Route::get('banners/trash', [BannerController::class, 'trash'])->name('banners.trash');
+        Route::post('banners/{id}/restore', [BannerController::class, 'restore'])->name('banners.restore');
+        Route::delete('banners/{id}/force-delete', [BannerController::class, 'forceDelete'])->name('banners.force_delete');
+        Route::resource('banners', BannerController::class);
+
+        // 10. Quản lý Ví tiền
         Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');
         Route::post('/wallets/update', [WalletController::class, 'update'])->name('wallets.update');
         Route::get('/wallets/{id}/history', [WalletController::class, 'history'])->name('wallets.history');
@@ -257,8 +279,12 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         // Nút xử lý cộng tiền cho User
         Route::post('/system-wallet/add-money', [WalletController::class, 'addMoneyToUser'])->name('system_wallet.add_money');
 
-        // 10. Quản lý Điểm thưởng (Bee Point)
+        // 11. Quản lý Điểm thưởng (Bee Point)
         Route::get('/points', [PointController::class, 'index'])->name('points.index');
         Route::post('/points/settings', [PointController::class, 'updateSettings'])->name('points.settings.update');
+
+        // Quản lý phân quyền
+        Route::resource('role', RoleController::class);
+        Route::get('member', [RoleController::class, 'listMembers'])->name('member');
     });
 });

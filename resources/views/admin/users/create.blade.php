@@ -59,25 +59,16 @@
 
                                 <div class="space-y-2">
                                     <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Vai trò</label>
-                                    <select name="role" id="role" onchange="togglePermissions()"
+                                    <select name="role" id="role"
                                         class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
-                                        @if (Auth::user()->role->name === 'admin')
+
                                             @foreach ($roles as $role)
                                                 <option value="{{ $role->id }}"
                                                     {{ old('role') == $role->id ? 'selected' : '' }}>
                                                     {{ $role->name }}
                                                 </option>
                                             @endforeach
-                                        @else
-                                            @foreach ($roles as $role)
-                                                @if ($role->name === 'user')
-                                                    <option value="{{ $role->id  }}"
-                                                    {{ old('role') == $role->id ? 'selected' : '' }}>
-                                                    {{ $role->name }}
-                                                </option>
-                                                @endif
-                                            @endforeach
-                                        @endif
+
                                     </select>
                                     @error('role')
                                         <span class="text-red-500 text-sm">{{ $message }}</span>
@@ -156,39 +147,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="permissions-box"
-                            class="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
-                            <h4 class="font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-primary">security</span>
-                                Phân quyền truy cập
-                            </h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 
-                                @foreach ($permissions as $permission)
-                                    <label class="flex items-center gap-3 cursor-pointer group">
-
-                                        @php
-                                            $isStaffPermission = $permission->roles->contains('name', 'staff');
-                                            $isChecked = old('permissions')
-                                                ? in_array($permission->id, old('permissions'))
-                                                : $isStaffPermission;
-                                        @endphp
-
-                                        <input type="checkbox" name="permissions[]" value="{{ $permission->id }}"
-                                            class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
-                                            {{ $isChecked ? 'checked' : '' }}> <span
-                                            class="text-sm text-slate-700 dark:text-slate-300 group-hover:text-slate-900 transition-colors">
-                                            {{ $permission->name }}
-                                        </span>
-
-                                    </label>
-                                @endforeach
-                                {{-- @error('permissions')
-                                    <span class="text-red-500 text-sm">{{ $message }}</span>
-                                @enderror --}}
-
-                            </div>
-                        </div>
                         <div class="mt-8 flex items-center gap-4 pb-12">
                             <button
                                 class="px-8 py-2.5 rounded-lg bg-primary text-slate-900 font-bold hover:shadow-lg hover:shadow-primary/20 transition-all flex items-center gap-2">
@@ -273,19 +232,6 @@
             }
         }
     </script>
-    <script>
-        function togglePermissions() {
-            let select = document.getElementById('role');
-            let box = document.getElementById('permissions-box');
 
-            // Lấy cái chữ đang hiển thị trong thẻ select (ví dụ: 'Admin', 'Staff',...)
-            let roleName = select.options[select.selectedIndex].text.trim().toLowerCase();
 
-            // Nếu chữ là 'staff' thì hiện, ngược lại ẩn đi (dùng CSS display)
-            box.style.display = (roleName === 'staff') ? 'block' : 'none';
-        }
-
-        // Chạy luôn 1 lần khi trang vừa load xong để kiểm tra trạng thái ban đầu
-        togglePermissions();
-    </script>
 @endsection
