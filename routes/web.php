@@ -61,10 +61,24 @@ Route::middleware('check.verified')->group(function () {
     Route::post('/lien-he', [ContactController::class, 'submit'])->name('contact.submit');
     Route::get('/lien-he-v2', function() { return view('client.Contact & Support.index'); })->name('contact.v2');
 
+<<<<<<< Updated upstream
     // Chatbot API
     Route::get('/api/chatbot/categories', [ChatbotController::class, 'getCategories']);
     Route::get('/api/chatbot/questions/{category}', [ChatbotController::class, 'getQuestions']);
     Route::get('/api/search/suggestions', [ClientProductController::class, 'searchSuggestions'])->name('client.search.suggestions');
+=======
+    // Terms of Service
+    Route::get('/dieu-khoan-su-dung', function() { return view('client.terms'); })->name('terms');
+
+    // Return Policy
+    Route::get('/chinh-sach-doi-tra', function() { return view('client.return-policy'); })->name('return-policy');
+
+    // Privacy Policy
+    Route::get('/chinh-sach-bao-mat', function() { return view('client.privacy-policy'); })->name('privacy-policy');
+
+    // Cookie Policy
+    Route::get('/chinh-sach-cookie', function() { return view('client.cookie-policy'); })->name('cookie-policy');
+>>>>>>> Stashed changes
 
     // Chi tiết sản phẩm & Danh sách sản phẩm
     Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
@@ -108,6 +122,11 @@ Route::post('/thanh-toan/remove-voucher', [CheckoutController::class, 'removeVou
     Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
     Route::get('/bai-viet/{slug}', [ClientPostController::class, 'show'])->name('client.posts.show');
     Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])->name('chatbot.chat');
+
+    // API: Ticket từ Chatbot
+    Route::post('/api/tickets/create-from-chat', [\App\Http\Controllers\Api\TicketController::class, 'createFromChat'])->name('api.tickets.create');
+    Route::post('/api/tickets/add-message', [\App\Http\Controllers\Api\TicketController::class, 'addMessage'])->name('api.tickets.add-message');
+    Route::get('/api/tickets/{ticketId}/messages', [\App\Http\Controllers\Api\TicketController::class, 'getMessages'])->name('api.tickets.messages');
 
     // QUẢN LÝ ĐIỂM THƯỞNG (BEE POINT)
     Route::get('/bee-point', [App\Http\Controllers\Client\PointController::class, 'index'])->name('client.points.index');
@@ -263,7 +282,24 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::post('posts/toggle-status/{id}', [PostController::class, 'toggleStatus'])
             ->name('posts.toggleStatus');
 
+<<<<<<< Updated upstream
         // 9. Quản lý Ví tiền
+=======
+        // Quản lý yêu cầu hỗ trợ
+        Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
+        Route::get('/tickets/{id}', [TicketController::class, 'show'])->name('tickets.show');
+        Route::post('/tickets/{id}/status', [TicketController::class, 'updateStatus'])
+            ->name('tickets.updateStatus');
+        Route::post('/tickets/{id}/messages', [TicketController::class, 'addMessage'])->name('tickets.addMessage');
+
+        // 9. Quản lý Banner
+        Route::get('banners/trash', [BannerController::class, 'trash'])->name('banners.trash');
+        Route::post('banners/{id}/restore', [BannerController::class, 'restore'])->name('banners.restore');
+        Route::delete('banners/{id}/force-delete', [BannerController::class, 'forceDelete'])->name('banners.force_delete');
+        Route::resource('banners', BannerController::class);
+
+        // 10. Quản lý Ví tiền
+>>>>>>> Stashed changes
         Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');
         Route::post('/wallets/update', [WalletController::class, 'update'])->name('wallets.update');
         Route::get('/wallets/{id}/history', [WalletController::class, 'history'])->name('wallets.history');

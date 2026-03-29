@@ -24,7 +24,11 @@
                 <span class="material-symbols-outlined text-[#181611] text-sm">smart_toy</span>
             </div>
             <div class="bg-white dark:bg-slate-700 p-3 rounded-2xl rounded-tl-none shadow-sm text-slate-800 dark:text-white max-w-[80%]">
+<<<<<<< Updated upstream
                 Dạ em chào anh/chị! Em là trợ lý AI của BeePhone. Anh/chị đang cần tư vấn về sản phẩm hay hỗ trợ gì ạ?
+=======
+                Dạ em chào anh/chị! Em là trợ lý AI của BeePhone. Anh/chị đang cần hỗ trợ về sản phẩm hay dịch vụ nào ạ? Anh/chị có thể hỏi về bảo hành, kỹ thuật, đặt hàng hoặc bất cứ điều gì liên quan đến BeePhone nhé!
+>>>>>>> Stashed changes
             </div>
         </div>
     </div>
@@ -34,52 +38,124 @@
         <button id="send-chat" class="w-10 h-10 bg-[#f4c025] rounded-full flex items-center justify-center text-[#181611] hover:brightness-105 transition-all">
             <span class="material-symbols-outlined text-sm">send</span>
         </button>
+        <button id="contact-staff-btn" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white hover:brightness-105 transition-all" title="Liên hệ nhân viên">
+            <span class="material-symbols-outlined text-sm">person</span>
+        </button>
+    </div>
+</div>
+
+<!-- Modal: Liên hệ nhân viên -->
+<div id="contact-staff-modal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md">
+        <div class="bg-blue-500 text-white p-4 flex justify-between items-center">
+            <h3 class="font-bold">Liên hệ nhân viên hỗ trợ</h3>
+            <button id="close-staff-modal" class="text-white hover:opacity-80">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <form id="staff-contact-form" class="p-4 space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-1">Tên của bạn <span class="text-red-500">*</span></label>
+                <input type="text" id="staff_name" name="customer_name" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-1">Email <span class="text-red-500">*</span></label>
+                <input type="email" id="staff_email" name="customer_email" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-1">Tiêu đề vấn đề <span class="text-red-500">*</span></label>
+                <input type="text" id="staff_title" name="title" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ví dụ: Cần hỗ trợ bảo hành" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-1">Mô tả vấn đề <span class="text-red-500">*</span></label>
+                <textarea id="staff_message" name="initial_message" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Mô tả chi tiết vấn đề của bạn..." required></textarea>
+            </div>
+
+            <div class="flex gap-2 pt-4">
+                <button type="submit" class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:brightness-110 transition-all">
+                    Gửi yêu cầu
+                </button>
+                <button type="button" id="cancel-staff-modal" class="flex-1 px-4 py-2 bg-slate-300 dark:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-semibold hover:opacity-80 transition-all">
+                    Hủy
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $(document).ready(function() {
-        // Khôi phục lịch sử chat
-        if (sessionStorage.getItem('beephone_chat_history')) {
-            $('#chat-box').html(sessionStorage.getItem('beephone_chat_history'));
-            scrollToBottom();
-        }
+    // Vanilla JS: Click to open/close chat
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatBubble = document.getElementById('chat-bubble');
+        const chatWindow = document.getElementById('chat-window');
+        const closeBtn = document.getElementById('close-chat');
         
-        // Khôi phục trạng thái cửa sổ
-        if (sessionStorage.getItem('beephone_chat_state') === 'open') {
-            $('#chat-window').removeClass('hidden');
-            $('#chat-bubble').addClass('hidden');
-            scrollToBottom();
+        if (chatBubble) {
+            chatBubble.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (chatWindow) {
+                    chatWindow.classList.remove('hidden');
+                    chatWindow.classList.add('flex');
+                    chatBubble.classList.add('hidden');
+                    sessionStorage.setItem('beephone_chat_state', 'open');
+                }
+            });
         }
 
+        if (closeBtn && chatWindow) {
+            closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                chatWindow.classList.add('hidden');
+                chatWindow.classList.remove('flex');
+                chatBubble.classList.remove('hidden');
+                sessionStorage.setItem('beephone_chat_state', 'closed');
+            });
+        }
+
+        // Restore state from session
+        if (sessionStorage.getItem('beephone_chat_state') === 'open' && chatWindow && chatBubble) {
+            chatWindow.classList.remove('hidden');
+            chatWindow.classList.add('flex');
+            chatBubble.classList.add('hidden');
+        }
+    });
+
+    // jQuery Chat Functionality
+    $(document).ready(function() {
         function saveChatHistory() {
             sessionStorage.setItem('beephone_chat_history', $('#chat-box').html());
         }
 
-        $('#chat-bubble').click(function() {
-            $('#chat-window').removeClass('hidden');
-            $('#chat-bubble').addClass('hidden');
-            sessionStorage.setItem('beephone_chat_state', 'open');
-            scrollToBottom();
-        });
+        function scrollToBottom() {
+            const chatBox = document.getElementById('chat-box');
+            if (chatBox) {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
 
-        $('#close-chat').click(function() {
-            $('#chat-window').addClass('hidden');
-            $('#chat-bubble').removeClass('hidden');
-            sessionStorage.setItem('beephone_chat_state', 'closed');
-        });
+        // Restore chat history
+        if (sessionStorage.getItem('beephone_chat_history')) {
+            $('#chat-box').html(sessionStorage.getItem('beephone_chat_history'));
+            scrollToBottom();
+        }
 
         // XỬ LÝ GỬI TIN NHẮN (Đã tích hợp Lớp Giáp chống Spam)
         function sendMessage() {
-            let message = $('#chat-input').val().trim();
+            const message = $('#chat-input').val().trim();
             if (message === '') return;
 
-            // 1. KHOÁ MÕM PHÍM NGAY LẬP TỨC
+            // Disable send button
             $('#send-chat').prop('disabled', true).css('opacity', '0.5');
             $('#chat-input').prop('disabled', true).attr('placeholder', 'AI đang suy nghĩ...');
 
-            // In tin nhắn của User
+            // Show user message
             $('#chat-box').append(`
                 <div class="flex items-start gap-2 justify-end">
                     <div class="bg-[#181611] text-white p-3 rounded-2xl rounded-tr-none shadow-sm max-w-[80%]">
@@ -87,12 +163,12 @@
                     </div>
                 </div>
             `);
-            $('#chat-input').val(''); 
+            $('#chat-input').val('');
             scrollToBottom();
-            saveChatHistory(); 
+            saveChatHistory();
 
-            // Hiệu ứng AI đang gõ
-            let loadingId = 'loading-' + Date.now();
+            // Show loading
+            const loadingId = 'loading-' + Date.now();
             $('#chat-box').append(`
                 <div id="${loadingId}" class="flex items-start gap-2">
                     <div class="w-8 h-8 rounded-full bg-[#f4c025] flex items-center justify-center shrink-0">
@@ -105,7 +181,7 @@
             `);
             scrollToBottom();
 
-            // Gọi AJAX
+            // Send request
             $.ajax({
                 url: "{{ route('chatbot.chat') }}",
                 type: "POST",
@@ -114,8 +190,8 @@
                     message: message
                 },
                 success: function(response) {
-                    $('#' + loadingId).remove(); 
-                    
+                    $('#' + loadingId).remove();
+
                     $('#chat-box').append(`
                         <div class="flex items-start gap-2">
                             <div class="w-8 h-8 rounded-full bg-[#f4c025] flex items-center justify-center shrink-0">
@@ -126,6 +202,7 @@
                             </div>
                         </div>
                     `);
+<<<<<<< Updated upstream
                     scrollToBottom();
                     saveChatHistory(); 
 
@@ -136,15 +213,45 @@
                 error: function() {
                     $('#' + loadingId).remove();
                     $('#chat-box').append('<div class="text-center text-xs text-red-500 mt-2">Lỗi kết nối. Vui lòng thử lại!</div>');
+=======
+
+>>>>>>> Stashed changes
                     scrollToBottom();
 
+<<<<<<< Updated upstream
                     // 2. MỞ KHOÁ LẠI KHI LỖI
+=======
+                    // Enable send button
+                    $('#send-chat').prop('disabled', false).css('opacity', '1');
+                    $('#chat-input').prop('disabled', false).attr('placeholder', 'Nhập câu hỏi...').focus();
+                },
+                error: function(xhr) {
+                    $('#' + loadingId).remove();
+
+                    let errorMsg = 'Lỗi kết nối máy chủ!';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    } else if (xhr.status === 419) {
+                        errorMsg = 'Phiên làm việc hết hạn, vui lòng F5 tải lại trang!';
+                    }
+
+                    $('#chat-box').append(`
+                        <div class="text-center text-xs text-red-500 mt-2 font-bold">
+                            ${errorMsg}
+                        </div>
+                    `);
+                    scrollToBottom();
+                    saveChatHistory();
+
+                    // Enable send button
+>>>>>>> Stashed changes
                     $('#send-chat').prop('disabled', false).css('opacity', '1');
                     $('#chat-input').prop('disabled', false).attr('placeholder', 'Nhập câu hỏi...').focus();
                 }
             });
         }
 
+<<<<<<< Updated upstream
         $('#send-chat').click(sendMessage);
         $('#chat-input').keypress(function(e) {
             if(e.which == 13) sendMessage();
@@ -156,5 +263,94 @@
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
+=======
+        // Send on button click
+        $('#send-chat').click(function() {
+            sendMessage();
+        });
+
+        // Send on Enter key
+        $('#chat-input').keypress(function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Quick reply buttons
+        $(document).on('click', '.quick-reply-btn', function() {
+            const msg = $(this).data('message');
+            $('#chat-input').val(msg);
+            sendMessage();
+        });
+
+        // ===== MODAL: Liên hệ nhân viên =====
+        $('#contact-staff-btn').click(function() {
+            $('#contact-staff-modal').removeClass('hidden').addClass('flex');
+        });
+
+        $('#close-staff-modal, #cancel-staff-modal').click(function() {
+            $('#contact-staff-modal').addClass('hidden').removeClass('flex');
+        });
+
+        // Close modal when clicking outside
+        $('#contact-staff-modal').click(function(e) {
+            if (e.target === this) {
+                $('#contact-staff-modal').addClass('hidden').removeClass('flex');
+            }
+        });
+
+        // Submit form: Tạo ticket
+        $('#staff-contact-form').submit(function(e) {
+            e.preventDefault();
+
+            const formData = {
+                customer_name: $('#staff_name').val(),
+                customer_email: $('#staff_email').val(),
+                title: $('#staff_title').val(),
+                initial_message: $('#staff_message').val(),
+            };
+
+            $.ajax({
+                url: "{{ route('api.tickets.create') }}",
+                type: "POST",
+                headers: {
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                },
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        // Hiển thị thông báo thành công
+                        $('#chat-box').append(`
+                            <div class="flex items-start gap-2">
+                                <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-outlined text-white text-sm">check_circle</span>
+                                </div>
+                                <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-2xl rounded-tl-none shadow-sm text-green-800 dark:text-green-200 max-w-[80%]">
+                                    <p class="font-semibold">Yêu cầu đã được gửi!</p>
+                                    <p class="text-xs mt-1">Mã ticket: <strong>${response.ticket_code}</strong></p>
+                                    <p class="text-xs mt-1">Nhân viên hỗ trợ sẽ liên hệ anh/chị sớm nhất. Cảm ơn!</p>
+                                </div>
+                            </div>
+                        `);
+
+                        // Reset form và đóng modal
+                        $('#staff-contact-form')[0].reset();
+                        $('#contact-staff-modal').addClass('hidden').removeClass('flex');
+                        scrollToBottom();
+                        saveChatHistory();
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Lỗi gửi yêu cầu!';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+
+                    alert('Lỗi: ' + errorMsg);
+                }
+            });
+        });
+>>>>>>> Stashed changes
     });
 </script>

@@ -40,7 +40,7 @@
                 <h4 class="font-bold mb-6">Hỗ trợ</h4>
                 <ul class="space-y-4 text-gray-400 text-sm">
                     <li><a class="hover:text-primary transition-colors" href="#">Theo dõi đơn hàng</a></li>
-                    <li><a class="hover:text-primary transition-colors" href="#">Giao hàng &amp; Đổi trả</a>
+                    <li><a class="hover:text-primary transition-colors" href="{{ route('return-policy') }}">Giao hàng &amp; Đổi trả</a>
                     </li>
                     <li><a class="hover:text-primary transition-colors" href="#">Chương trình Thu cũ Đổi
                             mới</a></li>
@@ -66,9 +66,9 @@
             class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 text-[12px] font-medium">
             <p>© 2024 Bee Phone Inc. Bảo lưu mọi quyền.</p>
             <div class="flex gap-6 uppercase tracking-widest">
-                <a class="hover:text-white transition-colors" href="#">Chính sách bảo mật</a>
-                <a class="hover:text-white transition-colors" href="#">Điều khoản dịch vụ</a>
-                <a class="hover:text-white transition-colors" href="#">Cài đặt Cookie</a>
+                <a class="hover:text-white transition-colors" href="{{ route('privacy-policy') }}">Chính sách bảo mật</a>
+                <a class="hover:text-white transition-colors" href="{{ route('terms') }}">Điều khoản dịch vụ</a>
+                <a class="hover:text-white transition-colors" href="{{ route('cookie-policy') }}">Cài đặt Cookie</a>
             </div>
         </div>
     </div>
