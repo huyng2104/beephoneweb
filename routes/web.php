@@ -25,6 +25,7 @@ use App\Http\Controllers\AdminControllers\BannerController;
 
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
+use App\Http\Controllers\AdminControllers\TicketController;
 use App\Http\Controllers\AdminControllers\RoleController;
 use App\Http\Controllers\AdminControllers\WalletController;
 
@@ -247,7 +248,10 @@ Route::middleware(['auth', 'verified', 'role'])->group(function () {
             ->name('posts.toggleStatus');
 
         // Quản lý yêu cầu hỗ trợ
-        
+        Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
+        Route::get('/tickets/{id}', [TicketController::class, 'show'])->name('tickets.show');
+        Route::post('/tickets/{id}/status', [TicketController::class, 'updateStatus'])
+            ->name('tickets.updateStatus');
 
         // 9. Quản lý Banner
         Route::get('banners/trash', [BannerController::class, 'trash'])->name('banners.trash');
