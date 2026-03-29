@@ -39,7 +39,6 @@ use App\Http\Controllers\Client\ChatbotController;
 use App\Http\Controllers\Client\PostController as ClientPostController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
 use App\Models\User;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
