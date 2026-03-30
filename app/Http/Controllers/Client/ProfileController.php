@@ -10,6 +10,7 @@ use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -79,8 +80,8 @@ class ProfileController extends Controller
             return back()->with([
                 'success' => 'Cập nhật thông tin thành công.'
             ]);
-        } catch (\Throwable $th) {
-            dd($th->getMessage());
+      } catch (\Throwable $th) {
+            return back()->withErrors(['error' => 'Có lỗi xảy ra: ' . $th->getMessage()]);
         }
     }
 
@@ -92,14 +93,12 @@ class ProfileController extends Controller
         //
     }
 
-    public function user_wallet()
+  public function user_wallet()
     {
         $user = Auth::user();
-        if (!$user || $user->wallet == null) {
-            Wallet::firstOrCreate(
-                ['user_id' => $user->id],
-                ['balance' => 0, 'status' => 'active']
-            );
+
+        if (!$user) {
+            abort(404);
         }
         return view('client.profiles.wallet')->with([
             'user' => $user
