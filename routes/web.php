@@ -104,6 +104,7 @@ Route::post('/thanh-toan/remove-voucher', [CheckoutController::class, 'removeVou
         Route::get('/don-mua/{id}', [ClientOrderController::class, 'show'])->name('client.orders.show');
         Route::patch('/don-mua/{id}/xac-nhan', [ClientOrderController::class, 'confirmReceived'])->name('client.orders.confirm');
         Route::patch('/don-mua/{id}/huy', [ClientOrderController::class, 'cancel'])->name('client.orders.cancel');
+        Route::patch('/don-mua/{id}/hoan-hang', [ClientOrderController::class, 'requestReturn'])->name('client.orders.return');
     });
 
     Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');

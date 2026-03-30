@@ -3,109 +3,121 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\OrderStatusHistory;
+use App\Models\PointHistory;
+use App\Models\PointSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Order;
-use App\Models\PointSetting;
-use App\Models\PointHistory;
+use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
-    // Hiển thị danh sách đơn hàng
     public function index()
     {
-        // 1. Lấy thông tin user đang đăng nhập
-        $user = Auth::user(); 
+        $user = Auth::user();
 
-        // 2. Lấy danh sách đơn hàng
         $orders = Order::with('items')
             ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        // 3. Nhớ truyền thêm biến $user vào compact() nhé
         return view('client.profiles.orders', compact('orders', 'user'));
     }
 
-    // Hiển thị chi tiết 1 đơn hàng (Sẽ làm sau nếu bro cần)
     public function show($id)
     {
         $order = Order::with('items')->where('user_id', Auth::id())->findOrFail($id);
+
         return view('client.orders.show', compact('order'));
     }
 
-    // Khách hàng xác nhận đã nhận được hàng
     public function confirmReceived($id)
     {
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
 
         if ($order->status === Order::STATUS_DELIVERED) {
-            
-            // 1. Chuyển sang trạng thái STATUS_RECEIVED (Khách đã nhận)
-            $order->status = Order::STATUS_RECEIVED; 
-            $order->payment_status = 'paid'; // ĐÃ THÊM: Tự động đánh dấu đã thu tiền
+            $order->status = Order::STATUS_RECEIVED;
+            $order->payment_status = 'paid';
+            $order->paid_at = $order->paid_at ?? now();
             $order->save();
 
-            // ==========================================
-            // 2. LOGIC TÍCH ĐIỂM THƯỞNG BEE POINT
-            // ==========================================
             $pointsEarned = 0;
-            // Lấy tỷ lệ tích điểm từ Database
             $setting = PointSetting::first();
-            $earnRate = $setting ? $setting->earn_rate : 100000; // Mặc định 100k = 1 điểm nếu chưa cấu hình
+            $earnRate = $setting ? $setting->earn_rate : 100000;
 
             if ($earnRate > 0) {
-                // Tính số điểm (Làm tròn xuống. VD: 150k / 100k = 1 điểm)
                 $pointsEarned = floor($order->total_amount / $earnRate);
 
                 if ($pointsEarned > 0) {
-                    // 1. Lưu vào lịch sử điểm
                     PointHistory::create([
                         'user_id' => $order->user_id,
                         'order_id' => $order->id,
                         'points' => $pointsEarned,
                         'type' => 'earn',
-                        'description' => 'Tích điểm hoàn thành đơn hàng ' . $order->order_code
+                        'description' => 'Tich diem hoan thanh don hang ' . $order->order_code,
                     ]);
 
-                    // 2. CỘNG ĐIỂM TRỰC TIẾP VÀO BẢNG USERS
                     $customer = \App\Models\User::find($order->user_id);
                     $customer->reward_points += $pointsEarned;
                     $customer->save();
                 }
             }
-            // ==========================================
 
-            $msg = 'Cảm ơn bạn đã xác nhận! Đơn hàng đã hoàn thành.';
+            $message = 'Cam on ban da xac nhan. Don hang da hoan thanh.';
             if ($pointsEarned > 0) {
-                $msg .= ' Bạn được cộng thêm ' . $pointsEarned . ' Bee Point vào tài khoản!';
+                $message .= ' Ban duoc cong them ' . $pointsEarned . ' Bee Point vao tai khoan.';
             }
 
-            return redirect()->back()->with('success', $msg);
+            return redirect()->back()->with('success', $message);
         }
 
-        return redirect()->back()->with('error', 'Trạng thái đơn hàng không hợp lệ!');
+        return redirect()->back()->with('error', 'Trang thai don hang khong hop le.');
     }
 
-    // Khách hàng tự hủy đơn
     public function cancel($id)
     {
-        // 1. Tìm đơn hàng của user này
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
 
-        // 2. Chỉ cho phép hủy khi đơn ở trạng thái PENDING (chờ xác nhận)
-        if ($order->status == Order::STATUS_PENDING) {
-            
-            // Cập nhật trạng thái thành CANCELLED (hủy)
+        if ($order->status === Order::STATUS_PENDING) {
             $order->status = Order::STATUS_CANCELLED;
-            // Ghi chú lý do hủy giống với cấu trúc Admin của bro
-            $order->cancellation_reason = 'Khách hàng tự hủy đơn trên web';
+            $order->cancellation_reason = 'Khach hang tu huy don tren web';
             $order->cancelled_at = now();
             $order->save();
 
-            return redirect()->back()->with('success', 'Đã hủy đơn hàng thành công!');
+            return redirect()->back()->with('success', 'Da huy don hang thanh cong.');
         }
 
-        return redirect()->back()->with('error', 'Đơn hàng này đang được xử lý, không thể hủy!');
+        return redirect()->back()->with('error', 'Don hang nay dang duoc xu ly, khong the huy.');
+    }
+
+    public function requestReturn(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'return_note' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $order = Order::where('user_id', Auth::id())->findOrFail($id);
+
+        if (! $order->canRequestReturn()) {
+            throw ValidationException::withMessages([
+                'return_note' => 'Don hang nay chua du dieu kien hoan hang hoac da gui yeu cau truoc do.',
+            ]);
+        }
+
+        $order->update([
+            'return_status' => Order::RETURN_REQUESTED,
+            'return_note' => $validated['return_note'],
+            'return_requested_at' => now(),
+        ]);
+
+        OrderStatusHistory::create([
+            'order_id' => $order->id,
+            'user_id' => Auth::id(),
+            'status' => '(Hoan hang) ' . Order::RETURN_REQUESTED,
+            'note' => 'Khach hang gui yeu cau hoan hang: ' . $validated['return_note'],
+        ]);
+
+        return redirect()->back()->with('success', 'Da gui yeu cau hoan hang. Cua hang se xu ly som nhat.');
     }
 }

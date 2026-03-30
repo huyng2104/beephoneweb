@@ -4,27 +4,28 @@ namespace App\Http\Controllers\AdminControllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\OrderStatusHistory;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Auth;
-use App\Models\OrderStatusHistory;
 
 class OrderController extends Controller
 {
     public function index(Request $request): View
     {
         Gate::authorize('order.view');
+
         $status = $request->string('status')->toString();
         $returnStatus = $request->string('return_status')->toString();
         $search = $request->string('q')->toString();
 
         $orders = Order::query()
-            ->when(in_array($status, Order::statuses(), true), fn($query) => $query->where('status', $status))
-            ->when(in_array($returnStatus, Order::returnStatuses(), true), fn($query) => $query->where('return_status', $returnStatus))
+            ->when(in_array($status, Order::statuses(), true), fn ($query) => $query->where('status', $status))
+            ->when(in_array($returnStatus, Order::returnStatuses(), true), fn ($query) => $query->where('return_status', $returnStatus))
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery
@@ -54,15 +55,14 @@ class OrderController extends Controller
     {
         $order->load(['items', 'statusHistories.user']);
 
-        $statusLabels = Order::statusLabels();
-        $returnStatusLabels = Order::returnStatusLabels();
-
         return view('admin.orders.show', [
             'order' => $order,
             'statuses' => Order::statuses(),
-            'statusLabels' => $statusLabels,
+            'statusLabels' => Order::statusLabels(),
             'returnStatuses' => Order::returnStatuses(),
-            'returnStatusLabels' => $returnStatusLabels,
+            'returnStatusLabels' => Order::returnStatusLabels(),
+            'paymentMethodLabels' => Order::paymentMethodLabels(),
+            'paymentStatusLabels' => Order::paymentStatusLabels(),
             'availableStatuses' => $this->availableStatusesFor($order),
         ]);
     }
@@ -70,6 +70,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order): RedirectResponse
     {
         Gate::authorize('order.update');
+
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:' . implode(',', Order::statuses())],
         ]);
@@ -82,30 +83,27 @@ class OrderController extends Controller
             ]);
         }
 
-        // Báo lỗi nếu Admin cố tình truyền trạng thái Đã nhận
         if ($nextStatus === Order::STATUS_RECEIVED) {
             throw ValidationException::withMessages([
-                'status' => 'Trạng thái này là đặc quyền của Khách hàng. Admin chỉ được cập nhật đến Đã Giao Hàng!',
+                'status' => 'Trạng thái này chỉ khách hàng mới được xác nhận.',
             ]);
         }
 
-        if (!$order->canMoveTo($nextStatus)) {
+        if (! $order->canMoveTo($nextStatus)) {
             throw ValidationException::withMessages([
                 'status' => 'Không thể chuyển trạng thái theo luồng hiện tại.',
             ]);
         }
 
-        // --- CẬP NHẬT TRẠNG THÁI VÀ THANH TOÁN ---
         $updateData = ['status' => $nextStatus];
-        
-        // TỰ ĐỘNG CHUYỂN "ĐÃ THANH TOÁN" KHI GIAO THÀNH CÔNG
-        if (in_array($nextStatus, [Order::STATUS_DELIVERED, Order::STATUS_RECEIVED])) {
+
+        if (in_array($nextStatus, [Order::STATUS_DELIVERED, Order::STATUS_RECEIVED], true)) {
             $updateData['payment_status'] = 'paid';
+            $updateData['paid_at'] = $order->paid_at ?? now();
         }
 
         $order->update($updateData);
 
-        // Lưu lịch sử
         OrderStatusHistory::create([
             'order_id' => $order->id,
             'user_id' => Auth::id(),
@@ -119,11 +117,12 @@ class OrderController extends Controller
     public function cancel(Request $request, Order $order): RedirectResponse
     {
         Gate::authorize('order.cancel');
+
         $validated = $request->validate([
             'cancellation_reason' => ['required', 'string', 'max:1000'],
         ]);
 
-        if (!$order->canMoveTo(Order::STATUS_CANCELLED)) {
+        if (! $order->canMoveTo(Order::STATUS_CANCELLED)) {
             throw ValidationException::withMessages([
                 'cancellation_reason' => 'Đơn hàng này không thể hủy ở trạng thái hiện tại.',
             ]);
@@ -135,7 +134,6 @@ class OrderController extends Controller
             'cancelled_at' => now(),
         ]);
 
-        // Lưu lịch sử
         OrderStatusHistory::create([
             'order_id' => $order->id,
             'user_id' => Auth::id(),
@@ -148,32 +146,35 @@ class OrderController extends Controller
 
     public function confirmReturn(Request $request, Order $order): RedirectResponse
     {
+        Gate::authorize('order.update');
+
         $validated = $request->validate([
             'return_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        if (!in_array($order->status, [Order::STATUS_DELIVERED, Order::STATUS_RECEIVED], true)) {
+        if (! $order->canConfirmReturn()) {
             throw ValidationException::withMessages([
-                'return_note' => 'Chỉ xác nhận đổi/trả cho đơn đã giao thành công hoặc đã nhận hàng.',
+                'return_note' => 'Chỉ xác nhận hoàn hàng cho đơn đã có yêu cầu từ khách hàng.',
             ]);
         }
 
+        $resolvedNote = $validated['return_note'] ?? $order->return_note;
+
         $order->update([
             'return_status' => Order::RETURN_CONFIRMED,
-            'return_note' => $validated['return_note'] ?? null,
+            'return_note' => $resolvedNote,
             'return_requested_at' => $order->return_requested_at ?? now(),
             'return_confirmed_at' => now(),
         ]);
 
-        // Lưu lịch sử
         OrderStatusHistory::create([
             'order_id' => $order->id,
             'user_id' => Auth::id(),
-            'status' => '(Đổi/Trả) ' . Order::RETURN_CONFIRMED,
-            'note' => 'Ghi chú đổi trả: ' . ($validated['return_note'] ?? 'Không có'),
+            'status' => '(Hoàn hàng) ' . Order::RETURN_CONFIRMED,
+            'note' => 'Ghi chú xử lý hoàn hàng: ' . ($resolvedNote ?: 'Không có'),
         ]);
 
-        return back()->with('status', 'Đã xác nhận đổi/trả hàng.');
+        return back()->with('status', 'Đã xác nhận hoàn hàng.');
     }
 
     public function printPdf(Order $order)
@@ -192,12 +193,11 @@ class OrderController extends Controller
         $statuses = [$order->status];
 
         foreach (Order::statuses() as $status) {
-            // Lọc ra các trạng thái hợp lệ, NHƯNG cấm Admin chọn Hủy và Đã Nhận Hàng
             if (
-                $order->canMoveTo($status) &&
-                !in_array($status, $statuses, true) &&
-                $status !== Order::STATUS_CANCELLED &&
-                $status !== Order::STATUS_RECEIVED
+                $order->canMoveTo($status)
+                && ! in_array($status, $statuses, true)
+                && $status !== Order::STATUS_CANCELLED
+                && $status !== Order::STATUS_RECEIVED
             ) {
                 $statuses[] = $status;
             }

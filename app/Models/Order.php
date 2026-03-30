@@ -11,15 +11,15 @@ class Order extends Model
         'order_code',
         'user_id',
         'customer_name',
-        'phone',                // Đã thêm
+        'phone',
         'customer_phone',
         'customer_email',
         'recipient_name',
         'recipient_phone',
         'recipient_address',
         'shipping_address',
-        'address',              // Đã thêm
-        'total_price',          // Đã thêm
+        'address',
+        'total_price',
         'total_amount',
         'status',
         'return_status',
@@ -30,15 +30,17 @@ class Order extends Model
         'cancelled_at',
         'return_requested_at',
         'return_confirmed_at',
-        'payment_method',       // Đã thêm
+        'payment_method',
         'payment_status',
+        'paid_at',
     ];
-    
+
     protected $casts = [
         'ordered_at' => 'datetime',
         'cancelled_at' => 'datetime',
         'return_requested_at' => 'datetime',
         'return_confirmed_at' => 'datetime',
+        'paid_at' => 'datetime',
     ];
 
     public const STATUS_PENDING = 'pending';
@@ -71,7 +73,7 @@ class Order extends Model
             self::STATUS_PACKING => 'Đang đóng hàng',
             self::STATUS_SHIPPING => 'Đang giao',
             self::STATUS_DELIVERED => 'Giao thành công',
-            self::STATUS_RECEIVED => 'Đã nhận được hàng',
+            self::STATUS_RECEIVED => 'Đã nhận hàng',
             self::STATUS_CANCELLED => 'Đã hủy',
         ];
     }
@@ -88,9 +90,28 @@ class Order extends Model
     public static function returnStatusLabels(): array
     {
         return [
-            self::RETURN_NONE => 'Không đổi/trả',
-            self::RETURN_REQUESTED => 'Đã yêu cầu đổi/trả',
-            self::RETURN_CONFIRMED => 'Đã xác nhận đổi/trả',
+            self::RETURN_NONE => 'Không hoàn hàng',
+            self::RETURN_REQUESTED => 'Đã gửi yêu cầu hoàn hàng',
+            self::RETURN_CONFIRMED => 'Đã xác nhận hoàn hàng',
+        ];
+    }
+
+    public static function paymentMethodLabels(): array
+    {
+        return [
+            'cod' => 'Thanh toán khi nhận hàng',
+            'vnpay' => 'VNPAY',
+            'wallet' => 'Ví Bee Pay',
+        ];
+    }
+
+    public static function paymentStatusLabels(): array
+    {
+        return [
+            'pending' => 'Chờ thanh toán',
+            'paid' => 'Đã thanh toán',
+            'failed' => 'Thanh toán thất bại',
+            'cancelled' => 'Đã hủy',
         ];
     }
 
@@ -121,6 +142,18 @@ class Order extends Model
         }
 
         return in_array($nextStatus, self::nextStatusMap()[$this->status] ?? [], true);
+    }
+
+    public function canRequestReturn(): bool
+    {
+        return in_array($this->status, [self::STATUS_DELIVERED, self::STATUS_RECEIVED], true)
+            && $this->return_status === self::RETURN_NONE;
+    }
+
+    public function canConfirmReturn(): bool
+    {
+        return in_array($this->status, [self::STATUS_DELIVERED, self::STATUS_RECEIVED], true)
+            && $this->return_status === self::RETURN_REQUESTED;
     }
 
     public function items(): HasMany

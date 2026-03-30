@@ -44,7 +44,7 @@
             <p class="text-base font-semibold text-slate-900 dark:text-white mt-1">{{ $statusLabels[$order->status] ?? $order->status }}</p>
         </div>
         <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-4">
-            <p class="text-xs text-slate-500">Đổi/Trả</p>
+            <p class="text-xs text-slate-500">Hoàn hàng</p>
             <p class="text-base font-semibold text-slate-900 dark:text-white mt-1">{{ $returnStatusLabels[$order->return_status] ?? $order->return_status }}</p>
         </div>
     </div>
@@ -98,7 +98,7 @@
 
                 @if ($order->return_note)
                 <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <p class="text-sm text-amber-700 font-semibold">Ghi chú đổi/trả: {{ $order->return_note }}</p>
+                    <p class="text-sm text-amber-700 font-semibold">Ghi chú hoàn hàng: {{ $order->return_note }}</p>
                 </div>
                 @endif
             </div>
@@ -124,7 +124,6 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             @foreach ($order->items as $item)
-
                             @php
                                 $product = $item->product;
                                 $productName = $product ? $product->name : $item->product_name;
@@ -136,8 +135,6 @@
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-3 min-w-[220px]">
                                         <div class="size-10 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center">
-                                            
-                                            {{-- ĐÃ FIX LỖI @IF BỊ THIẾU Ở ĐÂY --}}
                                             @if ($item->thumbnail)
                                                 <img src="{{ $item->thumbnail }}" alt="{{ $item->product_name }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
                                                 <span class="material-symbols-outlined text-slate-400 text-[18px] hidden">inventory_2</span>
@@ -151,7 +148,6 @@
                                             @else
                                                 <span class="material-symbols-outlined text-slate-400 text-[18px]">inventory_2</span>
                                             @endif
-                                            
                                         </div>
                                         <div class="flex-1">
                                             <span class="font-semibold text-slate-900 dark:text-white block">{{ $productName }}</span>
@@ -176,7 +172,7 @@
 
             <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6 space-y-4">
                 <h2 class="text-lg font-bold text-slate-900 dark:text-white">Lịch sử cập nhật trạng thái</h2>
-                
+
                 <div class="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100 dark:before:bg-slate-800">
                     @forelse ($order->statusHistories as $history)
                     <div class="relative">
@@ -207,7 +203,7 @@
             <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6 space-y-4">
                 <div class="border-t border-slate-200 dark:border-slate-700 pt-6 mt-6">
                     <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4">Thông tin thanh toán</h3>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50">
                             <p class="text-xs text-slate-500 font-semibold">Phương thức thanh toán</p>
@@ -272,13 +268,21 @@
                 <button type="submit" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg font-semibold text-sm hover:bg-red-600">Hủy đơn</button>
             </form>
 
-            <form action="{{ route('admin.orders.return.confirm', $order) }}" method="POST" class="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-4">
-                @csrf
-                @method('PATCH')
-                <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">Xác nhận đổi/trả</label>
-                <textarea name="return_note" rows="3" class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="Ghi chú xác nhận đổi/trả (nếu có)...">{{ $order->return_note }}</textarea>
-                <button type="submit" class="w-full px-4 py-2 bg-amber-500 text-black rounded-lg font-semibold text-sm hover:bg-amber-400">Xác nhận đổi/trả hàng</button>
-            </form>
+            <div class="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-4">
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">Xác nhận hoàn hàng</label>
+                @if ($order->canConfirmReturn())
+                <form action="{{ route('admin.orders.return.confirm', $order) }}" method="POST" class="space-y-3">
+                    @csrf
+                    @method('PATCH')
+                    <textarea name="return_note" rows="3" class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="Ghi chú xác nhận hoàn hàng (nếu có)...">{{ $order->return_note }}</textarea>
+                    <button type="submit" class="w-full px-4 py-2 bg-amber-500 text-black rounded-lg font-semibold text-sm hover:bg-amber-400">Xác nhận hoàn hàng</button>
+                </form>
+                @else
+                <div class="rounded-lg border border-dashed border-slate-200 px-4 py-3 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                    Chức năng này chỉ mở khi khách hàng đã gửi yêu cầu hoàn hàng.
+                </div>
+                @endif
+            </div>
         </div>
     </div>
 </div>
