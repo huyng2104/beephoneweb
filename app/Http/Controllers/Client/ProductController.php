@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\Comment;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,34 @@ class ProductController extends Controller
             ->orWhere('id', $slug)
             ->firstOrFail();
 
-        return view('client.product-detail', compact('product'));
+        // Comments (same structure as admin product comment view)
+        $comments = Comment::query()
+            ->where('product_id', $product->id)
+            ->whereNull('parent_id')
+            ->with([
+                'user.role',
+                'children.user.role',
+                'children.children.user.role',
+                'children.children.children.user.role',
+                'children.children.children.children.user.role',
+            ])
+            ->latest()
+            ->get();
+
+        $rated = $comments->whereNotNull('rating');
+        $totalRatings = $rated->count();
+        $averageRating = $totalRatings > 0 ? round((float) $rated->avg('rating'), 1) : 0.0;
+
+        $ratingBreakdown = collect(range(5, 1))
+            ->mapWithKeys(fn (int $star) => [$star => $rated->where('rating', $star)->count()]);
+
+        return view('client.product-detail', compact(
+            'product',
+            'comments',
+            'totalRatings',
+            'averageRating',
+            'ratingBreakdown',
+        ));
     }
 
     public function index(Request $request)
