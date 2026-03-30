@@ -3,81 +3,33 @@
 @section('title','Trang chủ')
 
 @section('content')
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-    <style>
-        .swiper-pagination-bullet {
-            width: 32px !important;
-            height: 4px !important;
-            border-radius: 4px !important;
-            background: rgba(0, 0, 0, 0.2) !important;
-            opacity: 1 !important;
-            transition: all 0.3s ease !important;
-        }
-        .swiper-pagination-bullet-active {
-            background: #f4c025 !important; 
-            width: 48px !important;
-        }
-
-        /* 🚨 TUYỆT CHIÊU CỦA CELLPHONES: CỐ ĐỊNH TỶ LỆ KHUNG (KHÔNG DÙNG HEIGHT) */
-        .banner-container {
-            /* Tỷ lệ vàng cho banner dẹt: rộng 21, cao 7 (Ví dụ: rộng 1050px thì cao 350px) */
-            aspect-ratio: 21 / 7; 
-            width: 100%;
-        }
-        /* Mobile màn hình dọc thì cho tỷ lệ bớt dẹt đi tí để dễ nhìn */
-        @media (max-width: 768px) {
-            .banner-container { aspect-ratio: 16 / 9; }
-        }
-        
-        .swiper-slide-active img {
-            transition: transform 3s ease-out;
-            transform: scale(1.02); /* Zoom nhẹ cực sang khi hiện ra */
-        }
-    </style>
-
     <main class="max-w-[1440px] mx-auto pb-20">
-        
-        {{-- ========================================== --}}
-        {{-- KHU VỰC BANNER TRANG CHỦ (CHUẨN CELLPHONES) --}}
-        {{-- ========================================== --}}
-      {{-- ========================================== --}}
-        {{-- KHU VỰC BANNER TRANG CHỦ (CHỐNG CẮT ẢNH 100%) --}}
-        {{-- ========================================== --}}
-        @if($banners->count() > 0)
         <section class="px-4 md:px-10 lg:px-20 pt-6">
-            <div class="swiper bannerSwiper relative rounded-2xl overflow-hidden aspect-[16/9] md:aspect-[21/9] shadow-2xl group bg-white dark:bg-black">
-                <div class="swiper-wrapper">
-                    
-                    @foreach($banners as $banner)
-                    <div class="swiper-slide relative flex items-center justify-center w-full h-full overflow-hidden">
-                        
-                        {{-- 🚨 LAYER 1: Ảnh nền mờ (Tự động lấp đầy các viền trống nếu ảnh bị dư) --}}
-                        <img src="{{ $banner->image_url }}" alt="Background" 
-                             class="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-125 dark:opacity-30">
-                        
-                        {{-- 🚨 LAYER 2: Ảnh gốc nét căng (Dùng object-contain để GIỮ NGUYÊN BẢN, KHÔNG BỊ CẮT XÉN) --}}
-                        <img src="{{ $banner->image_url }}" alt="{{ $banner->title }}" 
-                             class="relative z-10 w-full h-full object-contain transition-transform duration-700 hover:scale-[1.02]">
-                        
-                        {{-- Link ẩn bọc lên trên cùng để click --}}
-                        <a href="{{ $banner->link ?? '#' }}" class="absolute inset-0 z-20"></a>
-                    </div>
-                    @endforeach
-
+            <div class="relative rounded-xl overflow-hidden min-h-[500px] flex items-center bg-black">
+                <div class="absolute inset-0 opacity-60 bg-cover bg-center"
+                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC5kdFa3m9RUyDOq-JtvVLeftcUlBc6RuUdpkwd-5rIXy21cwcMlwnUIkUZaRfoj74ICQrqwsO7DeeuvrhgFF_x8I92BXUHwJMMRUZf-MR8fjOhUaI9Oxm8WU2eguZGf_UlhPXIrY623OqW6I1pyC1LyqeQLCOmaBjJXRvA_tqBqeuWZ9YFkhq0TXuqygePpabB11X7C97enS5EAu0DtT6mle7wJJJRXh6vPTyatcvr5OshfcRZEWITof1ivLP04JrBjdi79dY67SE');">
                 </div>
-
-                <div class="swiper-pagination !bottom-4 z-30 drop-shadow-md"></div>
-                
-                <div class="swiper-button-next !text-white opacity-0 group-hover:opacity-100 transition-opacity after:!text-2xl pr-4 z-30 drop-shadow-lg"></div>
-                <div class="swiper-button-prev !text-white opacity-0 group-hover:opacity-100 transition-opacity after:!text-2xl pl-4 z-30 drop-shadow-lg"></div>
+                <div class="relative z-10 p-8 md:p-16 max-w-2xl text-white">
+                    <span class="bg-primary text-black px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 inline-block">Flash Sale</span>
+                    <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-6">Trải nghiệm Tương lai: iPhone 15 Pro</h1>
+                    <p class="text-lg text-gray-200 mb-8">Thiết kế Titan, chip A17 Pro và hệ thống camera chuyên nghiệp. Ưu đãi flagship không thể bỏ lỡ trong thời gian có hạn.</p>
+                    <div class="flex flex-wrap gap-4">
+                        <button class="bg-primary text-black px-8 py-4 rounded-lg font-bold hover:scale-105 transition-transform flex items-center gap-2">
+                            Mua ngay <span class="material-symbols-outlined">arrow_forward</span>
+                        </button>
+                        <button class="bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-4 rounded-lg font-bold hover:bg-white/20 transition-colors">
+                            Thông số
+                        </button>
+                    </div>
+                </div>
+                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                    <div class="w-8 h-1 bg-primary rounded-full"></div>
+                    <div class="w-8 h-1 bg-white/30 rounded-full"></div>
+                    <div class="w-8 h-1 bg-white/30 rounded-full"></div>
+                </div>
             </div>
         </section>
-        @endif
 
-        {{-- ========================================== --}}
-        {{-- COMBO HOÀN HẢO --}}
-        {{-- ========================================== --}}
         <section class="px-4 md:px-10 lg:px-20 mt-20">
             <div class="flex items-center gap-3 mb-8">
                 <span class="material-symbols-outlined text-primary">auto_awesome</span>
@@ -135,9 +87,6 @@
             </div>
         </section>
 
-        {{-- ========================================== --}}
-        {{-- SẢN PHẨM MỚI --}}
-        {{-- ========================================== --}}
         <section class="px-4 md:px-10 lg:px-20 mt-16">
             <div class="flex items-center justify-between mb-8">
                 <h2 class="text-3xl font-bold">Sản phẩm mới</h2>
@@ -212,9 +161,6 @@
             </div>
         </section>
 
-        {{-- ========================================== --}}
-        {{-- ƯU ĐÃI CỰC HOT --}}
-        {{-- ========================================== --}}
         <section class="px-4 md:px-10 lg:px-20 mt-20">
             <div class="bg-primary/10 border-2 border-primary/20 rounded-2xl p-8">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-8 mb-10">
@@ -276,9 +222,6 @@
             </div>
         </section>
 
-        {{-- ========================================== --}}
-        {{-- ĐỀ XUẤT THÔNG MINH --}}
-        {{-- ========================================== --}}
         <section class="mt-20 px-4 md:px-10 lg:px-20 overflow-hidden">
             <div class="flex items-center gap-3 mb-8">
                 <span class="material-symbols-outlined text-primary">auto_awesome</span>
@@ -329,85 +272,65 @@
             </div>
         </section>
     </main>
-
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
+    // Lấy token bảo mật của Laravel
+    const csrfToken = '{{ csrf_token() }}';
+
+    // Bắt sự kiện cho tất cả các nút "Thêm vào giỏ nhanh"
+    document.querySelectorAll('.btn-add-cart-quick').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
             
-            // ==========================================
-            // KHỞI TẠO SLIDER BANNER (CHẠY TỰ ĐỘNG MƯỢT MÀ)
-            // ==========================================
-            var bannerSwiper = new Swiper(".bannerSwiper", {
-                loop: true, // Cho phép vuốt qua vòng lặp
-                autoplay: {
-                    delay: 4000, // Đổi ảnh sau mỗi 4 giây
-                    disableOnInteraction: false, // Vẫn tự động chạy sau khi user vuốt
-                },
-                effect: "fade", // Hiệu ứng mờ ảo (Sang trọng hơn trượt)
-                pagination: {
-                    el: ".swiper-pagination",
-                    clickable: true,
-                },
-                navigation: {
-                    nextEl: ".swiper-button-next",
-                    prevEl: ".swiper-button-prev",
-                },
-            });
+            const productId = this.getAttribute('data-product-id');
+            const originalHtml = this.innerHTML;
+            
+            // Hiệu ứng xoay xoay đang load
+            this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>';
+            this.classList.add('pointer-events-none', 'opacity-70');
 
-            // ==========================================
-            // LOGIC THÊM GIỎ HÀNG NHANH CỦA BRO
-            // ==========================================
-            const csrfToken = '{{ csrf_token() }}';
+            // Gửi AJAX lên CartController
+            fetch('{{ route("client.cart.add") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    variant_id: '', // Bỏ trống vì đây là SP thường
+                    quantity: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Phục hồi lại nút
+                this.innerHTML = '<span class="material-symbols-outlined text-[20px]">check</span>';
+                this.classList.remove('pointer-events-none', 'opacity-70');
+                this.classList.replace('bg-black', 'bg-green-500'); // Đổi màu xanh lá báo thành công
+                
+                setTimeout(() => {
+                    this.innerHTML = originalHtml;
+                    this.classList.replace('bg-green-500', 'bg-black');
+                }, 2000);
 
-            document.querySelectorAll('.btn-add-cart-quick').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
+                if (data.success) {
+                    // Update số lượng giỏ hàng trên Header (Nếu có class này)
+                    const cartBadges = document.querySelectorAll('.bg-primary.text-black.rounded-full');
+                    cartBadges.forEach(badge => badge.innerText = data.cart_count);
                     
-                    const productId = this.getAttribute('data-product-id');
-                    const originalHtml = this.innerHTML;
-                    
-                    this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>';
-                    this.classList.add('pointer-events-none', 'opacity-70');
-
-                    fetch('{{ route("client.cart.add") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken
-                        },
-                        body: JSON.stringify({
-                            product_id: productId,
-                            variant_id: '',
-                            quantity: 1
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        this.innerHTML = '<span class="material-symbols-outlined text-[20px]">check</span>';
-                        this.classList.remove('pointer-events-none', 'opacity-70');
-                        this.classList.replace('bg-black', 'bg-green-500'); 
-                        
-                        setTimeout(() => {
-                            this.innerHTML = originalHtml;
-                            this.classList.replace('bg-green-500', 'bg-black');
-                        }, 2000);
-
-                        if (data.success) {
-                            const cartBadges = document.querySelectorAll('.bg-primary.text-black.rounded-full');
-                            cartBadges.forEach(badge => badge.innerText = data.cart_count);
-                            alert('Đã thêm sản phẩm vào giỏ hàng!');
-                        } else {
-                            alert(data.message);
-                        }
-                    })
-                    .catch(error => {
-                        this.innerHTML = originalHtml;
-                        this.classList.remove('pointer-events-none', 'opacity-70');
-                        alert('Có lỗi xảy ra, vui lòng thử lại!');
-                    });
-                });
+                    alert('Đã thêm sản phẩm vào giỏ hàng!');
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                this.innerHTML = originalHtml;
+                this.classList.remove('pointer-events-none', 'opacity-70');
+                alert('Có lỗi xảy ra, vui lòng thử lại!');
             });
         });
-    </script>
+    });
+});
+</script>
 @endsection

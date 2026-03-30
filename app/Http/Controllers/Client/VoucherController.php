@@ -50,12 +50,10 @@ class VoucherController extends Controller
 
         // 3. Nếu user ĐÃ ĐĂNG NHẬP, lấy ra danh sách ID voucher họ đã lưu
         if (Auth::check()) {
-
             $savedVoucherIds = $user
                 ->userVouchers()
-                ->pluck('voucher_id') // Chỉ lấy cột ID
+                ->pluck('vouchers.id') // Chỉ lấy cột ID
                 ->toArray(); // Chuyển về mảng phẳng [1, 2, 3]
-
         }
         return view('client.vouchers.index')->with([
             'vouchers' => $vouchers,
@@ -72,26 +70,24 @@ class VoucherController extends Controller
     }
 
 
-   public function saveVoucher($id)
+    public function saveVoucher($id)
     {
         $user = User::find(Auth::id());
 
         if ($user) {
-            // KIỂM TRA: Nếu user đã lưu (hoặc đã đổi bằng điểm) voucher này rồi thì chặn lại
-            $exists = \Illuminate\Support\Facades\DB::table('user_vouchers')
-                        ->where('user_id', $user->id)
-                        ->where('voucher_id', $id)
-                        ->exists();
+            // KIỂM TRA: Nếu user đã lưu voucher này rồi thì không lưu đè nữa
+            $exists = $user->userVouchers()->where('voucher_id', $id)->exists();
 
             if ($exists) {
-                return back()->with('error', 'Bạn đã lưu voucher này rồi! Hãy vào kho Voucher để kiểm tra.');
+                return back()->with('error', 'Bạn đã lưu voucher này rồi!');
             }
 
             // Nếu chưa lưu -> Tiến hành lưu
             $user->userVouchers()->attach($id);
-            return back()->with('success', 'Lưu voucher thành công! Hãy vào Ví Voucher để kiểm tra.');
         } else {
-            return back()->with('error', 'Bạn cần phải đăng nhập để lưu ưu đãi.');
+            return back()->with('error', 'Bạn cần phải đăng nhập.');
         }
+
+        return back()->with('success', 'Lưu voucher thành công! Hãy vào Ví Voucher để kiểm tra.');
     }
 }

@@ -271,7 +271,7 @@
 
             <div class="divide-y divide-gray-100">
                 <!-- Order Item 1 -->
-                {{-- @foreach ($user->activityLogs()->latest()->take(3)->get() as $log)
+                @foreach ($user->activityLogs()->latest()->take(3)->get() as $log)
                     <div
                         class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-200 hover:bg-gray-50">
                         <div class="flex gap-4">
@@ -282,11 +282,12 @@
                                     @endif
                                 </h4>
                                 <p class="text-xs text-gray-500 mt-1">Ngày {{ $log->created_at->format('d/m/Y') }}</p>
+                                {{-- <p class="text-sm font-bold mt-1 text-[#f4c025]">34.990.000₫</p> --}}
                             </div>
                         </div>
 
                     </div>
-                @endforeach --}}
+                @endforeach
                 <!-- Order Item 2 -->
                 {{-- <div
                             class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-200 hover:bg-gray-50">

@@ -4,12 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
+
 class Order extends Model
 {
-        use LogsActivity;
-
     protected $fillable = [
         'order_code',
         'user_id',
@@ -36,7 +33,7 @@ class Order extends Model
         'payment_method',       // Đã thêm
         'payment_status',
     ];
-
+    
     protected $casts = [
         'ordered_at' => 'datetime',
         'cancelled_at' => 'datetime',
@@ -129,22 +126,5 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class)->orderBy('id');
-    }
-
-    public function statusHistories(): HasMany
-    {
-        return $this->hasMany(OrderStatusHistory::class)->orderByDesc('id');
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll()
-            ->useLogName('order')
-            ->logOnlyDirty();
     }
 }

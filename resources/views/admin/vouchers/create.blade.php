@@ -119,23 +119,13 @@
                                         <span class="text-red-600">{{ $message }}</span>
                                     @enderror
                                 </div>
-                                {{-- <div class="flex flex-col gap-2">
+                                <div class="flex flex-col gap-2">
                                     <label class="text-sm font-bold text-[#181611]">Giới hạn mỗi khách</label>
-                                    <input class="border-[#e6e3db] bg-gray-200 rounded-lg focus:ring-primary focus:border-primary" readonly
-                                        type="number" value="1"
+                                    <input class="border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary"
+                                        type="number" value="{{ old('usage_limit_per_user') }}"
                                         name="usage_limit_per_user" />
                                     @error('usage_limit_per_user')
                                         <span class="text-red-600">{{ $message }}</span>
-                                    @enderror
-                                </div> --}}
-                                <div class="flex flex-col gap-2">
-                                    <label class="text-sm font-bold text-[#181611]">Điểm đổi voucher </label>
-                                    <input class="border-[#e6e3db] rounded-lg focus:ring-primary focus:border-primary"
-                                        type="number" value="{{ old('points_required') }}" name="points_required"
-                                        placeholder="Để trống để miễn
-                                    phí" />
-                                    @error('points_required')
-                                        <span class="text-red-600 text-sm">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -169,76 +159,116 @@
                                     <span class="text-red-600">{{ $message }}</span>
                                 @enderror
                             </div>
-
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" id="allStore" name="status" checked value="1"
                                     class="accent-black">
                                 <span class="font-semibold">Trạng thái hoạt động</span>
                             </label>
-                            <div class="md:col-span-2 space-y-6">
+                            <div class="md:col-span-2 space-y-4">
 
-                                <label class="text-sm font-bold text-[#181611] block border-b pb-2">
+                                <label class="text-sm font-bold text-[#181611]">
                                     Đối tượng áp dụng
                                 </label>
 
-                                <div class="form-group">
-                                    <label for="categories" class="block text-sm font-semibold text-gray-700 mb-2">Theo
-                                        danh mục</label>
-                                    @if (!$categories->isEmpty())
-                                        <select name="categories[]" id="categories" class="select2-multiple w-full"
-                                            multiple="multiple" data-placeholder="Chọn danh mục áp dụng...">
-                                            @foreach ($categories as $category)
-                                                <option value="{{ $category->id }}"
-                                                    {{ in_array($category->id, old('categories', [])) ? 'selected' : '' }}>
-                                                    {{ $category->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    @else
-                                        <span class="text-sm text-red-500 italic block mt-1">Chưa có danh mục nào trong hệ
-                                            thống!</span>
-                                    @endif
+                                <!-- ================= DANH MỤC ================= -->
+                                <div class="border rounded-xl overflow-hidden">
+                                    <button type="button" onclick="toggleBox('categoryBox')"
+                                        class="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 font-semibold">
+                                        Theo danh mục
+                                        <span>+</span>
+                                    </button>
+
+                                    <div id="categoryBox" class="{{ old('categories') ? '' : 'hidden' }}  p-4 bg-white border-t">
+                                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+
+                                            @if (!$categories->isEmpty())
+                                                @foreach ($categories as $category)
+                                                    <label
+                                                        class="flex items-center gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                                        <input type="checkbox" name="categories[]"
+                                                            value="{{ $category->id }}" class="accent-black"
+                                                            {{ in_array($category->id, old('categories', [])) ? 'checked' : '' }}>
+
+                                                        {{ $category->name }}
+                                                    </label>
+                                                @endforeach
+                                            @else
+                                                <span class="text-red-500">Chưa có danh mục!</span>
+                                            @endif
+
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div class="form-group">
-                                    <label for="products" class="block text-sm font-semibold text-gray-700 mb-2">Theo sản
-                                        phẩm</label>
-                                    @if (!$products->isEmpty())
-                                        <select name="products[]" id="products" class="select2-multiple w-full"
-                                            multiple="multiple" data-placeholder="Chọn sản phẩm áp dụng...">
-                                            @foreach ($products as $product)
-                                                <option value="{{ $product->id }}"
-                                                    {{ in_array($product->id, old('products', [])) ? 'selected' : '' }}>
-                                                    {{ $product->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    @else
-                                        <span class="text-sm text-red-500 italic block mt-1">Chưa có sản phẩm nào trong hệ
-                                            thống!</span>
-                                    @endif
+                                <!-- ================= SẢN PHẨM ================= -->
+                                <div class="border rounded-xl overflow-hidden">
+                                    <button type="button" onclick="toggleBox('productBox')"
+                                        class="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 font-semibold">
+                                        Theo sản phẩm
+                                        <span>+</span>
+                                    </button>
+
+                                    <div id="productBox" class="{{ old('products') ? '' : 'hidden' }}  p-4 bg-white border-t">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            @if ($products->isEmpty())
+                                                <span class="text-red-500">Chưa có sản phẩm!</span>
+                                            @else
+                                                @foreach ($products as $product)
+                                                    <label
+                                                        class="flex items-center gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                                        <input type="checkbox" name="products[]"
+                                                            value="{{ $product->id }}"
+                                                            {{ in_array($product->id, old('products', [])) ? 'checked' : '' }}
+                                                            class="accent-black">
+
+                                                        {{ $product->name }}
+                                                    </label>
+                                                @endforeach
+                                            @endif
+
+
+
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div class="form-group">
-                                    <label for="brands" class="block text-sm font-semibold text-gray-700 mb-2">Theo
-                                        thương hiệu</label>
-                                    @if (!$brands->isEmpty())
-                                        <select name="brands[]" id="brands" class="select2-multiple w-full"
-                                            multiple="multiple" data-placeholder="Chọn thương hiệu áp dụng...">
-                                            @foreach ($brands as $brand)
-                                                <option value="{{ $brand->id }}"
-                                                    {{ in_array($brand->id, old('brands', [])) ? 'selected' : '' }}>
-                                                    {{ $brand->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    @else
-                                        <span class="text-sm text-red-500 italic block mt-1">Chưa có thương hiệu nào trong
-                                            hệ thống!</span>
-                                    @endif
+                                <!-- ================= THƯƠNG HIỆU ================= -->
+                                <div class="border rounded-xl overflow-hidden">
+                                    <button type="button" onclick="toggleBox('brandBox')"
+                                        class="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 font-semibold">
+                                        Theo thương hiệu
+                                        <span>+</span>
+                                    </button>
+
+                                    <div id="brandBox" class="{{ old('brands') ? '' : 'hidden' }}  p-4 bg-white border-t">
+                                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+
+
+                                            @if (!$brands->isEmpty())
+                                                @foreach ($brands as $brand)
+                                                    <label
+                                                        class="flex items-center gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                                        <input type="checkbox" name="brands[]"
+                                                            value="{{ $brand->id }}"
+                                                            {{ in_array($brand->id, old('brands', [])) ? 'checked' : '' }}
+                                                            class="accent-black">
+                                                        {{ $brand->name }}
+                                                    </label>
+                                                @endforeach
+                                            @else
+                                                <span class="text-red-500">Chưa có thương hiệu!</span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
 
                             </div>
+
+                            <script>
+                                function toggleBox(id) {
+                                    document.getElementById(id).classList.toggle("hidden");
+                                }
+                            </script>
                         </section>
                         <div class="flex justify-end gap-3 pt-4">
                             <button
@@ -329,27 +359,5 @@
                 document.getElementById('voucherCode').value = result;
             });
         </script>
-
     </div>
 @endsection
-@push('css')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-@endpush
-@push('js')
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('.select2-multiple').select2({
-                width: '100%', // Kéo dài bằng khung cha của Tailwind
-                allowClear: true, // Thêm dấu x để xóa nhanh các mục đã chọn
-                language: {
-                    noResults: function() {
-                        return "Không tìm thấy kết quả phù hợp";
-                    }
-                }
-            });
-        });
-    </script>
-@endpush
