@@ -19,7 +19,7 @@
         {{ session('status') }}
     </div>
     @endif
-
+    
     <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-4 lg:p-5">
         <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
             <div class="md:col-span-3">
@@ -56,7 +56,8 @@
                         <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Người đặt / Người nhận</th>
                         <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Ngày đặt</th>
                         <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide text-right">Tổng tiền</th>
-                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Thanh toán</th> <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Trạng thái</th>
+                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Thanh toán</th> 
+                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Trạng thái</th>
                         <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide text-right">Thao tác</th>
                     </tr>
                 </thead>
@@ -64,13 +65,13 @@
                     @forelse ($orders as $order)
                     @php
                     $statusClass = match($order->status) {
-                    \App\Models\Order::STATUS_PENDING => 'bg-slate-100 text-slate-700',
-                    \App\Models\Order::STATUS_PACKING => 'bg-amber-100 text-amber-700',
-                    \App\Models\Order::STATUS_SHIPPING => 'bg-blue-100 text-blue-700',
-                    \App\Models\Order::STATUS_DELIVERED => 'bg-emerald-100 text-emerald-700',
-                    \App\Models\Order::STATUS_RECEIVED => 'bg-green-100 text-green-700',
-                    \App\Models\Order::STATUS_CANCELLED => 'bg-red-100 text-red-700',
-                    default => 'bg-slate-100 text-slate-700',
+                        \App\Models\Order::STATUS_PENDING => 'bg-slate-100 text-slate-700',
+                        \App\Models\Order::STATUS_PACKING => 'bg-amber-100 text-amber-700',
+                        \App\Models\Order::STATUS_SHIPPING => 'bg-blue-100 text-blue-700',
+                        \App\Models\Order::STATUS_DELIVERED => 'bg-emerald-100 text-emerald-700',
+                        \App\Models\Order::STATUS_RECEIVED => 'bg-green-100 text-green-700',
+                        \App\Models\Order::STATUS_CANCELLED => 'bg-red-100 text-red-700',
+                        default => 'bg-slate-100 text-slate-700',
                     };
                     @endphp
                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
@@ -89,7 +90,9 @@
                         
                         <td class="px-5 py-4 align-top">
                             <p class="font-bold text-sm text-slate-900 dark:text-white uppercase">{{ $order->payment_method ?? 'COD' }}</p>
-                            @if(($order->payment_status ?? 'pending') == 'paid')
+                            
+                            {{-- LOGIC MỚI: Nếu payment_status = paid HOẶC đơn đã giao/đã nhận thì hiển thị "Đã thanh toán" --}}
+                            @if(($order->payment_status ?? 'pending') == 'paid' || in_array($order->status, [\App\Models\Order::STATUS_DELIVERED, \App\Models\Order::STATUS_RECEIVED]))
                                 <span class="inline-flex mt-1 text-[11px] px-2 py-0.5 rounded bg-green-100 text-green-700 font-bold">Đã thanh toán</span>
                             @else
                                 <span class="inline-flex mt-1 text-[11px] px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-bold">Chưa thanh toán</span>
@@ -108,7 +111,8 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-5 py-10 text-center"> <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Chưa có đơn hàng nào</p>
+                        <td colspan="7" class="px-5 py-10 text-center"> 
+                            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Chưa có đơn hàng nào</p>
                             <p class="text-xs text-slate-500 mt-1">Hãy seed dữ liệu hoặc tạo đơn hàng mới để bắt đầu.</p>
                         </td>
                     </tr>
