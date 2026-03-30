@@ -95,7 +95,7 @@
                             @elseif (!$isInactive)
                                 {{-- Nút Dùng ngay nếu còn hiệu lực --}}
                                 <a href="{{ route('client.products.index') }}"
-                                    class="flex-1 py-2 bg-purple-100 text-purple-700 border border-purple-200 font-bold rounded-lg text-sm hover:bg-purple-200 transition-colors text-center inline-block">
+                                    class="flex-1 py-2 bg-amber-500 text-white font-bold rounded-lg text-sm hover:bg-amber-600 transition-colors active:scale-95 shadow-sm text-center">
                                     Dùng ngay
                                 </a>
                             @else
