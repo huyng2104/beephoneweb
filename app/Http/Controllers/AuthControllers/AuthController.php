@@ -54,6 +54,14 @@ class AuthController extends Controller
 
         if (Auth::attempt($data)) {
             $request->session()->regenerate();
+            activity('auth')
+                ->causedBy($user) // Xác định người vừa đăng nhập
+                ->withProperties([
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(), // Lưu thông tin trình duyệt, thiết bị
+                    'status'     => 'success'
+                ])
+                ->log('Đăng nhập hệ thống thành công.');
             return redirect()->intended('/')->with(
                 [
                     'success' => 'Đăng nhập thành công'
@@ -92,7 +100,16 @@ class AuthController extends Controller
     }
     public function logOut(Request $request)
     {
-
+        $user = Auth::id();
+        if ($user) {
+        // Thực hiện ghi log
+        activity('auth')
+            ->causedBy($user)
+            ->withProperties([
+                'ip_address' => $request->ip(),
+            ])
+            ->log('Đã đăng xuất khỏi hệ thống.');
+    }
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

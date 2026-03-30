@@ -111,7 +111,7 @@
                         <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Đang hoạt động
                         </option>
                     </select>
-                     @if (request()->anyFilled(['search', 'status']))
+                    @if (request()->anyFilled(['search', 'status']))
                         <a href="{{ url()->current() }}"
                             class="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
                             <span class="material-symbols-outlined text-sm">close</span>
@@ -172,14 +172,25 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
+                                    {{-- 1. Hiển thị loại giảm giá --}}
                                     @if ($voucher->discount_type == 'fixed')
-                                        <span class="px-2 py-1 bg-purple-50 text-purple-600 text-xs font-bold rounded">Giảm
-                                            {{ number_format($voucher->discount_value, 0, ',', '.') }}đ
-                                        @else
-                                            <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded">Giảm
-                                                {{ $voucher->discount_value }}%</span>
+                                        <span class="px-2 py-1 bg-purple-50 text-purple-600 text-xs font-bold rounded">
+                                            Giảm {{ number_format($voucher->discount_value, 0, ',', '.') }}đ
+                                        </span> {{-- Đã bổ sung thẻ đóng span bị thiếu ở đây --}}
+                                    @else
+                                        <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded">
+                                            Giảm {{ $voucher->discount_value }}%
+                                        </span>
                                     @endif
-
+                                    <br>
+                                    {{-- 2. Hiển thị nhãn Quà tặng nếu cần đổi điểm --}}
+                                    @if ($voucher->points_required > 0)
+                                        {{-- Thêm class mt-2 và inline-block để nhãn rớt xuống dòng cho đẹp --}}
+                                        <span
+                                            class="inline-block mt-2 px-2 py-1 bg-orange-50 text-orange-600 text-xs font-bold rounded">
+                                            Đổi thưởng
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">

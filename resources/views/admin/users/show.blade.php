@@ -307,150 +307,224 @@
             </div>
 
             <div class="bg-white dark:bg-slate-900 rounded-xl p-6 mb-8 border border-primary/10 shadow-sm">
-                <div class="flex-1">
-                    <p class="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">Lịch sử hoạt động gần đây</p>
+    <div class="flex-1">
+        <div class="flex items-center justify-between mb-4">
+            <p class="text-sm font-bold text-slate-900 dark:text-slate-100">Lịch sử hoạt động của người dùng</p>
+            <span class="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-1 rounded-md dark:bg-blue-900/30 dark:text-blue-400">
+                Tổng: {{ $activities->total() }} bản ghi
+            </span>
+        </div>
 
-                    <div class="space-y-6">
+        @if($activities->isEmpty())
+            <div class="text-center py-8 text-slate-500">
+                <span class="material-symbols-outlined text-4xl mb-2 opacity-50">history</span>
+                <p>Người dùng này chưa có hoạt động nào.</p>
+            </div>
+        @else
+            <div class="space-y-6">
+                @foreach ($activities as $activity)
+                    @php
+                        // 1. Dùng SWITCH để gán Class và Tên hiển thị
+                        $badge_class = '';
+                        $log_name_display = '';
 
-                        @foreach ($activities as $activitie)
-                            @php
-                    // 1. Phân loại màu sắc Badge
-                    $badge_class = match ($activitie->log_name) {
-                        'voucher' => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-                        'user' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-                        'product' => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                        'order' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-                        default => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
-                    };
+                        switch ($activity->log_name) {
+                            case 'voucher':
+                                $badge_class = 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+                                $log_name_display = 'MÃ GIẢM GIÁ';
+                                break;
+                            case 'user':
+                                $badge_class = 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+                                $log_name_display = 'NGƯỜI DÙNG';
+                                break;
+                            case 'product':
+                                $badge_class = 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+                                $log_name_display = 'SẢN PHẨM';
+                                break;
+                            case 'order':
+                                $badge_class = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+                                $log_name_display = 'ĐƠN HÀNG';
+                                break;
+                            case 'auth':
+                                $badge_class = 'bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-300';
+                                $log_name_display = 'BẢO MẬT';
+                                break;
+                            case 'post category':
+                                $badge_class = 'bg-pink-100 text-pink-700 dark:bg-pink-800 dark:text-pink-300';
+                                $log_name_display = 'Danh mục BV';
+                                break;
+                            default:
+                                $badge_class = 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
+                                $log_name_display = strtoupper($activity->log_name ?? 'HỆ THỐNG');
+                                break;
+                        }
 
-                    // 2. Dịch hành động tiếng Việt
-                    $action_text = match ($activitie->description) {
-                        'created' => 'đã thêm mới',
-                        'updated' => 'đã cập nhập',
-                        'deleted' => 'đã xóa ',
-                        default => $activitie->description,
-                    };
+                        // 2. Dùng SWITCH xử lý hành động
+                        $action_text = '';
+                        switch ($activity->description) {
+                            case 'created':
+                                $action_text = 'đã thêm mới';
+                                break;
+                            case 'updated':
+                                $action_text = 'đã cập nhật';
+                                break;
+                            case 'deleted':
+                                $action_text = 'đã xóa';
+                                break;
+                            default:
+                                $action_text = $activity->description;
+                                break;
+                        }
 
-                    // 3. Cá nhân hóa người dùng ("Bạn" hoặc Tên)
-                    $isMe = auth()->check() && $activitie->causer_id === auth()->id();
-                    $causer_name = $isMe ? 'Bạn' : $activitie->causer?->name ?? 'Hệ thống';
+                        // 3. Lấy tên đối tượng (Subject) để Admin biết User thao tác lên cái gì
+                        $new_attributes = $activity->properties['attributes'] ?? [];
+                        $old_attributes = $activity->properties['old'] ?? [];
 
-                    // 4. Đọc dữ liệu Cũ & Mới từ mảng properties JSON
-                            $new_attributes = $activitie->properties['attributes'] ?? [];
-                            $old_attributes = $activitie->properties['old'] ?? [];
+                        $subject_display =
+                            $activity->subject?->name ??
+                            $activity->subject?->code ??
+                            $activity->subject?->order_code ??
+                            ($new_attributes['name'] ??
+                            ($new_attributes['code'] ??
+                            ($old_attributes['name'] ??
+                            ($old_attributes['code'] ?? null))));
 
-                            // 🔥 Độ ưu tiên lấy tên: Tìm DB Thật -> Tìm mảng Mới (New JSON) -> Tìm mảng Cũ (Old JSON khi Xóa)
-                            $subject_display =
-                                $activitie->subject?->name ??
-                                ($activitie->subject?->code ??
-                                    ($activitie->subject?->order_code ??
-                                        ($new_attributes['order_code'] ??
-                                            ($new_attributes['code'] ??
-                                                ($new_attributes['name'] ??
-                                                    ($old_attributes['order_code'] ?? // 👈 Fallback cho khi bị Xóa
-                                                        ($old_attributes['code'] ??
-                                                            ($old_attributes['name'] ?? null))))))));
-                                                // 5. Gom nhóm các trường thay đổi
-                                                $changed_fields = [];
-                                                if ($activitie->description === 'updated') {
-                                                    foreach ($new_attributes as $key => $newValue) {
-                                                        if (!in_array($key, ['created_at', 'updated_at', 'deleted_at'])) {
-                                                            $oldValue = $old_attributes[$key] ?? null;
+                        // 4. Lọc dữ liệu thay đổi / bị xóa
+                        $changed_fields = [];
+                        $deleted_fields = [];
+                        $ignored_keys = ['id', 'created_at', 'updated_at', 'deleted_at', 'remember_token', 'password'];
 
-                                                            if ($oldValue !== $newValue) {
-                                                                $changed_fields[$key] = [
-                                                                    'old' => $oldValue,
-                                                                    'new' => $newValue,
-                                                                ];
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                 @endphp
+                        if ($activity->description === 'updated') {
+                            foreach ($new_attributes as $key => $newValue) {
+                                if (!in_array($key, $ignored_keys)) {
+                                    $oldValue = $old_attributes[$key] ?? null;
+                                    if ($oldValue !== $newValue) {
+                                        $changed_fields[$key] = ['old' => $oldValue, 'new' => $newValue];
+                                    }
+                                }
+                            }
+                        } elseif ($activity->description === 'deleted') {
+                            foreach ($old_attributes as $key => $oldValue) {
+                                if (!in_array($key, $ignored_keys)) {
+                                    $deleted_fields[$key] = $oldValue;
+                                }
+                            }
+                        }
+                    @endphp
 
-                            <div class="relative pl-6 border-l-2 border-slate-200 dark:border-slate-700 ml-3">
-                                <span
-                                    class="absolute -left-[9px] top-4 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-slate-900 border-2 border-blue-500">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-                                </span>
+                    <div class="relative pl-6 border-l-2 border-slate-200 dark:border-slate-700 ml-3">
+                        <span class="absolute -left-[9px] top-4 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-slate-900 border-2 border-slate-400">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                        </span>
 
-                                <div
-                                    class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
-                                    <div
-                                        class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-700">
-                                        <div class="flex items-center gap-2">
-                                            <span class="px-2.5 py-0.5 text-xs font-bold rounded-full {{ $badge_class }}">
-                                                {{ strtoupper($activitie->log_name ?? 'HỆ THỐNG') }}
-                                            </span>
+                        <div class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
+                            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-700">
+                                <div class="flex items-center gap-2">
+                                    {{-- Huy hiệu chức năng --}}
+                                    <span class="px-2.5 py-0.5 text-xs font-bold rounded-full {{ $badge_class }}">
+                                        {{ $log_name_display }}
+                                    </span>
 
-                                            <span class="text-sm text-slate-600 dark:text-slate-300">
-                                                <strong
-                                                    class="{{ $isMe ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white' }}">
-                                                    {{ $causer_name }}
-                                                </strong>
-                                                {{ $action_text }}
-                                                <span class="font-bold text-slate-800 dark:text-white">
-                                                    {{ $subject_display ? $subject_display : "ID: {$activitie->subject_id}" }}
-                                                </span>
-                                            </span>
-                                        </div>
+                                    <span class="text-sm text-slate-600 dark:text-slate-300">
+                                        {{-- Mô tả hành động --}}
+                                        <span class="{{ $activity->description === 'deleted' ? 'text-red-600 dark:text-red-400' : '' }}">
+                                            {{ $action_text }}
+                                        </span>
 
-                                        <div class="text-right whitespace-nowrap">
-                                            <div class="text-xs font-bold text-slate-600 dark:text-slate-400">
-                                                {{ $activitie->created_at->format('H:i') }}
-                                            </div>
-                                            <div class="text-[10px] text-slate-400">
-                                                {{ $activitie->created_at->format('d/m/Y') }}
-                                            </div>
-                                        </div>
+                                        {{-- Tên đối tượng tác động --}}
+                                        @if($subject_display)
+                                            <strong class="text-slate-900 dark:text-white ml-1">
+                                                {{ $subject_display }}
+                                            </strong>
+                                        @elseif($activity->subject_id)
+                                            <strong class="text-slate-900 dark:text-white ml-1">
+                                                ID: {{ $activity->subject_id }}
+                                            </strong>
+                                        @endif
+                                    </span>
+                                </div>
+
+                                <div class="text-right whitespace-nowrap">
+                                    <div class="text-xs font-bold text-slate-600 dark:text-slate-400">
+                                        {{ $activity->created_at->format('H:i') }}
                                     </div>
-
-                                    {{-- Bảng thay đổi dữ liệu --}}
-                                    @if ($activitie->description === 'updated' && !empty($changed_fields))
-                                        <div class="mt-3 space-y-2">
-                                            <div class="text-xs font-semibold text-slate-500 mb-1">Dữ liệu thay đổi:</div>
-
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                                @foreach ($changed_fields as $field => $data)
-                                                    <div
-                                                        class="p-2 border border-slate-100 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 flex flex-col justify-center text-xs">
-                                                        <div
-                                                            class="font-bold text-slate-700 dark:text-slate-300 mb-1 truncate">
-                                                            📋 {{ strtoupper($field) }}
-                                                        </div>
-                                                        <div class="flex items-center gap-2 flex-wrap">
-                                                            <span
-                                                                class="line-through decoration-red-400 text-slate-400 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded">
-                                                                {{ is_array($data['old']) ? json_encode($data['old']) : $data['old'] ?? 'Trống' }}
-                                                            </span>
-
-                                                            <span class="text-slate-400">➔</span>
-
-                                                            <span
-                                                                class="text-green-700 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded">
-                                                                {{ is_array($data['new']) ? json_encode($data['new']) : $data['new'] ?? 'Trống' }}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    @endif
+                                    <div class="text-[10px] text-slate-400">
+                                        {{ $activity->created_at->format('d/m/Y') }}
+                                    </div>
                                 </div>
                             </div>
-                        @endforeach
 
-                    </div>
+                            {{-- Hiển thị thông tin bảo mật (Nếu log auth) --}}
+                            @if($activity->log_name === 'auth' && isset($activity->properties['ip_address']))
+                                <div class="mt-2 text-xs text-slate-500 flex gap-3">
+                                    <span>🌐 IP: {{ $activity->properties['ip_address'] }}</span>
+                                    @if(isset($activity->properties['user_agent']))
+                                        <span class="truncate max-w-[200px] md:max-w-md">💻 Thiết bị: {{ $activity->properties['user_agent'] }}</span>
+                                    @endif
+                                </div>
+                            @endif
 
-                    {{-- Phân trang --}}
-                    @if ($activities->hasPages())
-                        <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-                            {{ $activities->links() }}
+                            {{-- Bảng thay đổi dữ liệu (Khi CẬP NHẬT) --}}
+                            @if ($activity->description === 'updated' && !empty($changed_fields))
+                                <div class="mt-3 space-y-2">
+                                    <div class="text-xs font-semibold text-slate-500 mb-1">Dữ liệu thay đổi:</div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        @foreach ($changed_fields as $field => $data)
+                                            <div class="p-2 border border-slate-100 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 flex flex-col justify-center text-xs">
+                                                <div class="font-bold text-slate-700 dark:text-slate-300 mb-1 truncate">
+                                                    📋 {{ strtoupper($field) }}
+                                                </div>
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <span class="line-through decoration-red-400 text-slate-400 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded truncate max-w-[150px]">
+                                                        {{ is_array($data['old']) ? 'Mảng dữ liệu' : ($data['old'] ?: 'Trống') }}
+                                                    </span>
+                                                    <span class="text-slate-400">➔</span>
+                                                    <span class="text-green-700 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded truncate max-w-[150px]">
+                                                        {{ is_array($data['new']) ? 'Mảng dữ liệu' : ($data['new'] ?: 'Trống') }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- Bảng dữ liệu bị mất (Khi XÓA) --}}
+                            @if ($activity->description === 'deleted' && !empty($deleted_fields))
+                                <div class="mt-3 space-y-2">
+                                    <div class="text-xs font-semibold text-red-500 mb-1">Dữ liệu đã xóa:</div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        @foreach ($deleted_fields as $field => $value)
+                                            <div class="p-2 border border-red-100 dark:border-red-900/30 rounded-lg bg-red-50 dark:bg-red-900/10 flex flex-col justify-center text-xs">
+                                                <div class="font-bold text-slate-700 dark:text-slate-300 mb-1 truncate">
+                                                    🗑️ {{ strtoupper($field) }}
+                                                </div>
+                                                <div class="flex items-center">
+                                                    <span class="line-through decoration-red-400 text-slate-500 px-1 py-0.5 rounded truncate max-w-full">
+                                                        {{ is_array($value) ? 'Mảng dữ liệu' : ($value ?: 'Trống') }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
                         </div>
-                    @endif
-
-                </div>
+                    </div>
+                @endforeach
             </div>
+
+            {{-- Phân trang paginate(5) của bạn --}}
+            @if ($activities->hasPages())
+                <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    {{ $activities->links() }}
+                </div>
+            @endif
+        @endif
+
+    </div>
+</div>
         </main>
         @if (session('new_password'))
             <div id="password-modal"
