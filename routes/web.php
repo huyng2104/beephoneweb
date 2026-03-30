@@ -264,3 +264,7 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::post('/points/settings', [PointController::class, 'updateSettings'])->name('points.settings.update');
     });
 });
+// Public product routes and comment endpoints
+Route::get('/products/{product}', [ClientProductController::class, 'show'])->name('products.show');
+Route::post('/products/{product}/comments', [CommentController::class, 'store'])->name('products.comments.store');
+
