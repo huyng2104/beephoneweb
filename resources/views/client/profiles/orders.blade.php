@@ -18,27 +18,37 @@
             $returnClasses = [
                 \App\Models\Order::RETURN_NONE => 'text-slate-600 bg-slate-100',
                 \App\Models\Order::RETURN_REQUESTED => 'text-amber-700 bg-amber-100',
-                \App\Models\Order::RETURN_CONFIRMED => 'text-green-700 bg-green-100',
+                \App\Models\Order::RETURN_APPROVED => 'text-blue-700 bg-blue-100',
+                \App\Models\Order::RETURN_REJECTED => 'text-red-700 bg-red-100',
+                \App\Models\Order::RETURN_CUSTOMER_SHIPPED => 'text-indigo-700 bg-indigo-100',
+                \App\Models\Order::RETURN_RECEIVED => 'text-cyan-700 bg-cyan-100',
+                \App\Models\Order::RETURN_REFUNDED => 'text-green-700 bg-green-100',
             ];
         @endphp
 
-        @if(!empty($reviewOrder) && $reviewOrder->items && $reviewOrder->items->count())
+        @if (!empty($reviewOrder) && $reviewOrder->items && $reviewOrder->items->count())
             <div id="review-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4">
-                <div class="w-full max-w-4xl max-h-[86vh] overflow-y-auto rounded-3xl bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 shadow-2xl">
-                    <div class="sticky top-0 z-10 flex items-center justify-between gap-4 px-6 py-4 bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur border-b border-gray-100 dark:border-white/10">
+                <div class="max-h-[86vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-gray-100 bg-white shadow-2xl dark:border-white/10 dark:bg-[#1a1a1a]">
+                    <div class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-gray-100 bg-white/90 px-6 py-4 backdrop-blur dark:border-white/10 dark:bg-[#1a1a1a]/90">
                         <div>
-                            <h2 class="text-lg sm:text-xl font-black text-[#181611] dark:text-white">Đánh giá sản phẩm</h2>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                Sau khi đánh giá xong, đánh giá sẽ hiển thị ở phần comment của sản phẩm và được gắn tag <span class="font-black text-[#f4c025]">Đã mua</span>.
+                            <h2 class="text-lg font-black text-[#181611] dark:text-white sm:text-xl">Đánh giá sản phẩm</h2>
+                            <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                Sau khi đánh giá xong, đánh giá sẽ hiển thị ở phần bình luận của sản phẩm và được gắn tag
+                                <span class="font-black text-[#f4c025]">Đã mua</span>.
                             </p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <a href="{{ route('client.orders.index', ['skip_review' => 1]) }}"
-                                class="px-4 h-10 inline-flex items-center justify-center rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-[#f4c025] hover:text-[#f4c025] text-sm font-black transition-colors">
+                            <a
+                                href="{{ route('client.orders.index', ['skip_review' => 1]) }}"
+                                class="inline-flex h-10 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-4 text-sm font-black transition-colors hover:border-[#f4c025] hover:text-[#f4c025] dark:border-white/10 dark:bg-white/5"
+                            >
                                 Bỏ qua
                             </a>
-                            <button type="button" id="review-modal-close"
-                                class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-[#f4c025] transition-colors">
+                            <button
+                                type="button"
+                                id="review-modal-close"
+                                class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 transition-colors hover:border-[#f4c025] dark:border-white/10 dark:bg-white/5"
+                            >
                                 <span class="material-symbols-outlined text-[22px] text-gray-700 dark:text-gray-200">close</span>
                             </button>
                         </div>
@@ -50,19 +60,19 @@
                         </div>
 
                         <div class="mt-5 space-y-5">
-                            @foreach($reviewOrder->items as $item)
-                                @php $p = $item->product; @endphp
-                                @if($p)
-                                    @php $productParam = $p->slug ?: $p->id; @endphp
-                                    <div class="rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50/60 dark:bg-white/5 p-5">
-                                        <div class="flex gap-4 items-start">
-                                            <div class="w-20 h-20 rounded-2xl overflow-hidden bg-white dark:bg-black/20 border border-gray-100 dark:border-white/10 shrink-0">
-                                                <img src="{{ asset('storage/' . ($p->thumbnail ?? '')) }}" alt="{{ $p->name }}" class="w-full h-full object-cover">
+                            @foreach ($reviewOrder->items as $item)
+                                @php $product = $item->product; @endphp
+                                @if ($product)
+                                    @php $productParam = $product->slug ?: $product->id; @endphp
+                                    <div class="rounded-2xl border border-gray-100 bg-gray-50/60 p-5 dark:border-white/10 dark:bg-white/5">
+                                        <div class="flex items-start gap-4">
+                                            <div class="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:border-white/10 dark:bg-black/20">
+                                                <img src="{{ asset('storage/' . ($product->thumbnail ?? '')) }}" alt="{{ $product->name }}" class="h-full w-full object-cover">
                                             </div>
                                             <div class="min-w-0 flex-1">
-                                                <div class="flex items-start justify-between gap-3 flex-wrap">
+                                                <div class="flex flex-wrap items-start justify-between gap-3">
                                                     <div class="min-w-0">
-                                                        <p class="font-black text-[#181611] dark:text-white line-clamp-2">{{ $item->product_name ?? $p->name }}</p>
+                                                        <p class="line-clamp-2 font-black text-[#181611] dark:text-white">{{ $item->product_name ?? $product->name }}</p>
                                                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Số lượng: {{ $item->quantity }}</p>
                                                     </div>
                                                     <a href="{{ route('client.product.detail', ['slug' => $productParam]) }}#comments" class="text-sm font-black text-[#f4c025] hover:underline">
@@ -70,32 +80,32 @@
                                                     </a>
                                                 </div>
 
-                                                <form action="{{ route('products.comments.store', $p) }}" method="POST" enctype="multipart/form-data" class="mt-4 grid gap-3">
+                                                <form action="{{ route('products.comments.store', $product) }}" method="POST" enctype="multipart/form-data" class="mt-4 grid gap-3">
                                                     @csrf
                                                     <input type="hidden" name="redirect_to" value="/don-mua">
 
                                                     <div class="grid gap-3 sm:grid-cols-2">
                                                         <div>
                                                             <label class="block text-xs font-bold text-gray-500 dark:text-gray-400">Số sao</label>
-                                                            <select name="rating" class="mt-1 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 px-4 py-3 text-sm text-[#181611] dark:text-white">
+                                                            <select name="rating" class="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-[#181611] dark:border-white/10 dark:bg-black/20 dark:text-white">
                                                                 <option value="">Chọn</option>
-                                                                @for($i=5;$i>=1;$i--)
+                                                                @for ($i = 5; $i >= 1; $i--)
                                                                     <option value="{{ $i }}">{{ $i }} sao</option>
                                                                 @endfor
                                                             </select>
                                                         </div>
                                                         <div>
                                                             <label class="block text-xs font-bold text-gray-500 dark:text-gray-400">Ảnh (tùy chọn)</label>
-                                                            <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" class="mt-1 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 px-4 py-3 text-sm text-gray-600 dark:text-gray-300 file:mr-4 file:rounded-lg file:border-0 file:bg-[#f4c025]/30 file:px-4 file:py-2 file:text-xs file:font-black file:text-[#181611] hover:file:bg-[#f4c025]/40">
+                                                            <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" class="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-[#f4c025]/30 file:px-4 file:py-2 file:text-xs file:font-black file:text-[#181611] hover:file:bg-[#f4c025]/40 dark:border-white/10 dark:bg-black/20 dark:text-gray-300">
                                                         </div>
                                                     </div>
 
                                                     <div>
                                                         <label class="block text-xs font-bold text-gray-500 dark:text-gray-400">Nội dung</label>
-                                                        <textarea name="content" rows="3" required class="mt-1 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 px-4 py-3 text-sm text-[#181611] dark:text-white" placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
+                                                        <textarea name="content" rows="3" required class="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-[#181611] dark:border-white/10 dark:bg-black/20 dark:text-white" placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
                                                     </div>
 
-                                                    <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-[#f4c025] px-6 py-3 text-sm font-black text-black hover:brightness-105 active:scale-95 transition-all shadow-[0_14px_30px_-14px_rgba(244,192,37,0.45)]">
+                                                    <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-[#f4c025] px-6 py-3 text-sm font-black text-black shadow-[0_14px_30px_-14px_rgba(244,192,37,0.45)] transition-all hover:brightness-105 active:scale-95">
                                                         GỬI ĐÁNH GIÁ
                                                     </button>
                                                 </form>
@@ -127,10 +137,10 @@
             </script>
         @endif
 
-        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-white/10 pb-4">
+        <div class="mb-6 flex flex-col justify-between gap-4 border-b border-gray-100 pb-4 dark:border-white/10 sm:flex-row sm:items-center">
             <div>
                 <h1 class="text-2xl font-bold uppercase tracking-tight text-[#181611] dark:text-white">Lịch sử đơn hàng</h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Quản lý, theo dõi đơn hàng và gửi yêu cầu hoàn hàng khi cần.</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Theo dõi đơn hàng và xử lý luồng hoàn hàng theo từng bước.</p>
             </div>
         </div>
 
@@ -163,6 +173,12 @@
                         $statusClass = $statusClasses[$order->status] ?? 'text-slate-700 bg-slate-100';
                         $returnClass = $returnClasses[$order->return_status] ?? 'text-slate-700 bg-slate-100';
                         $totalAmount = $order->total_amount ?? $order->total_price ?? 0;
+                        $returnImageUrl = null;
+                        if ($order->return_image) {
+                            $returnImageUrl = \Illuminate\Support\Str::startsWith($order->return_image, ['http://', 'https://', 'uploads/'])
+                                ? asset($order->return_image)
+                                : asset('storage/' . $order->return_image);
+                        }
                     @endphp
 
                     <div class="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-colors hover:border-[#f4c025] dark:border-white/10 dark:bg-white/5">
@@ -196,7 +212,7 @@
                                         : 'https://placehold.co/160x160?text=Bee+Phone';
                                 @endphp
                                 <div class="flex items-center gap-4">
-                                    <div class="h-20 w-20 flex-shrink-0 rounded-xl border border-gray-100 bg-gray-50 p-2 dark:border-white/5 dark:bg-black/20">
+                                    <div class="h-20 w-20 shrink-0 rounded-xl border border-gray-100 bg-gray-50 p-2 dark:border-white/5 dark:bg-black/20">
                                         <img src="{{ $imageUrl }}" alt="{{ $item->product_name }}" class="h-full w-full object-contain">
                                     </div>
                                     <div class="flex-grow">
@@ -212,16 +228,55 @@
                             @endforeach
                         </div>
 
-                        @if ($order->return_note)
-                            <div class="mx-6 mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                                <span class="font-semibold">Lý do/ghi chú hoàn hàng:</span> {{ $order->return_note }}
+                        @if ($order->return_note || $order->return_image || $order->return_admin_note)
+                            <div class="mx-6 mb-4 space-y-2">
+                                @if ($order->return_note)
+                                    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                                        <span class="font-semibold">Lý do khách hoàn hàng:</span>
+                                        {{ $order->return_note }}
+                                    </div>
+                                @endif
+
+                                @if ($order->return_image && $returnImageUrl)
+                                    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                                        <span class="mb-2 block font-semibold">Ảnh khách gửi kèm:</span>
+                                        <a href="{{ $returnImageUrl }}" target="_blank" rel="noopener" class="inline-block">
+                                            <img src="{{ $returnImageUrl }}" alt="Ảnh hoàn hàng {{ $order->order_code }}" class="h-24 w-24 rounded-lg border border-amber-200 object-cover">
+                                        </a>
+                                    </div>
+                                @endif
+
+                                @if ($order->return_admin_note)
+                                    <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                                        <span class="font-semibold">Phản hồi của cửa hàng:</span>
+                                        {{ $order->return_admin_note }}
+                                    </div>
+                                @endif
                             </div>
                         @endif
 
                         <div class="flex flex-wrap items-start justify-between gap-4 border-t border-gray-100 px-6 py-4 dark:border-white/10">
-                            <div>
-                                <span class="text-sm text-gray-500">Thành tiền:</span>
-                                <span class="ml-2 text-xl font-black text-red-500">{{ number_format($totalAmount, 0, ',', '.') }}₫</span>
+                            <div class="space-y-1">
+                                <div>
+                                    <span class="text-sm text-gray-500">Thành tiền:</span>
+                                    <span class="ml-2 text-xl font-black text-red-500">{{ number_format($totalAmount, 0, ',', '.') }}₫</span>
+                                </div>
+
+                                @if ($order->return_requested_at)
+                                    <p class="text-xs text-gray-500">Gửi yêu cầu: {{ $order->return_requested_at->format('d/m/Y H:i') }}</p>
+                                @endif
+                                @if ($order->return_approved_at)
+                                    <p class="text-xs text-gray-500">Admin duyệt: {{ $order->return_approved_at->format('d/m/Y H:i') }}</p>
+                                @endif
+                                @if ($order->return_shipped_at)
+                                    <p class="text-xs text-gray-500">Bạn gửi hàng hoàn: {{ $order->return_shipped_at->format('d/m/Y H:i') }}</p>
+                                @endif
+                                @if ($order->return_received_at)
+                                    <p class="text-xs text-gray-500">Cửa hàng nhận hàng hoàn: {{ $order->return_received_at->format('d/m/Y H:i') }}</p>
+                                @endif
+                                @if ($order->return_refunded_at)
+                                    <p class="text-xs text-gray-500">Hoàn ví: {{ $order->return_refunded_at->format('d/m/Y H:i') }}</p>
+                                @endif
                             </div>
 
                             <div class="flex max-w-full flex-wrap justify-end gap-3">
@@ -239,20 +294,27 @@
                                     <form action="{{ route('client.orders.confirm', $order->id) }}" method="POST" class="inline">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="rounded-lg bg-green-500 px-6 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-green-600" onclick="return confirm('Bạn xác nhận đã nhận được hàng và sản phẩm không có vấn đề gì?')">
+                                        <button type="submit" class="rounded-lg bg-green-500 px-6 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-green-600" onclick="return confirm('Bạn xác nhận đã nhận được hàng?')">
                                             Đã nhận được hàng
                                         </button>
                                     </form>
                                 @endif
 
                                 @if ($order->canRequestReturn())
-                                    <form action="{{ route('client.orders.return', $order->id) }}" method="POST" class="w-full rounded-xl border border-amber-200 bg-amber-50 p-4 sm:min-w-[320px]">
+                                    <form action="{{ route('client.orders.return', $order->id) }}" method="POST" enctype="multipart/form-data" class="w-full rounded-xl border border-amber-200 bg-amber-50 p-4 sm:min-w-[340px]">
                                         @csrf
                                         @method('PATCH')
                                         <label for="return_note_{{ $order->id }}" class="mb-2 block text-sm font-semibold text-amber-900">
                                             Yêu cầu hoàn hàng
                                         </label>
-                                        <textarea id="return_note_{{ $order->id }}" name="return_note" rows="3" class="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-amber-400 focus:outline-none focus:ring-0" placeholder="Mô tả lý do hoàn hàng, tình trạng sản phẩm, phụ kiện đi kèm..." required>{{ old('return_note') }}</textarea>
+                                        <textarea id="return_note_{{ $order->id }}" name="return_note" rows="3" class="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-amber-400 focus:outline-none focus:ring-0" placeholder="Nhập lý do hoàn hàng, tình trạng máy, phụ kiện đi kèm..." required>{{ old('return_note') }}</textarea>
+                                        <div class="mt-3">
+                                            <label for="return_image_{{ $order->id }}" class="mb-2 block text-sm font-semibold text-amber-900">
+                                                Ảnh sản phẩm cần hoàn
+                                            </label>
+                                            <input id="return_image_{{ $order->id }}" type="file" name="return_image" accept=".jpg,.jpeg,.png,.webp" class="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-800" required>
+                                            <p class="mt-1 text-xs text-amber-700">Bắt buộc tải ảnh để admin xem xét tình trạng sản phẩm.</p>
+                                        </div>
                                         <div class="mt-3 flex justify-end">
                                             <button type="submit" class="rounded-lg bg-amber-500 px-5 py-2 text-sm font-semibold text-black transition hover:bg-amber-400">
                                                 Gửi yêu cầu
@@ -260,12 +322,35 @@
                                         </div>
                                     </form>
                                 @elseif ($order->return_status === \App\Models\Order::RETURN_REQUESTED)
-                                    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                                        Yêu cầu hoàn hàng đã được gửi lúc {{ optional($order->return_requested_at)->format('d/m/Y H:i') ?? 'gần đây' }}.
+                                    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 sm:min-w-[320px]">
+                                        Yêu cầu hoàn hàng đã được gửi. Cửa hàng đang xem xét và sẽ phản hồi sớm.
                                     </div>
-                                @elseif ($order->return_status === \App\Models\Order::RETURN_CONFIRMED)
-                                    <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                                        Cửa hàng đã xác nhận hoàn hàng lúc {{ optional($order->return_confirmed_at)->format('d/m/Y H:i') ?? 'gần đây' }}.
+                                @elseif ($order->return_status === \App\Models\Order::RETURN_APPROVED)
+                                    <div class="space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 sm:min-w-[340px]">
+                                        <p>Yêu cầu đã được duyệt. Bạn hãy gửi hàng lại cho cửa hàng, sau đó bấm xác nhận bên dưới.</p>
+                                        <form action="{{ route('client.orders.return.shipped', $order->id) }}" method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="rounded-lg bg-blue-600 px-5 py-2 font-semibold text-white transition hover:bg-blue-700">
+                                                Tôi đã gửi hàng hoàn
+                                            </button>
+                                        </form>
+                                    </div>
+                                @elseif ($order->return_status === \App\Models\Order::RETURN_REJECTED)
+                                    <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 sm:min-w-[320px]">
+                                        Yêu cầu hoàn hàng đã bị từ chối. Bạn xem phản hồi của cửa hàng ở phía trên.
+                                    </div>
+                                @elseif ($order->return_status === \App\Models\Order::RETURN_CUSTOMER_SHIPPED)
+                                    <div class="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-700 sm:min-w-[320px]">
+                                        Bạn đã báo gửi hàng hoàn. Cửa hàng đang chờ nhận lại sản phẩm để kiểm tra.
+                                    </div>
+                                @elseif ($order->return_status === \App\Models\Order::RETURN_RECEIVED)
+                                    <div class="rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-700 sm:min-w-[320px]">
+                                        Cửa hàng đã nhận hàng hoàn và đang chờ hoàn tiền vào ví Bee Pay.
+                                    </div>
+                                @elseif ($order->return_status === \App\Models\Order::RETURN_REFUNDED)
+                                    <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 sm:min-w-[320px]">
+                                        Cửa hàng đã hoàn {{ number_format($order->refund_amount ?? $totalAmount, 0, ',', '.') }}₫ vào ví Bee Pay của bạn.
                                     </div>
                                 @endif
                             </div>

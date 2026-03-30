@@ -73,7 +73,7 @@ class OrderController extends Controller
                         'order_id' => $order->id,
                         'points' => $pointsEarned,
                         'type' => 'earn',
-                        'description' => 'Tich diem hoan thanh don hang ' . $order->order_code,
+                        'description' => 'Tích điểm hoàn thành đơn hàng ' . $order->order_code,
                     ]);
 
                     $customer = \App\Models\User::find($order->user_id);
@@ -82,17 +82,17 @@ class OrderController extends Controller
                 }
             }
 
-            $msg = 'Cam on ban da xac nhan. Don hang da hoan thanh.';
+            $message = 'Cảm ơn bạn đã xác nhận. Đơn hàng đã hoàn thành.';
             if ($pointsEarned > 0) {
-                $msg .= ' Ban duoc cong them ' . $pointsEarned . ' Bee Point vao tai khoan.';
+                $message .= ' Bạn được cộng thêm ' . $pointsEarned . ' Bee Point vào tài khoản.';
             }
 
             return redirect()->back()
-                ->with('success', $msg)
+                ->with('success', $message)
                 ->with('review_order_id', $order->id);
         }
 
-        return redirect()->back()->with('error', 'Trang thai don hang khong hop le.');
+        return redirect()->back()->with('error', 'Trạng thái đơn hàng không hợp lệ.');
     }
 
     public function cancel($id)
@@ -101,43 +101,82 @@ class OrderController extends Controller
 
         if ($order->status === Order::STATUS_PENDING) {
             $order->status = Order::STATUS_CANCELLED;
-            $order->cancellation_reason = 'Khach hang tu huy don tren web';
+            $order->cancellation_reason = 'Khách hàng tự hủy đơn trên web';
             $order->cancelled_at = now();
             $order->save();
 
-            return redirect()->back()->with('success', 'Da huy don hang thanh cong.');
+            return redirect()->back()->with('success', 'Đã hủy đơn hàng thành công.');
         }
 
-        return redirect()->back()->with('error', 'Don hang nay dang duoc xu ly, khong the huy.');
+        return redirect()->back()->with('error', 'Đơn hàng này đang được xử lý, không thể hủy.');
     }
 
     public function requestReturn(Request $request, $id)
     {
         $validated = $request->validate([
             'return_note' => ['required', 'string', 'max:1000'],
+            'return_image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
 
         if (! $order->canRequestReturn()) {
             throw ValidationException::withMessages([
-                'return_note' => 'Don hang nay chua du dieu kien hoan hang hoac da gui yeu cau truoc do.',
+                'return_note' => 'Đơn hàng này chưa đủ điều kiện hoàn hàng hoặc đã gửi yêu cầu trước đó.',
             ]);
         }
+
+        $returnImageFile = $request->file('return_image');
+        $returnImageName = uniqid('return_', true) . '.' . $returnImageFile->getClientOriginalExtension();
+        $returnImageFile->move(public_path('uploads/returns'), $returnImageName);
+        $returnImagePath = 'uploads/returns/' . $returnImageName;
 
         $order->update([
             'return_status' => Order::RETURN_REQUESTED,
             'return_note' => $validated['return_note'],
+            'return_image' => $returnImagePath,
             'return_requested_at' => now(),
+            'return_admin_note' => null,
+            'return_approved_at' => null,
+            'return_rejected_at' => null,
+            'return_shipped_at' => null,
+            'return_received_at' => null,
+            'return_refunded_at' => null,
+            'refund_amount' => null,
         ]);
 
         OrderStatusHistory::create([
             'order_id' => $order->id,
             'user_id' => Auth::id(),
-            'status' => '(Hoan hang) ' . Order::RETURN_REQUESTED,
-            'note' => 'Khach hang gui yeu cau hoan hang: ' . $validated['return_note'],
+            'status' => '(Hoàn hàng) ' . Order::RETURN_REQUESTED,
+            'note' => 'Khách hàng gửi yêu cầu hoàn hàng: ' . $validated['return_note'],
         ]);
 
-        return redirect()->back()->with('success', 'Da gui yeu cau hoan hang. Cua hang se xu ly som nhat.');
+        return redirect()->back()->with('success', 'Đã gửi yêu cầu hoàn hàng. Cửa hàng sẽ phản hồi sớm nhất.');
+    }
+
+    public function markReturnShipped($id)
+    {
+        $order = Order::where('user_id', Auth::id())->findOrFail($id);
+
+        if (! $order->canCustomerShipReturn()) {
+            throw ValidationException::withMessages([
+                'order' => 'Đơn hàng này chưa ở bước gửi hàng hoàn về cửa hàng.',
+            ]);
+        }
+
+        $order->update([
+            'return_status' => Order::RETURN_CUSTOMER_SHIPPED,
+            'return_shipped_at' => now(),
+        ]);
+
+        OrderStatusHistory::create([
+            'order_id' => $order->id,
+            'user_id' => Auth::id(),
+            'status' => '(Hoàn hàng) ' . Order::RETURN_CUSTOMER_SHIPPED,
+            'note' => 'Khách hàng xác nhận đã gửi hàng hoàn về cửa hàng.',
+        ]);
+
+        return redirect()->back()->with('success', 'Đã cập nhật trạng thái: bạn đã gửi hàng hoàn về cửa hàng.');
     }
 }

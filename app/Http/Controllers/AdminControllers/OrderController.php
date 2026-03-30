@@ -5,10 +5,13 @@ namespace App\Http\Controllers\AdminControllers;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
+use App\Models\Wallet;
+use App\Models\WalletTransaction;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -144,37 +147,147 @@ class OrderController extends Controller
         return back()->with('status', 'Đã hủy đơn hàng.');
     }
 
-    public function confirmReturn(Request $request, Order $order): RedirectResponse
+    public function approveReturn(Request $request, Order $order): RedirectResponse
     {
         Gate::authorize('order.update');
 
         $validated = $request->validate([
-            'return_note' => ['nullable', 'string', 'max:1000'],
+            'return_admin_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        if (! $order->canConfirmReturn()) {
+        if (! $order->canApproveReturn()) {
             throw ValidationException::withMessages([
-                'return_note' => 'Chỉ xác nhận hoàn hàng cho đơn đã có yêu cầu từ khách hàng.',
+                'return_admin_note' => 'Đơn hàng này chưa ở bước chờ duyệt yêu cầu hoàn hàng.',
             ]);
         }
 
-        $resolvedNote = $validated['return_note'] ?? $order->return_note;
-
         $order->update([
-            'return_status' => Order::RETURN_CONFIRMED,
-            'return_note' => $resolvedNote,
-            'return_requested_at' => $order->return_requested_at ?? now(),
-            'return_confirmed_at' => now(),
+            'return_status' => Order::RETURN_APPROVED,
+            'return_admin_note' => $validated['return_admin_note'] ?? null,
+            'return_approved_at' => now(),
+            'return_rejected_at' => null,
         ]);
 
         OrderStatusHistory::create([
             'order_id' => $order->id,
             'user_id' => Auth::id(),
-            'status' => '(Hoàn hàng) ' . Order::RETURN_CONFIRMED,
-            'note' => 'Ghi chú xử lý hoàn hàng: ' . ($resolvedNote ?: 'Không có'),
+            'status' => '(Hoàn hàng) ' . Order::RETURN_APPROVED,
+            'note' => 'Admin duyệt yêu cầu hoàn hàng. ' . ($validated['return_admin_note'] ?? 'Không có ghi chú'),
         ]);
 
-        return back()->with('status', 'Đã xác nhận hoàn hàng.');
+        return back()->with('status', 'Đã duyệt yêu cầu hoàn hàng. Chờ khách gửi hàng lại.');
+    }
+
+    public function rejectReturn(Request $request, Order $order): RedirectResponse
+    {
+        Gate::authorize('order.update');
+
+        $validated = $request->validate([
+            'return_admin_note' => ['required', 'string', 'max:1000'],
+        ]);
+
+        if (! $order->canRejectReturn()) {
+            throw ValidationException::withMessages([
+                'return_admin_note' => 'Đơn hàng này chưa ở bước chờ duyệt yêu cầu hoàn hàng.',
+            ]);
+        }
+
+        $order->update([
+            'return_status' => Order::RETURN_REJECTED,
+            'return_admin_note' => $validated['return_admin_note'],
+            'return_rejected_at' => now(),
+        ]);
+
+        OrderStatusHistory::create([
+            'order_id' => $order->id,
+            'user_id' => Auth::id(),
+            'status' => '(Hoàn hàng) ' . Order::RETURN_REJECTED,
+            'note' => 'Admin từ chối yêu cầu hoàn hàng: ' . $validated['return_admin_note'],
+        ]);
+
+        return back()->with('status', 'Đã từ chối yêu cầu hoàn hàng.');
+    }
+
+    public function markReturnReceived(Request $request, Order $order): RedirectResponse
+    {
+        Gate::authorize('order.update');
+
+        $validated = $request->validate([
+            'return_admin_note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if (! $order->canMarkReturnReceived()) {
+            throw ValidationException::withMessages([
+                'return_admin_note' => 'Đơn hàng này chưa ở bước khách gửi hàng hoàn.',
+            ]);
+        }
+
+        $order->update([
+            'return_status' => Order::RETURN_RECEIVED,
+            'return_admin_note' => $validated['return_admin_note'] ?? $order->return_admin_note,
+            'return_received_at' => now(),
+        ]);
+
+        OrderStatusHistory::create([
+            'order_id' => $order->id,
+            'user_id' => Auth::id(),
+            'status' => '(Hoàn hàng) ' . Order::RETURN_RECEIVED,
+            'note' => 'Admin đã nhận và kiểm tra hàng hoàn. ' . ($validated['return_admin_note'] ?? 'Không có ghi chú'),
+        ]);
+
+        return back()->with('status', 'Đã xác nhận nhận hàng hoàn từ khách.');
+    }
+
+    public function refundReturn(Order $order): RedirectResponse
+    {
+        Gate::authorize('order.update');
+
+        if (! $order->canRefundReturn()) {
+            throw ValidationException::withMessages([
+                'order' => 'Đơn hàng này chưa đủ điều kiện hoàn tiền vào ví.',
+            ]);
+        }
+
+        DB::transaction(function () use ($order) {
+            $wallet = Wallet::firstOrCreate(
+                ['user_id' => $order->user_id],
+                ['balance' => 0, 'status' => 'active']
+            );
+
+            $wallet = Wallet::whereKey($wallet->id)->lockForUpdate()->first();
+            $balanceBefore = $wallet->balance;
+            $refundAmount = (int) ($order->total_amount ?? 0);
+
+            $wallet->balance += $refundAmount;
+            $wallet->save();
+
+            WalletTransaction::create([
+                'wallet_id' => $wallet->id,
+                'type' => 'refund',
+                'amount' => $refundAmount,
+                'balance_before' => $balanceBefore,
+                'balance_after' => $wallet->balance,
+                'description' => 'Hoàn tiền đơn hàng ' . $order->order_code . ' vào ví Bee Pay',
+                'reference_type' => Order::class,
+                'reference_id' => (string) $order->id,
+                'status' => 'completed',
+            ]);
+
+            $order->update([
+                'return_status' => Order::RETURN_REFUNDED,
+                'return_refunded_at' => now(),
+                'refund_amount' => $refundAmount,
+            ]);
+
+            OrderStatusHistory::create([
+                'order_id' => $order->id,
+                'user_id' => Auth::id(),
+                'status' => '(Hoàn hàng) ' . Order::RETURN_REFUNDED,
+                'note' => 'Đã hoàn ' . number_format($refundAmount) . ' vào ví Bee Pay của khách hàng.',
+            ]);
+        });
+
+        return back()->with('status', 'Đã hoàn tiền vào ví khách hàng.');
     }
 
     public function printPdf(Order $order)

@@ -21,7 +21,7 @@
     @endif
 
     <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-4 lg:p-5">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
             <div class="md:col-span-3">
                 <label class="block text-xs font-semibold text-slate-500 mb-1">Tìm kiếm</label>
                 <input
@@ -36,7 +36,16 @@
                 <select name="status" class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
                     <option value="">Tất cả trạng thái</option>
                     @foreach ($statuses as $status)
-                    <option value="{{ $status }}" @selected($activeStatus===$status)>{{ $statusLabels[$status] }}</option>
+                    <option value="{{ $status }}" @selected($activeStatus === $status)>{{ $statusLabels[$status] }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Hoàn hàng</label>
+                <select name="return_status" class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                    <option value="">Tất cả</option>
+                    @foreach ($returnStatuses as $returnStatus)
+                    <option value="{{ $returnStatus }}" @selected($activeReturnStatus === $returnStatus)>{{ $returnStatusLabels[$returnStatus] }}</option>
                     @endforeach
                 </select>
             </div>
@@ -73,6 +82,15 @@
                         \App\Models\Order::STATUS_CANCELLED => 'bg-red-100 text-red-700',
                         default => 'bg-slate-100 text-slate-700',
                     };
+                    $returnClass = match($order->return_status) {
+                        \App\Models\Order::RETURN_REQUESTED => 'bg-amber-100 text-amber-700',
+                        \App\Models\Order::RETURN_APPROVED => 'bg-blue-100 text-blue-700',
+                        \App\Models\Order::RETURN_REJECTED => 'bg-red-100 text-red-700',
+                        \App\Models\Order::RETURN_CUSTOMER_SHIPPED => 'bg-indigo-100 text-indigo-700',
+                        \App\Models\Order::RETURN_RECEIVED => 'bg-cyan-100 text-cyan-700',
+                        \App\Models\Order::RETURN_REFUNDED => 'bg-green-100 text-green-700',
+                        default => 'bg-slate-100 text-slate-700',
+                    };
                     @endphp
                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                         <td class="px-5 py-4 align-top">
@@ -90,15 +108,18 @@
 
                         <td class="px-5 py-4 align-top">
                             <p class="font-bold text-sm text-slate-900 dark:text-white uppercase">{{ $order->payment_method ?? 'COD' }}</p>
-                            @if(($order->payment_status ?? 'pending') == 'paid' || in_array($order->status, [\App\Models\Order::STATUS_DELIVERED, \App\Models\Order::STATUS_RECEIVED]))
+                            @if(($order->payment_status ?? 'pending') === 'paid')
                                 <span class="inline-flex mt-1 text-[11px] px-2 py-0.5 rounded bg-green-100 text-green-700 font-bold">Đã thanh toán</span>
                             @else
                                 <span class="inline-flex mt-1 text-[11px] px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-bold">Chưa thanh toán</span>
                             @endif
                         </td>
-                        <td class="px-5 py-4 align-top">
+                        <td class="px-5 py-4 align-top space-y-2">
                             <span class="inline-flex text-xs px-2.5 py-1 rounded-lg font-semibold {{ $statusClass }}">
                                 {{ $statusLabels[$order->status] ?? $order->status }}
+                            </span>
+                            <span class="inline-flex text-xs px-2.5 py-1 rounded-lg font-semibold {{ $returnClass }}">
+                                {{ $returnStatusLabels[$order->return_status] ?? $order->return_status }}
                             </span>
                         </td>
                         <td class="px-5 py-4 text-right align-top">

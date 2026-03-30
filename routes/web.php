@@ -99,6 +99,7 @@ Route::post('/thanh-toan/remove-voucher', [CheckoutController::class, 'removeVou
         Route::patch('/don-mua/{id}/xac-nhan', [ClientOrderController::class, 'confirmReceived'])->name('client.orders.confirm');
         Route::patch('/don-mua/{id}/huy', [ClientOrderController::class, 'cancel'])->name('client.orders.cancel');
         Route::patch('/don-mua/{id}/hoan-hang', [ClientOrderController::class, 'requestReturn'])->name('client.orders.return');
+        Route::patch('/don-mua/{id}/gui-hang-hoan', [ClientOrderController::class, 'markReturnShipped'])->name('client.orders.return.shipped');
     });
 
     Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
@@ -252,7 +253,10 @@ Route::middleware(['auth', 'verified','role'])->group(function () {
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
         Route::patch('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
-        Route::patch('orders/{order}/return-confirm', [OrderController::class, 'confirmReturn'])->name('orders.return.confirm');
+        Route::patch('orders/{order}/return-approve', [OrderController::class, 'approveReturn'])->name('orders.return.approve');
+        Route::patch('orders/{order}/return-reject', [OrderController::class, 'rejectReturn'])->name('orders.return.reject');
+        Route::patch('orders/{order}/return-received', [OrderController::class, 'markReturnReceived'])->name('orders.return.received');
+        Route::patch('orders/{order}/return-refund', [OrderController::class, 'refundReturn'])->name('orders.return.refund');
         Route::get('orders/{order}/print-pdf', [OrderController::class, 'printPdf'])->name('orders.print.pdf');
 
         // 8. Quản lý bài viết
@@ -291,4 +295,3 @@ Route::middleware(['auth', 'verified','role'])->group(function () {
 // Public product routes and comment endpoints
 Route::get('/products/{product}', [ClientProductController::class, 'show'])->name('products.show');
 Route::post('/products/{product}/comments', [CommentController::class, 'store'])->name('products.comments.store');
-
