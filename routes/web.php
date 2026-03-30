@@ -36,6 +36,8 @@ use App\Http\Controllers\Client\ChatbotController;
 use App\Http\Controllers\Client\PostController as ClientPostController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
 use App\Models\User;
+use App\Http\Controllers\AdminControllers\CommentController as AdminCommentController;
+use App\Http\Controllers\CommentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -216,6 +218,16 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::get('products/create', [AdminProductController::class, 'create'])->name('products.create');
         Route::post('products', [AdminProductController::class, 'store'])->name('products.store');
         Route::resource('products', AdminProductController::class)->except(['create', 'store']);
+
+        // 5.1 Quản lý Comments (Admin)
+        Route::get('comments', [AdminCommentController::class, 'index'])->name('comments.index');
+        Route::post('comments/{comment}/reply', [AdminCommentController::class, 'reply'])->name('comments.reply');
+        Route::delete('comments/{comment}', [AdminCommentController::class, 'destroy'])->name('comments.destroy');
+
+        // Link từ danh sách sản phẩm -> trang quản lý comments (lọc theo product nếu cần)
+        // Xem comment theo từng sản phẩm (UI giống trang com/showcom, khác với trang quản lý comment dạng bảng)
+        Route::get('products/{product}/comments', [AdminProductController::class, 'comments'])->name('products.comments');
+
 
         // 6. Quản lý Vouchers
         Route::post('vouchers/{id}/restore', [VoucherController::class, 'restore'])->name('vouchers.restore');
