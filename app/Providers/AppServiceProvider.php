@@ -30,11 +30,19 @@ class AppServiceProvider extends ServiceProvider
             }
         });
         $permissions = Permission::select('id', 'slug')->get();
+
         foreach ($permissions as $permission) {
 
             Gate::define($permission->slug, function ($user) use ($permission) {
+                $hasDirectPermission = $user->permissions->contains('slug', $permission->slug);
 
-                return $user->permissions->contains('id', $permission->id);
+                if ($hasDirectPermission) {
+                    return true; // Nếu có quyền riêng lẻ thì cho qua luôn, không cần check Role nữa
+                }
+                $userRole = $user->role;
+                if ($userRole && $userRole->permissions->contains('slug', $permission->slug)) {
+                    return true; // Có quyền trong Role thì cho qua
+                }
             });
         }
 
