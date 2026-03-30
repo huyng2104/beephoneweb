@@ -56,11 +56,11 @@ class OrderController extends Controller
     {
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
 
-        // Thay vì 'shipping', mình dùng STATUS_DELIVERED (Đã giao đến nơi)
         if ($order->status === Order::STATUS_DELIVERED) {
             
             // 1. Chuyển sang trạng thái STATUS_RECEIVED (Khách đã nhận)
             $order->status = Order::STATUS_RECEIVED; 
+            $order->payment_status = 'paid'; // ĐÃ THÊM: Tự động đánh dấu đã thu tiền
             $order->save();
 
             // ==========================================

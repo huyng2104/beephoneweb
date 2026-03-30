@@ -64,7 +64,11 @@
                 @php
                     // Kiểm tra xem user hiện tại đã lưu voucher này chưa
                     $isSaved = in_array($voucher->id, $savedVoucherIds ?? []);
-
+                    $isUsed = true;
+                    if (Auth::user()) {
+                        $isUsed = $voucher->userVouchers->isNotEmpty();
+                        // Trả về true nếu có dữ liệu, false nếu rỗng
+                    }
                     // Trạng thái hiển thị (Hết lượt, Hết hạn, Đang diễn ra)
                     $isOutOfStock = $voucher->usage_limit && $voucher->used_count >= $voucher->usage_limit;
                     $isExpired = $voucher->end_date && \Carbon\Carbon::now()->greaterThan($voucher->end_date);
@@ -80,7 +84,7 @@
                         default => 'bg-gray-100 text-gray-600 border-gray-200',
                     };
                 @endphp
-                @if ($voucher->voucher_status == 'Hoạt động')
+                @if ($voucher->voucher_status == 'Hoạt động' && $voucher->points_required == 0 && $isUsed )
                     <div
                         class="group bg-white rounded-xl overflow-hidden flex border border-gray-200 transition-all duration-300 {{ $isInactive ? 'opacity-75 grayscale-[20%]' : 'hover:shadow-lg hover:border-amber-200' }} relative">
                         <div

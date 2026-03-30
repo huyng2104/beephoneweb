@@ -255,27 +255,60 @@ font-weight: 500;
                                 </table>
                             </div>
                             <!-- Pagination -->
+                            <!-- Pagination -->
                             <div
                                 class="flex items-center justify-between py-4 border-t border-[#e6e3db] dark:border-[#3d3a30]">
-                                <p class="text-sm text-[#8a8060]">Hiển thị 1 - 3 của 48 bài viết</p>
+
+                                <p class="text-sm text-[#8a8060]">
+                                    Hiển thị {{ $posts->firstItem() }} - {{ $posts->lastItem() }} của
+                                    {{ $posts->total() }} bài viết
+                                </p>
+
                                 <div class="flex gap-1">
-                                    <button
-                                        class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] text-[#181611] hover:bg-gray-50">
-                                        <span class="material-symbols-outlined">chevron_left</span>
-                                    </button>
-                                    <button
-                                        class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-[#181611] font-bold">1</button>
-                                    <button
-                                        class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] text-[#181611] hover:bg-gray-50">2</button>
-                                    <button
-                                        class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] text-[#181611] hover:bg-gray-50">3</button>
-                                    <span class="flex items-center px-2 text-[#8a8060]">...</span>
-                                    <button
-                                        class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] text-[#181611] hover:bg-gray-50">16</button>
-                                    <button
-                                        class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] text-[#181611] hover:bg-gray-50">
-                                        <span class="material-symbols-outlined">chevron_right</span>
-                                    </button>
+
+                                    {{-- Previous --}}
+                                    @if ($posts->onFirstPage())
+                                        <span
+                                            class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] text-gray-400">
+                                            <span class="material-symbols-outlined">chevron_left</span>
+                                        </span>
+                                    @else
+                                        <a href="{{ $posts->previousPageUrl() }}"
+                                            class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] hover:bg-gray-50">
+                                            <span class="material-symbols-outlined">chevron_left</span>
+                                        </a>
+                                    @endif
+
+
+                                    {{-- Page Numbers --}}
+                                    @for ($i = 1; $i <= $posts->lastPage(); $i++)
+                                        @if ($i == $posts->currentPage())
+                                            <span
+                                                class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-[#181611] font-bold">
+                                                {{ $i }}
+                                            </span>
+                                        @else
+                                            <a href="{{ $posts->url($i) }}"
+                                                class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] hover:bg-gray-50">
+                                                {{ $i }}
+                                            </a>
+                                        @endif
+                                    @endfor
+
+
+                                    {{-- Next --}}
+                                    @if ($posts->hasMorePages())
+                                        <a href="{{ $posts->nextPageUrl() }}"
+                                            class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] hover:bg-gray-50">
+                                            <span class="material-symbols-outlined">chevron_right</span>
+                                        </a>
+                                    @else
+                                        <span
+                                            class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e6e3db] text-gray-400">
+                                            <span class="material-symbols-outlined">chevron_right</span>
+                                        </span>
+                                    @endif
+
                                 </div>
                             </div>
                         </div>
