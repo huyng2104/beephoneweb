@@ -172,39 +172,8 @@
                     Đơn hàng này chưa có dữ liệu chi tiết sản phẩm.
                 </div>
                 @endif
-            </div>
 
-            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6 space-y-4">
-                <h2 class="text-lg font-bold text-slate-900 dark:text-white">Lịch sử cập nhật trạng thái</h2>
-                
-                <div class="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100 dark:before:bg-slate-800">
-                    @forelse ($order->statusHistories as $history)
-                    <div class="relative">
-                        <div class="absolute -left-[22px] top-1.5 size-3 rounded-full border-2 border-white dark:border-slate-900 bg-primary shadow-sm"></div>
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                            <span class="text-sm font-bold text-slate-900 dark:text-white">
-                                {{ $statusLabels[$history->status] ?? $history->status }}
-                            </span>
-                            <span class="text-xs text-slate-500">
-                                {{ $history->created_at->format('d/m/Y H:i:s') }}
-                            </span>
-                        </div>
-                        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                            Người cập nhật: <span class="font-semibold">{{ $history->user->name ?? 'Hệ thống' }}</span>
-                        </p>
-                        @if ($history->note)
-                        <p class="text-xs text-slate-500 italic mt-1 bg-slate-50 dark:bg-slate-800/50 p-2 rounded">
-                            {{ $history->note }}
-                        </p>
-                        @endif
-                    </div>
-                    @empty
-                    <p class="text-sm text-slate-500 italic">Chưa có lịch sử cập nhật.</p>
-                    @endforelse
-                </div>
-            </div>
 
-            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6 space-y-4">
                 <div class="border-t border-slate-200 dark:border-slate-700 pt-6 mt-6">
                     <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4">Thông tin thanh toán</h3>
                     
