@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Permission;
+use Illuminate\Support\Facades\DB;
+
 class PermissionsSeeder extends Seeder
 {
     /**
@@ -52,58 +54,14 @@ class PermissionsSeeder extends Seeder
             ['name' => 'Thêm voucher', 'slug' => 'voucher.create'],
             ['name' => 'Sửa voucher', 'slug' => 'voucher.update'],
             ['name' => 'Xóa voucher', 'slug' => 'voucher.delete'],
-
-            // Bài viết
-            ['name' => 'Xem bài viết', 'slug' => 'posts.view'],
-            ['name' => 'Thêm bài viết', 'slug' => 'posts.create'],
-            ['name' => 'Sửa bài viết', 'slug' => 'posts.update'],
-            ['name' => 'Xóa bài viết', 'slug' => 'posts.delete'],
-
-            // Banner
-            ['name' => 'Xem banner', 'slug' => 'banner.view'],
-            ['name' => 'Thêm banner', 'slug' => 'banner.create'],
-            ['name' => 'Sửa banner', 'slug' => 'banner.update'],
-            ['name' => 'Xóa banner', 'slug' => 'banner.delete'],
-
-            // Ví tiền (Wallet)
-            ['name' => 'Xem ví', 'slug' => 'wallet.view'],
-            // Điểm thưởng
-            ['name' => 'Xem điểm thưởng', 'slug' => 'point.view'],
-            ['name' => 'Sửa điểm thưởng', 'slug' => 'point.update'],
-
-            // Yêu cầu rút tiền
-            ['name' => 'Xem yêu cầu rút tiền', 'slug' => 'withdrawal.view'],
-            ['name' => 'Phê duyệt rút tiền', 'slug' => 'withdrawal.approve'],
-            ['name' => 'Từ chối rút tiền', 'slug' => 'withdrawal.reject'],
-            // Yêu cầu hỗ trợ (Tickets)
-            ['name' => 'Xem yêu cầu hỗ trợ', 'slug' => 'support.view'],
-            ['name' => 'Sửa yêu cầu hỗ trợ', 'slug' => 'support.update'],
-            ['name' => 'Xóa yêu cầu hỗ trợ', 'slug' => 'support.delete'],
-
-            // Cài đặt chung / Hệ thống
-            ['name' => 'Xem cài đặt hệ thống', 'slug' => 'settings.view'],
-            ['name' => 'Cập nhật cài đặt hệ thống', 'slug' => 'settings.update'],
-
-            // Vai trò & Quyền hạn (Roles & Permissions)
-            ['name' => 'Xem vai trò & quyền', 'slug' => 'roles.view'],
-            ['name' => 'Thêm vai trò & quyền', 'slug' => 'roles.create'],
-            ['name' => 'Sửa vai trò & quyền', 'slug' => 'roles.update'],
-            ['name' => 'Xóa vai trò & quyền', 'slug' => 'roles.delete'],
-
-            // Thống kê tối giản
-            ['name' => 'Xem thống kê tổng quan', 'slug' => 'reports.view'],
-            ['name' => 'Tải file báo cáo dữ liệu', 'slug' => 'reports.export'],
-
         ];
 
-
-         // Nhớ use Model ở trên đầu file
-
         foreach ($permissions as $permission) {
-            Permission::firstOrCreate(
-                ['slug' => $permission['slug']], // Tìm theo slug
-                ['name' => $permission['name']]  // Nếu không thấy thì tạo mới kèm name
-            );
+            DB::table('permissions')->insert([
+                'name' => $permission['name'],
+                'slug' => $permission['slug'],
+                'created_at' => now(),
+            ]);
         }
     }
 }

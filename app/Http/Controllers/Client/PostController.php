@@ -20,11 +20,8 @@ class PostController extends Controller
         }
 
         // bài viết
-        // $posts = $query->latest()->paginate(6);
-        // $posts->appends($request->all());
-        $posts = $query->latest()
-            ->paginate(4)
-            ->withQueryString();
+        $posts = $query->latest()->paginate(6);
+        $posts->appends($request->all());
 
         // bài nổi bật
         $featuredPost = Post::where('status', 1)
@@ -66,12 +63,6 @@ class PostController extends Controller
             ->take(3)
             ->get();
 
-        // bài xem nhiều
-        $mostViewed = Post::where('status', 1)
-            ->orderByDesc('views')
-            ->take(5)
-            ->get();
-
-        return view('client.posts.show', compact('post', 'relatedPosts', 'mostViewed'));
+        return view('client.posts.show', compact('post', 'relatedPosts'));
     }
 }

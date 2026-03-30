@@ -10,9 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Auth;
-use App\Models\OrderStatusHistory;
-
 class OrderController extends Controller
 {
     public function index(Request $request): View
@@ -52,7 +49,7 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-        $order->load(['items', 'statusHistories.user']);
+        $order->load('items');
 
         $statusLabels = Order::statusLabels();
         $returnStatusLabels = Order::returnStatusLabels();
@@ -67,7 +64,7 @@ class OrderController extends Controller
         ]);
     }
 
-    public function updateStatus(Request $request, Order $order): RedirectResponse
+  public function updateStatus(Request $request, Order $order): RedirectResponse
     {
         Gate::authorize('order.update');
         $validated = $request->validate([
@@ -82,7 +79,7 @@ class OrderController extends Controller
             ]);
         }
 
-        // Báo lỗi nếu Admin cố tình truyền trạng thái Đã nhận
+        // THÊM ĐOẠN NÀY VÀO: Báo lỗi nếu Admin cố tình truyền trạng thái Đã nhận
         if ($nextStatus === Order::STATUS_RECEIVED) {
             throw ValidationException::withMessages([
                 'status' => 'Trạng thái này là đặc quyền của Khách hàng. Admin chỉ được cập nhật đến Đã Giao Hàng!',
@@ -95,23 +92,7 @@ class OrderController extends Controller
             ]);
         }
 
-        // --- CẬP NHẬT TRẠNG THÁI VÀ THANH TOÁN ---
-        $updateData = ['status' => $nextStatus];
-        
-        // TỰ ĐỘNG CHUYỂN "ĐÃ THANH TOÁN" KHI GIAO THÀNH CÔNG
-        if (in_array($nextStatus, [Order::STATUS_DELIVERED, Order::STATUS_RECEIVED])) {
-            $updateData['payment_status'] = 'paid';
-        }
-
-        $order->update($updateData);
-
-        // Lưu lịch sử
-        OrderStatusHistory::create([
-            'order_id' => $order->id,
-            'user_id' => Auth::id(),
-            'status' => $nextStatus,
-            'note' => 'Cập nhật trạng thái bởi quản trị viên',
-        ]);
+        $order->update(['status' => $nextStatus]);
 
         return back()->with('status', 'Đã cập nhật trạng thái đơn hàng.');
     }
@@ -133,14 +114,6 @@ class OrderController extends Controller
             'status' => Order::STATUS_CANCELLED,
             'cancellation_reason' => $validated['cancellation_reason'],
             'cancelled_at' => now(),
-        ]);
-
-        // Lưu lịch sử
-        OrderStatusHistory::create([
-            'order_id' => $order->id,
-            'user_id' => Auth::id(),
-            'status' => Order::STATUS_CANCELLED,
-            'note' => 'Lý do hủy: ' . $validated['cancellation_reason'],
         ]);
 
         return back()->with('status', 'Đã hủy đơn hàng.');
@@ -165,14 +138,6 @@ class OrderController extends Controller
             'return_confirmed_at' => now(),
         ]);
 
-        // Lưu lịch sử
-        OrderStatusHistory::create([
-            'order_id' => $order->id,
-            'user_id' => Auth::id(),
-            'status' => '(Đổi/Trả) ' . Order::RETURN_CONFIRMED,
-            'note' => 'Ghi chú đổi trả: ' . ($validated['return_note'] ?? 'Không có'),
-        ]);
-
         return back()->with('status', 'Đã xác nhận đổi/trả hàng.');
     }
 
@@ -187,7 +152,7 @@ class OrderController extends Controller
         return $pdf->download('don-hang-' . $order->order_code . '.pdf');
     }
 
-    private function availableStatusesFor(Order $order): array
+   private function availableStatusesFor(Order $order): array
     {
         $statuses = [$order->status];
 
@@ -197,7 +162,7 @@ class OrderController extends Controller
                 $order->canMoveTo($status) &&
                 !in_array($status, $statuses, true) &&
                 $status !== Order::STATUS_CANCELLED &&
-                $status !== Order::STATUS_RECEIVED
+                $status !== Order::STATUS_RECEIVED // THÊM DÒNG NÀY ĐỂ CHẶN ADMIN
             ) {
                 $statuses[] = $status;
             }

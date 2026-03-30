@@ -116,12 +116,12 @@
                                     <dd class="text-sm font-bold text-slate-900 mt-1">
                                         {{ $voucher->usage_limit == null ? 'Không giới hạn' : $voucher->usage_limit }}</dd>
                                 </div>
-                                {{-- <div>
+                                <div>
                                     <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Giới hạn
                                         mỗi khách hàng</dt>
                                     <dd class="text-sm font-semibold text-slate-900 mt-1">
                                         {{ $voucher->usage_limit_per_user }}</dd>
-                                </div> --}}
+                                </div>
                                 <div>
                                     <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Giảm tối đa</dt>
                                     <dd class="text-sm font-semibold text-slate-900 mt-1">
@@ -189,7 +189,7 @@
                                 <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                                     <div class="h-full bg-primary" style="width: {{ $voucher->usage_percent }}%;"></div>
                                 </div>
-                                {{-- <div class="grid grid-cols-1 gap-4">
+                                <div class="grid grid-cols-1 gap-4">
                                     <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100">
                                         <p class="text-xs font-medium text-emerald-600 uppercase tracking-wider">Doanh
                                             thu mang lại</p>
@@ -200,11 +200,11 @@
                                             đã giảm</p>
                                         <p class="text-xl font-black text-blue-700 mt-1">45.250.000đ</p>
                                     </div>
-                                </div> --}}
+                                </div>
                             </div>
                         </div>
                     </div>
-                    {{-- <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                             <h3 class="text-base font-bold text-slate-900">Lịch sử sử dụng</h3>
                             <div class="flex items-center gap-2">
@@ -331,7 +331,7 @@
                                         class="material-symbols-outlined text-[16px]">chevron_right</span></button>
                             </div>
                         </div>
-                    </div> --}}
+                    </div>
                 </div>
             </div>
         </div>

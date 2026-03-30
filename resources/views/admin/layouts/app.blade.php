@@ -41,7 +41,6 @@
             color: #231e0f;
         }
     </style>
-    @stack('css')
 </head>
 
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
@@ -57,5 +56,5 @@
         </main>
     </div>
 </body>
-@stack('js')
+
 </html>

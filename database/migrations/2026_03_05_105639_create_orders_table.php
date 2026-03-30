@@ -22,7 +22,7 @@ return new class extends Migration
         $table->timestamps();
     });
 }
-// test commit order
+
     /**
      * Reverse the migrations.
      */

@@ -197,49 +197,21 @@
                         @endforeach
                     </div>
                     <!-- Pagination -->
+                    {{-- <div class="mt-10">
+                        {{ $posts->links() }}
+                    </div> --}}
                     <div class="mt-12 flex justify-center gap-2">
-
-                        {{-- Previous --}}
-                        @if ($posts->onFirstPage())
-                            <span class="size-10 flex items-center justify-center rounded-lg bg-gray-200 text-gray-400">
-                                <span class="material-symbols-outlined">chevron_left</span>
-                            </span>
-                        @else
-                            <a href="{{ $posts->previousPageUrl() }}"
-                                class="size-10 flex items-center justify-center rounded-lg bg-white dark:bg-[#2d291e] hover:bg-primary/20 transition-colors">
-                                <span class="material-symbols-outlined">chevron_left</span>
-                            </a>
-                        @endif
-
-
-                        {{-- Page numbers --}}
-                        @for ($i = 1; $i <= $posts->lastPage(); $i++)
-                            @if ($i == $posts->currentPage())
-                                <span
-                                    class="size-10 flex items-center justify-center rounded-lg bg-primary text-[#181611] font-bold">
-                                    {{ $i }}
-                                </span>
-                            @else
-                                <a href="{{ $posts->appends(request()->query())->url($i) }}"
-                                    class="size-10 flex items-center justify-center rounded-lg bg-white dark:bg-[#2d291e] hover:bg-primary/20 transition-colors">
-                                    {{ $i }}
-                                </a>
-                            @endif
-                        @endfor
-
-
-                        {{-- Next --}}
-                        @if ($posts->hasMorePages())
-                            <a href="{{ $posts->nextPageUrl() }}"
-                                class="size-10 flex items-center justify-center rounded-lg bg-white dark:bg-[#2d291e] hover:bg-primary/20 transition-colors">
-                                <span class="material-symbols-outlined">chevron_right</span>
-                            </a>
-                        @else
-                            <span class="size-10 flex items-center justify-center rounded-lg bg-gray-200 text-gray-400">
-                                <span class="material-symbols-outlined">chevron_right</span>
-                            </span>
-                        @endif
-
+                        <button
+                            class="size-10 flex items-center justify-center rounded-lg bg-primary text-[#181611] font-bold">1</button>
+                        <button
+                            class="size-10 flex items-center justify-center rounded-lg bg-white dark:bg-[#2d291e] hover:bg-primary/20 transition-colors">2</button>
+                        <button
+                            class="size-10 flex items-center justify-center rounded-lg bg-white dark:bg-[#2d291e] hover:bg-primary/20 transition-colors">3</button>
+                        <span class="size-10 flex items-center justify-center">...</span>
+                        <button
+                            class="size-10 flex items-center justify-center rounded-lg bg-white dark:bg-[#2d291e] hover:bg-primary/20 transition-colors">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
                     </div>
                 </div>
                 <!-- Sidebar (4 columns) -->
