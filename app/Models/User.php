@@ -2,19 +2,35 @@
 
 namespace App\Models;
 
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class User extends Authenticatable  implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
+    use SoftDeletes;
+    use LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->useLogName('user')
+            ->logOnlyDirty();
+    }
+
 
     /**
      * The attributes that are mass assignable.
+     *
+     * @var list<string>
      */
     protected $fillable = [
         'name',
@@ -31,6 +47,8 @@ class User extends Authenticatable  implements MustVerifyEmail
 
     /**
      * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
      */
     protected $hidden = [
         'password',
@@ -38,7 +56,9 @@ class User extends Authenticatable  implements MustVerifyEmail
     ];
 
     /**
-     * Attribute casting
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
      */
     protected function casts(): array
     {
@@ -51,7 +71,7 @@ class User extends Authenticatable  implements MustVerifyEmail
 
     public function isLocked()
     {
-        return $this->status === 'banned';
+        return $this->status === 'locked'; // (Thay đổi logic cho phù hợp với DB của bạn)
     }
     public function role()
     {
@@ -61,10 +81,7 @@ class User extends Authenticatable  implements MustVerifyEmail
     {
         return $this->belongsToMany(Permission::class, 'user_permissions');
     }
-    public function activityLogs()
-    {
-        return $this->hasMany(ActivityLog::class);
-    }
+
     public function getUserStatusAttribute()
     {
         if ($this->status == 'inactive') {
@@ -75,20 +92,7 @@ class User extends Authenticatable  implements MustVerifyEmail
         }
         return 'Bị khóa';
     }
-    protected static function booted()
-    {
-        static::created(function ($user) {
-            activity_log('user.create', 'Tạo người dùng', $user);
-        });
 
-        static::updated(function ($user) {
-            activity_log('user.update', 'Cập nhật người dùng', $user);
-        });
-
-        static::deleted(function ($user) {
-            activity_log('user.delete', 'Xóa người dùng', $user);
-        });
-    }
     // Một User có 1 Ví tiền
     public function wallet()
     {
@@ -109,9 +113,16 @@ class User extends Authenticatable  implements MustVerifyEmail
         return $this->belongsToMany(Voucher::class, 'user_vouchers')->wherePivot('order_id');
     }
     // 2. Cột ảo tính Tổng điểm hiện tại của User
-   public function getTotalPointsAttribute()
+    public function getTotalPointsAttribute()
     {
         // Trỏ thẳng vào cột có sẵn trong DB, load nhanh như chớp!
         return $this->reward_points ?? 0;
+    }
+
+    public function bankAccounts(){
+        return $this->hasMany(BankAccount::class);
+    }
+    public function withdrawalRequests(){
+        return $this->hasMany(WithdrawalRequest::class);
     }
 }

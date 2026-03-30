@@ -22,8 +22,3 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
-resources/views/Admin/users/create.blade.php
-resources/views/admin/users/create.blade.php
-resources/views/admin/users/edit.blade.php
-resources/views/admin/users/index.blade.php
-resources/views/admin/users/show.blade.php

@@ -16,6 +16,7 @@ use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderPlacedMail;
+
 class CheckoutController extends Controller
 {
     /**
@@ -226,10 +227,16 @@ class CheckoutController extends Controller
             session()->forget('selected_cart_items');
 
             DB::commit();
+
+            // ==========================================
+            // LƯU SESSION ID ĐỂ HIỂN THỊ GIAO DIỆN SUCCESS
+            // ==========================================
+            session(['new_order_id' => $order->id]);
+
+            // Gửi email
             $customerEmail = $order->customer_email;
             if (!empty($customerEmail)) {
                 try {
-                    // Dùng Try-Catch để lỡ mạng lag gửi mail lỗi thì đơn hàng vẫn báo thành công
                     Mail::to($customerEmail)->send(new OrderPlacedMail($order));
                 } catch (\Exception $e) {
                     \Illuminate\Support\Facades\Log::error('Lỗi gửi email xác nhận đơn: ' . $e->getMessage());
@@ -325,6 +332,11 @@ class CheckoutController extends Controller
         $order = Order::find($request->vnp_TxnRef);
 
         if ($secureHash == $vnp_SecureHash) {
+            // LƯU SESSION ĐỂ HIỆN TRANG SUCCESS (NẾU KHÁCH TỪ VNPAY QUAY VỀ)
+            if ($order) {
+                session(['new_order_id' => $order->id]);
+            }
+
             if ($request->vnp_ResponseCode == '00') {
                 if ($order) {
                     $order->update(['payment_status' => 'paid']); 
@@ -346,10 +358,20 @@ class CheckoutController extends Controller
      */
     public function success()
     {
-        if (!session('success')) {
+        // Phải có 1 trong 2 thông báo success hoặc có ID đơn hàng mới cho xem
+        if (!session('success') || !session('new_order_id')) {
             return redirect()->route('home');
         }
-        return view('client.checkout.success');
+
+        // Truy vấn lấy đơn hàng và danh sách món hàng
+        $order = Order::with('items')->find(session('new_order_id'));
+
+        // Nếu vì lý do tâm linh nào đó mất đơn hàng thì đuổi về home
+        if (!$order) {
+            return redirect()->route('home');
+        }
+
+        return view('client.checkout.success', compact('order'));
     }
 
     /**

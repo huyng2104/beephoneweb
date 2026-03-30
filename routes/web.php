@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\ProductController as ClientProductController;
 
-// Import API Controllers
-use App\Http\Controllers\Api\ChatbotController;
-
 // Import Admin & Auth Controllers
 use App\Http\Controllers\AdminControllers\CategoryController;
 use App\Http\Controllers\AdminControllers\CategoryFilterController;
@@ -28,20 +25,21 @@ use App\Http\Controllers\AdminControllers\BannerController;
 
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
+use App\Http\Controllers\AdminControllers\RoleController;
 use App\Http\Controllers\AdminControllers\WalletController;
-use App\Http\Controllers\AdminControllers\SupportController;
-use App\Http\Controllers\AdminControllers\CustomerActivityController;
 
 use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\WalletController as ClientWalletController;
 use App\Http\Controllers\Client\CartController;
-use App\Http\Controllers\Client\ContactController;
 use App\Http\Controllers\Client\CheckoutController;
 use App\Http\Controllers\Client\OrderController as ClientOrderController;
+use App\Http\Controllers\Client\ChatbotController;
 use App\Http\Controllers\Client\PostController as ClientPostController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
 use App\Models\User;
+use App\Http\Controllers\AdminControllers\CommentController as AdminCommentController;
+use App\Http\Controllers\CommentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,16 +55,6 @@ Route::middleware('check.verified')->group(function () {
     // Trang chủ
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
-    // Contact & Support
-    Route::get('/lien-he', [ContactController::class, 'index'])->name('contact');
-    Route::post('/lien-he', [ContactController::class, 'submit'])->name('contact.submit');
-    Route::get('/lien-he-v2', function() { return view('client.Contact & Support.index'); })->name('contact.v2');
-
-    // Chatbot API
-    Route::get('/api/chatbot/categories', [ChatbotController::class, 'getCategories']);
-    Route::get('/api/chatbot/questions/{category}', [ChatbotController::class, 'getQuestions']);
-    Route::get('/api/search/suggestions', [ClientProductController::class, 'searchSuggestions'])->name('client.search.suggestions');
-
     // Chi tiết sản phẩm & Danh sách sản phẩm
     Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
@@ -75,6 +63,8 @@ Route::middleware('check.verified')->group(function () {
     Route::get('profile/wallet', [ProfileController::class, 'user_wallet'])->name('profile.wallet');
     Route::resource('profile', ProfileController::class);
     Route::post('prodile/password/update/{id}',[ProfileController::class,'passwordUpdate'])->name('profile.password.update');
+    // Kích hoạt ví
+    Route::post('wallet/active/{id}',[ClientWalletController::class,'active_wallet'])->name('wallet.active');
 
     // Nạp ví (ĐÃ FIX CHUẨN XỊN)
     Route::post('/wallet/deposit',[ClientWalletController::class,'createDeposit'])->name('wallet.deposit');
@@ -84,6 +74,10 @@ Route::middleware('check.verified')->group(function () {
     Route::post('/wallet/withdrawal', [ClientWalletController::class, 'withdrawalPost'])->name('wallet.withdrawal');
     Route::post('/wallet/withdrawal/cancelled/{id}', [ClientWalletController::class, 'withdrawalCancelled'])->name('wallet.withdrawal.cancelled');
 
+    // Thêm Ngân hàng người dùng
+    Route::post('wallet/bank-account/{id}',[ClientWalletController::class,'addBankAccount'])->name('wallet.bank-account');
+    // Gỡ ngân hàng người dùng
+    Route::post('wallet/remove/bank-account/{id}',[ClientWalletController::class,'removeBankAccount'])->name('wallet.remove.bank-account');
     // QUẢN LÝ GIỎ HÀNG
     Route::post('/cart/add', [CartController::class, 'add'])->name('client.cart.add');
     Route::get('/cart/count', [CartController::class, 'count'])->name('client.cart.count');
@@ -180,7 +174,7 @@ Route::post('/email/verification-notification', function (Request $request) {
 
 // ĐÃ FIX: Chỉ dùng quyền admin/staff ở ngoài cùng, quyền order.view để riêng vào nhóm đơn hàng
 
-Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
+Route::middleware(['auth', 'verified','role'])->group(function () {
 
     Route::prefix('admin')->name('admin.')->group(function () {
 
@@ -189,25 +183,18 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
             return view('admin.dashboard.index');
         })->name('dashboard');
 
-        // Thống kê hoạt động khách hàng
-        Route::get('customer-activity', [CustomerActivityController::class, 'index'])->name('customer-activity.index');
-
         // Quản lý Users
         Route::resource('users', UserController::class);
         Route::post('user/{id}/block', [UserController::class, 'block'])->name('user.block');
         Route::post('user/{id}/unblock', [UserController::class, 'unBlock'])->name('user.unblock');
         Route::post('user/{id}/reset', [UserController::class, 'resetPw'])->name('resetPw');
-
+        Route::post('user/restore/{id}',[UserController::class,'restore'])->name('user.restore');
         // 1. Quản lý Danh mục & Thương hiệu
         Route::get('categories/trash', [CategoryController::class, 'trash'])->name('categories.trash');
         Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
         Route::delete('categories/{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('categories.force_delete');
         Route::resource('categories', CategoryController::class)->except(['show']);
-        // 4. Quản lý Hỗ trợ (Support Ticket)
-        Route::get('support', [SupportController::class, 'index'])->name('support.index');
-        Route::get('support/create', [SupportController::class, 'create'])->name('support.create');
-        Route::post('support', [SupportController::class, 'store'])->name('support.store');
-        Route::resource('support', SupportController::class)->except(['index', 'create', 'store']);
+
         Route::get('brands/trash', [BrandController::class, 'trash'])->name('brands.trash');
         Route::post('brands/{id}/restore', [BrandController::class, 'restore'])->name('brands.restore');
         Route::delete('brands/{id}/force-delete', [BrandController::class, 'forceDelete'])->name('brands.force_delete');
@@ -245,6 +232,16 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::get('products/create', [AdminProductController::class, 'create'])->name('products.create');
         Route::post('products', [AdminProductController::class, 'store'])->name('products.store');
         Route::resource('products', AdminProductController::class)->except(['create', 'store']);
+
+        // 5.1 Quản lý Comments (Admin)
+        Route::get('comments', [AdminCommentController::class, 'index'])->name('comments.index');
+        Route::post('comments/{comment}/reply', [AdminCommentController::class, 'reply'])->name('comments.reply');
+        Route::delete('comments/{comment}', [AdminCommentController::class, 'destroy'])->name('comments.destroy');
+
+        // Link từ danh sách sản phẩm -> trang quản lý comments (lọc theo product nếu cần)
+        // Xem comment theo từng sản phẩm (UI giống trang com/showcom, khác với trang quản lý comment dạng bảng)
+        Route::get('products/{product}/comments', [AdminProductController::class, 'comments'])->name('products.comments');
+
 
         // 6. Quản lý Vouchers
         Route::post('vouchers/{id}/restore', [VoucherController::class, 'restore'])->name('vouchers.restore');
@@ -285,5 +282,13 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         // 11. Quản lý Điểm thưởng (Bee Point)
         Route::get('/points', [PointController::class, 'index'])->name('points.index');
         Route::post('/points/settings', [PointController::class, 'updateSettings'])->name('points.settings.update');
+
+        // Quản lý phân quyền
+        Route::resource('role', RoleController::class);
+        Route::get('member',[RoleController::class,'listMembers'])->name('member');
     });
 });
+// Public product routes and comment endpoints
+Route::get('/products/{product}', [ClientProductController::class, 'show'])->name('products.show');
+Route::post('/products/{product}/comments', [CommentController::class, 'store'])->name('products.comments.store');
+

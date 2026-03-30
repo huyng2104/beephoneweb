@@ -13,16 +13,34 @@ use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        if ($request->boolean('skip_review')) {
+            $request->session()->forget('review_order_id');
+            return redirect()->route('client.orders.index');
+        }
+
         $user = Auth::user();
 
-        $orders = Order::with('items')
+        $orders = Order::with(['items', 'items.product'])
             ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('client.profiles.orders', compact('orders', 'user'));
+        $reviewOrder = null;
+        $reviewOrderId = $request->session()->get('review_order_id');
+
+        if (is_numeric($reviewOrderId)) {
+            $reviewOrder = Order::with(['items', 'items.product'])
+                ->where('user_id', Auth::id())
+                ->find((int) $reviewOrderId);
+        }
+
+        if ($reviewOrderId !== null) {
+            $request->session()->forget('review_order_id');
+        }
+
+        return view('client.profiles.orders', compact('orders', 'user', 'reviewOrder'));
     }
 
     public function show($id)
@@ -64,12 +82,14 @@ class OrderController extends Controller
                 }
             }
 
-            $message = 'Cam on ban da xac nhan. Don hang da hoan thanh.';
+            $msg = 'Cam on ban da xac nhan. Don hang da hoan thanh.';
             if ($pointsEarned > 0) {
-                $message .= ' Ban duoc cong them ' . $pointsEarned . ' Bee Point vao tai khoan.';
+                $msg .= ' Ban duoc cong them ' . $pointsEarned . ' Bee Point vao tai khoan.';
             }
 
-            return redirect()->back()->with('success', $message);
+            return redirect()->back()
+                ->with('success', $msg)
+                ->with('review_order_id', $order->id);
         }
 
         return redirect()->back()->with('error', 'Trang thai don hang khong hop le.');

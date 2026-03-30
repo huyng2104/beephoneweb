@@ -7,13 +7,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 class Product extends Model
 {
     use SoftDeletes;
-
+    use LogsActivity;
     protected $fillable = [
-    'name', 'slug', 'description', 'type', 'price', 'sale_price', 
+    'name', 'slug', 'description', 'type', 'price', 'sale_price',
     'sku', 'stock', 'status', 'is_featured', 'brand_id', 'thumbnail','specifications'
 ];
 protected $casts = [
@@ -44,5 +45,12 @@ protected $casts = [
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class);
+    }
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->useLogName('product')
+            ->logOnlyDirty();
     }
 }
