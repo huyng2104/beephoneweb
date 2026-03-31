@@ -3,173 +3,179 @@
 namespace App\Http\Controllers\AdminControllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\BankAccount;
 use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use App\Models\User;
+use App\Models\WithdrawalRequest;
 
 class WalletController extends Controller
 {
-    // 1. Hiển thị danh sách ví
+    /**
+     * Display a listing of the resource.
+     */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $totalBalance = Wallet::sum('balance');
+        $totalDeposit = WalletTransaction::where('type', 'deposit') // Giả sử có trường phân biệt loại giao dịch
+            ->where('status', 'completed') // Chỉ tính các đơn nạp thành công
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->sum('amount');
+        $totalWithdraw = WithdrawalRequest::whereIn('status', ['completed', 'approved'])
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->sum('amount');
 
-        $users = User::with('wallet')
-            ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->withQueryString();
+        $lockedWalletsCount = Wallet::where('status', 'locked')->count();
 
-        return view('admin.wallets.index', compact('users', 'search'));
+        $query = Wallet::with('user'); // Load kèm thông tin User
+
+        // Xử lý bộ lọc tìm kiếm...
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+        if ($request->has('sort_balance') && in_array($request->sort_balance, ['asc', 'desc'])) {
+            $query->orderBy('balance', $request->sort_balance);
+        } else {
+            // Mặc định sắp xếp ví mới nhất nếu không chọn gì
+            $query->orderBy('id', 'desc');
+        }
+
+        $wallets = $query->paginate(10);
+        return view('admin.wallets.index', compact(
+            'wallets',
+            'totalBalance',
+            'totalDeposit',
+            'totalWithdraw',
+            'lockedWalletsCount'
+        ));
     }
 
-    // 2. Xử lý cộng/trừ tiền (Chuẩn hóa Database)
-    public function update(Request $request)
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'amount' => 'required|numeric|min:1000',
-            'action' => 'required|in:add,subtract',
-            'description' => 'required|string|max:255'
-        ]);
+        //
+    }
 
-        $amount = $request->amount;
-        $userWallet = Wallet::firstOrCreate(['user_id' => $request->user_id], ['balance' => 0, 'status' => 'active']);
-        $systemWallet = Wallet::firstOrCreate(['user_id' => 1], ['balance' => 0, 'status' => 'active']);
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        //
+    }
 
-        DB::beginTransaction();
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        //
+    }
+
+    public function transactions(Request $request, $id)
+    {
+
+        $wallet = Wallet::with('user')->findOrFail($id);
+
+        // Khởi tạo query giao dịch của ví này
+        $query = WalletTransaction::where('wallet_id', $wallet->id)->latest();
+
+        // 1. Lọc theo Loại giao dịch
+        $query->when($request->filled('type'), function ($q) use ($request) {
+            $q->where('type', $request->type);
+        });
+
+        // 2. Lọc theo Trạng thái
+        $query->when($request->filled('status'), function ($q) use ($request) {
+            $q->where('status', $request->status);
+        });
+
+        // 3. Lọc từ ngày
+        $query->when($request->filled('date_from'), function ($q) use ($request) {
+            // Ép về đầu ngày: 00:00:00
+            $q->whereDate('created_at', '>=', $request->date_from);
+        });
+
+        // 4. Lọc đến ngày
+        $query->when($request->filled('date_to'), function ($q) use ($request) {
+            // Ép về cuối ngày: 23:59:59
+            $q->whereDate('created_at', '<=', $request->date_to);
+        });
+
+        // Lấy dữ liệu và phân trang (Giữ lại các query string cũ khi bấm qua trang 2, 3...)
+        $transactions = $query->paginate(15)->withQueryString();
+        $banks = BankAccount::where('user_id', $wallet->user->id)->get();
+
+        return view('admin.wallets.transactions', compact('wallet', 'transactions', 'banks'));
+    }
+    public function lock(Request $request, $id)
+    {
         try {
-            // Khóa dòng chống trùng lặp (Pessimistic Locking)
-            $userWallet = Wallet::where('id', $userWallet->id)->lockForUpdate()->first();
-            $systemWallet = Wallet::where('id', $systemWallet->id)->lockForUpdate()->first();
-
-            $userBalanceBefore = $userWallet->balance;
-            $sysBalanceBefore = $systemWallet->balance;
-
-            if ($request->action === 'add') {
-                // NẠP: Trừ ví tổng, cộng ví khách
-                $systemWallet->balance -= $amount;
-                $userWallet->balance += $amount;
-
-                // Log Ví Tổng (Xuất tiền)
-                WalletTransaction::create([
-                    'wallet_id' => $systemWallet->id, 
-                    'type' => 'withdraw', // Dùng withdraw cho hợp lệ enum của DB
-                    'amount' => $amount, 
-                    'balance_before' => $sysBalanceBefore, 
-                    'balance_after' => $systemWallet->balance, 
-                    'description' => 'Chuyển tiền cho User ID ' . $request->user_id . ': ' . $request->description, 
-                    'reference_type' => get_class(Auth::user()),
-                    'reference_id' => Auth::user()->id,
-                    'status' => 'completed'
-                ]);
-                
-                // Log Ví Khách (Nhận tiền)
-                WalletTransaction::create([
-                    'wallet_id' => $userWallet->id, 
-                    'type' => 'deposit', 
-                    'amount' => $amount, 
-                    'balance_before' => $userBalanceBefore, 
-                    'balance_after' => $userWallet->balance, 
-                    'description' => 'Nhận tiền hỗ trợ: ' . $request->description, 
-                    'reference_type' => get_class(Auth::user()),
-                    'reference_id' => Auth::user()->id,
-                    'status' => 'completed'
-                ]);
-                
-                $msg = 'Đã cộng tiền cho khách thành công!';
-            } else {
-                // TRỪ: Trừ ví khách, cộng lại ví tổng
-                if ($userWallet->balance < $amount) {
-                    throw new \Exception('Số dư ví khách hàng không đủ để trừ!');
-                }
-                $systemWallet->balance += $amount;
-                $userWallet->balance -= $amount;
-
-                // Log Ví Tổng (Thu hồi)
-                WalletTransaction::create([
-                    'wallet_id' => $systemWallet->id, 
-                    'type' => 'deposit', 
-                    'amount' => $amount, 
-                    'balance_before' => $sysBalanceBefore, 
-                    'balance_after' => $systemWallet->balance, 
-                    'description' => 'Thu hồi tiền từ User ID ' . $request->user_id . ': ' . $request->description, 
-                    'reference_type' => get_class(Auth::user()),
-                    'reference_id' => Auth::user()->id,
-                    'status' => 'completed'
-                ]);
-                
-                // Log Ví Khách (Bị trừ)
-                WalletTransaction::create([
-                    'wallet_id' => $userWallet->id, 
-                    'type' => 'withdraw', 
-                    'amount' => $amount, 
-                    'balance_before' => $userBalanceBefore, 
-                    'balance_after' => $userWallet->balance, 
-                    'description' => 'Bị trừ tiền: ' . $request->description, 
-                    'reference_type' => get_class(Auth::user()),
-                    'reference_id' => Auth::user()->id,
-                    'status' => 'completed'
-                ]);
-                
-                $msg = 'Đã trừ tiền khách thành công!';
+            $wallet = Wallet::with('user')->findOrFail($id);
+            if ($wallet->status === 'locked') {
+                return back()->with('error', 'Ví của người dùng này đã bị khóa từ trước!');
             }
-
-            $systemWallet->save();
-            $userWallet->save();
-            DB::commit();
-
-            return back()->with('success', $msg . ' Đã đồng bộ vào Kho Bạc!');
+            $wallet->status = 'locked';
+            $wallet->lock_reason = $request->input('lock_reason', 'Khóa bởi quản trị viên hệ thống');
+            $wallet->save();
+            return back()->with('success', 'Đã khóa ví của tài khoản ' . $wallet->user->name . ' thành công!');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', 'Có lỗi xảy ra khi khóa ví: ' . $e->getMessage());
         }
     }
-
-    // 3. Xem lịch sử giao dịch
-    public function history($id)
+    public function unlock($id)
     {
-        $user = User::findOrFail($id);
-
-        $wallet = Wallet::firstOrCreate(
-            ['user_id' => $user->id],
-            ['balance' => 0, 'status' => 'active']
-        );
-
-        $transactions = $wallet->transactions()->orderBy('created_at', 'desc')->paginate(15);
-
-        return view('admin.wallets.history', compact('user', 'wallet', 'transactions'));
-    }
-
-    // 4. Hiển thị trang Sao kê Ví Tổng
-    public function systemWallet()
-    {
-        $systemWallet = Wallet::firstOrCreate(
-            ['user_id' => 1], 
-            ['balance' => 0, 'status' => 'active']
-        );
-
-        $transactions = WalletTransaction::where('wallet_id', $systemWallet->id)
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-
-        $users = User::where('id', '!=', 1)->get();
-
-        return view('admin.wallets.system', compact('systemWallet', 'transactions', 'users'));
-    }
-
-    // 5. Form chuyển tiền Kho Bạc
-    public function addMoneyToUser(Request $request)
-    {
-        $request->merge(['action' => 'add']); 
-        return $this->update($request);
+        try {
+            $wallet = Wallet::with('user')->findOrFail($id);
+            if ($wallet->status === 'active') {
+                return back()->with('error', 'Ví này hiện vẫn đang hoạt động bình thường!');
+            }
+            $wallet->status = 'active';
+            $wallet->lock_reason = null;
+            $wallet->locked_until = null;
+            $wallet->pin_attempts = 0;
+            $wallet->save();
+            return back()->with('success', 'Đã mở khóa ví cho tài khoản ' . $wallet->user->name . ' thành công!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Có lỗi xảy ra khi mở khóa ví: ' . $e->getMessage());
+        }
     }
 }
