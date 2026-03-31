@@ -71,7 +71,17 @@
                 </div>
                 <div>
                     <p class="text-sm text-gray-400">Số dư ví</p>
-                    <p class="text-xl font-bold">{{ number_format($user->wallet?->balance ?? 0, 0, ',', '.') }}đ</p>
+                    <p class="text-xl font-bold">
+                        @if ($user->wallet)
+                            @if (!$user->wallet->status === 'locked')
+                                {{ number_format($user->wallet?->balance ?? 0, 0, ',', '.') }}đ
+                                @else
+                                <span class="text-red-500">Bị khóa</span>
+                            @endif
+                        @else
+                            <span class="text-[#f4c025]">Chưa kích hoạt</span>
+                        @endif
+                    </p>
                 </div>
             </div>
         </div>
@@ -351,7 +361,7 @@
             {{-- Nhớ thay 'profile.password.update' bằng tên Route thực tế của bạn --}}
             <form action="{{ route('profile.password.update', $user->id) }}" method="POST">
                 @csrf
-               <div class="space-y-4">
+                <div class="space-y-4">
                     {{-- Mật khẩu cũ --}}
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Mật khẩu

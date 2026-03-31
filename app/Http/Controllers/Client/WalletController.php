@@ -215,7 +215,7 @@ class WalletController extends Controller
                 return back()->with('error', 'Tài khoản ngân hàng không hợp lệ!');
             }
 
-            $bankName = $bank->bank_name;
+            $bankName = $bank->bank_code;
             $accountNumber = $bank->account_number;
             $accountName = $bank->account_name;
         }
@@ -224,28 +224,34 @@ class WalletController extends Controller
         try {
             DB::transaction(function () use ($wallet, $request, $bankName, $accountNumber, $accountName) {
 
-                // Thêm record bảng transactions
-                $transaction = $wallet->transactions()->create([
-                    'type'           => 'withdraw',
-                    'amount'         => $request->amount,
-                    'balance_before' => $wallet->balance,
-                    'balance_after'  => $wallet->balance - $request->amount,
-                    'description'    => 'Người dùng yêu cầu rút tiền',
-                    'status'         => 'pending',
-                ]);
-
-                // Trừ số dư ví ngay lập tức
-                $wallet->decrement('balance', $request->amount);
-
-                // Tạo yêu cầu rút với thông tin ngân hàng đã được lọc
-                WithdrawalRequest::create([
+                // 1. Tạo yêu cầu rút tiền trước
+                $withdrawal = WithdrawalRequest::create([
                     'user_id'        => $wallet->user->id,
                     'amount'         => $request->amount,
                     'bank_name'      => $bankName,
                     'account_number' => $accountNumber,
                     'account_name'   => $accountName,
-                    'transaction_id' => $transaction->id,
+                    'status'         => 'pending',
                 ]);
+
+                // 2. Tạo giao dịch ví và liên kết với $withdrawal->id
+                $transaction = $wallet->transactions()->create([
+                    'type'           => 'withdraw',
+                    'amount'         => $request->amount,
+                    'balance_before' => $wallet->balance,
+                    'balance_after'  => $wallet->balance - $request->amount,
+                    'description'    => 'Trừ tiền đơn rút (' . $withdrawal->id . ')',
+                    'status'         => 'completed',
+                    // Gán 2 cột này để Admin có thể lấy ra sau này
+                    'reference_type' => WithdrawalRequest::class,
+                    'reference_id'   => $withdrawal->id,
+                ]);
+
+                // 3. Cập nhật lại transaction_id cho đơn rút (Nếu bạn vẫn muốn dùng cột này)
+                $withdrawal->update(['transaction_id' => $transaction->id]);
+
+                // 4. Trừ số dư ví ngay lập tức
+                $wallet->decrement('balance', $request->amount);
             });
 
             return back()->with('success', 'Tạo yêu cầu rút tiền thành công! Vui lòng chờ Admin xử lý.');
@@ -259,39 +265,49 @@ class WalletController extends Controller
     // ==================================================
     public function withdrawalCancelled($id)
     {
-        $transaction = WalletTransaction::findOrFail($id);
-        $withdrawalRequest = WithdrawalRequest::where('transaction_id', $transaction->id)->first();
+        $withdrawalRequest = WithdrawalRequest::find($id);
+        $transaction = WalletTransaction::where('id', $withdrawalRequest->transaction_id )->first();
+        // Kiểm tra nếu đã hủy rồi thì không xử lý nữa (tránh cộng tiền 2 lần)
+        if ($transaction->status === 'cancelled') {
+            return back()->with('error', 'Giao dịch này đã được hủy trước đó.');
+        }
 
         try {
             DB::transaction(function () use ($withdrawalRequest, $transaction) {
-                $withdrawalRequest->update([
-                    'status' => 'canceled'
-                ]);
+                // 1. Cập nhật trạng thái các bản ghi cũ
+                $withdrawalRequest->update(['status' => 'canceled']);
+                // $transaction->update([
+                //     'status' => 'cancelled',
+                //     'description' => 'Người dùng hủy lệnh rút tiền'
+                // ]);
 
-                $transaction->update([
-                    'status' => 'cancelled',
-                    'description' => 'Người dùng hủy lệnh rút tiền'
-                ]);
+                // 2. Lấy ví và LÀM MỚI dữ liệu từ Database
+                $wallet = $transaction->wallet->fresh(); // Lấy dữ liệu mới nhất từ DB
 
-                // Hoàn tiền lại vào ví
+                $balanceBefore = $wallet->balance;
+                $amount = $transaction->amount;
+                $balanceAfter = $balanceBefore + $amount;
+
+                // 3. Tạo bản ghi hoàn tiền với số dư CHÍNH XÁC
                 WalletTransaction::create([
-                    'wallet_id' => $transaction->wallet->id,
+                    'wallet_id' => $wallet->id,
                     'type' => 'refund',
-                    'amount' => $transaction->amount,
-                    'balance_before' => $transaction->wallet->balance,
+                    'amount' => $amount,
+                    'balance_before' => $balanceBefore,
+                    'balance_after' => $balanceAfter,
                     'reference_id' => $withdrawalRequest->id,
-                    'reference_type' => get_class($withdrawalRequest),
-                    'balance_after' => $transaction->wallet->balance + $transaction->amount,
+                    'reference_type' => WithdrawalRequest::class,
                     'description' => 'Hoàn tiền do hủy lệnh rút',
                     'status' => 'completed'
                 ]);
 
-                $transaction->wallet->increment('balance', $transaction->amount);
+                // 4. Cập nhật số dư thực tế trong Database
+                $wallet->increment('balance', $amount);
             });
 
-            return back()->with(['success' => 'Đã hủy lệnh rút và hoàn tiền lại vào ví thành công!']);
+            return back()->with('success', 'Đã hủy lệnh rút và hoàn tiền thành công!');
         } catch (\Exception $e) {
-            return back()->with(['error' => 'Có lỗi xảy ra khi hủy lệnh rút tiền!']);
+            return back()->with('error', 'Lỗi: ' . $e->getMessage());
         }
     }
 

@@ -20,7 +20,8 @@
                                     class="text-2xl ml-1 text-[#f4c025]">đ</span></h2>
                         </div>
                         <div class="flex flex-wrap gap-4">
-                            <button type="button" onclick="openDepositModal()"
+                            @if ($user->wallet->status == 'active')
+                                <button type="button" onclick="openDepositModal()"
                                 class="bg-[#f4c025] text-black px-8 py-3 rounded-xl font-bold hover:bg-yellow-400 transition-all flex items-center gap-2 shadow-lg shadow-yellow-900/20">
                                 <svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20"
                                     xmlns="http://www.w3.org/2000/svg">
@@ -34,6 +35,9 @@
                                 class="bg-transparent border border-gray-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-white/10 transition-colors">
                                 Rút tiền
                             </button>
+                            @else
+                            <span class=" text-red-500">Bị khóa</span>
+                            @endif
 
                         </div>
 
@@ -42,21 +46,30 @@
             </section>
             <section class="mt-6">
                 <div class="bg-[#1e1e1e] border border-gray-800 p-6 rounded-2xl shadow-xl">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                        <div>
+
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                        <div class="flex-1">
                             <h3 class="text-white text-lg font-bold">Ngân hàng liên kết</h3>
                             <p class="text-gray-400 text-sm">Quản lý tài khoản nhận tiền hoàn hoặc rút tiền</p>
                         </div>
 
-                        <button type="button" onclick="openAddBankModal()"
-                            class="flex items-center gap-2 bg-transparent border border-[#f4c025] text-[#f4c025] px-5 py-2.5 rounded-xl font-bold hover:bg-[#f4c025] hover:text-black transition-all text-sm">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4">
-                                </path>
-                            </svg>
-                            Thêm ngân hàng
-                        </button>
+                        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                            <a href="{{ route('wallet.withdrawals', $user->id) }}"
+                                class="flex-1 md:flex-none justify-center px-4 py-2.5 bg-transparent border border-slate-700 text-slate-300 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-800 hover:text-white transition-all shadow-sm">
+                                <span class="material-symbols-outlined text-[18px]">history</span>
+                                Lịch sử rút tiền
+                            </a>
+
+                            <button type="button" onclick="openAddBankModal()"
+                                class="flex-1 md:flex-none justify-center flex items-center gap-2 bg-[#f4c025] border border-[#f4c025] text-black px-5 py-2.5 rounded-xl font-bold hover:bg-[#d9ab21] transition-all text-sm shadow-lg shadow-yellow-900/10">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Thêm ngân hàng
+                            </button>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -71,6 +84,7 @@
                                             class="h-8 w-16 object-contain group-hover:scale-110 transition-transform duration-300"
                                             alt="{{ $bank->bank_code }} logo">
                                     </div>
+
                                     <div>
                                         <div class="flex items-center gap-2">
                                             <span class="text-white font-bold">{{ $bank->bank_name ?? 'Bank' }}</span>
@@ -112,142 +126,206 @@
                     </div>
                 </div>
             </section>
-            <section class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
-                data-purpose="transaction-list">
-                <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-                    <h3 class="font-bold text-lg text-gray-900">Lịch sử giao dịch nội bộ</h3>
-                    <button class="text-sm text-[#f4c025] font-semibold hover:underline">Xem tất cả</button>
-                </div>
-                <div class="overflow-x-auto w-full rounded-lg border border-gray-100 dark:border-gray-800">
-                    <table class="w-full text-left min-w-[800px]">
-                        <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 text-xs uppercase">
-                            <tr>
-                                <th class="px-4 py-3 md:px-6 md:py-4 font-bold whitespace-nowrap">Ngày</th>
-                                <th class="px-4 py-3 md:px-6 md:py-4 font-bold whitespace-nowrap">Loại giao dịch</th>
-                                <th class="px-4 py-3 md:px-6 md:py-4 font-bold min-w-[250px]">Mô tả</th>
-                                <th class="px-4 py-3 md:px-6 md:py-4 font-bold whitespace-nowrap">Số tiền</th>
-                                <th class="px-4 py-3 md:px-6 md:py-4 font-bold whitespace-nowrap">Trạng thái</th>
-                                <th class="px-4 py-3 md:px-6 md:py-4 font-bold text-right whitespace-nowrap">Chi tiết</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                            @php
-                                // KHAI BÁO BIẾN PHÂN TRANG Ở ĐÂY ĐỂ TRÁNH LỖI LINKS()
-                                $paginatedTransactions = $user->wallet->transactions()->latest()->paginate(4);
-                            @endphp
+            <form method="GET" action="{{ url()->current() }}"
+                class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
 
-                            @if ($paginatedTransactions->count() != 0)
-                                @foreach ($paginatedTransactions as $transaction)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Loại giao
+                            dịch</label>
+                        <select name="type" onchange="this.form.submit()"
+                            class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:ring-primary focus:border-primary text-sm py-2.5">
+                            <option value="">Tất cả loại</option>
+                            <option value="deposit" {{ request('type') == 'deposit' ? 'selected' : '' }}>Nạp tiền</option>
+                            <option value="withdraw" {{ request('type') == 'withdraw' ? 'selected' : '' }}>Rút tiền
+                            </option>
+                            <option value="payment" {{ request('type') == 'payment' ? 'selected' : '' }}>Thanh toán
+                            </option>
+                            <option value="refund" {{ request('type') == 'refund' ? 'selected' : '' }}>Hoàn tiền</option>
+                        </select>
+                    </div>
 
-                                        <td class="px-4 py-3 md:px-6 md:py-4 text-sm whitespace-nowrap">
-                                            <div class="font-medium text-gray-700 dark:text-gray-300">
-                                                {{ $transaction->created_at->format('d/m/Y') }}
-                                            </div>
-                                            <div class="text-xs text-gray-500 mt-0.5">
-                                                {{ $transaction->created_at->format('H:i:s') }}
-                                            </div>
-                                        </td>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Trạng
+                            thái</label>
+                        <select name="status" onchange="this.form.submit()"
+                            class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:ring-primary focus:border-primary text-sm py-2.5">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Thành công
+                            </option>
+                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Đang chờ
+                            </option>
+                            <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Thất bại</option>
+                            {{-- <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Đã hủy
+                            </option> --}}
+                        </select>
+                    </div>
 
-                                        <td class="px-4 py-3 md:px-6 md:py-4 whitespace-nowrap">
-                                            <div class="flex items-center gap-2">
-                                                {!! $transaction->type_transaction !!}
-                                            </div>
-                                        </td>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Từ ngày</label>
+                        <input type="date" name="date_from" value="{{ request('date_from') }}"
+                            onchange="this.form.submit()"
+                            class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:ring-primary focus:border-primary text-sm py-2.5">
+                    </div>
 
-                                        <td class="px-4 py-3 md:px-6 md:py-4 whitespace-normal min-w-[250px]">
-                                            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                                {{ $transaction->description }}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Đến
+                            ngày</label>
+                        <input type="date" name="date_to" value="{{ request('date_to') }}"
+                            onchange="this.form.submit()"
+                            class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:ring-primary focus:border-primary text-sm py-2.5">
+                    </div>
 
-                                                @if ($transaction->reference)
-                                                    @if ($transaction->reference_type == 'App\Models\User')
-                                                        <a href="{{ $transaction->reference->id }}"
-                                                            class="text-blue-500 hover:underline">
-                                                            #{{ $transaction->reference->name }}
-                                                        </a>
-                                                    @elseif ($transaction->reference_type == 'App\Models\WithdrawalRequest')
-                                                        <a href="{{ $transaction->reference->id }}"
-                                                            class="text-blue-500 hover:underline">
-                                                            #{{ $transaction->reference->id }}
-                                                        </a>
-                                                    @endif
-                                                @endif
-                                            </p>
-                                        </td>
-
-                                        @if ($transaction->type == 'deposit' || $transaction->type == 'refund')
-                                            @if ($transaction->status == 'completed')
-                                                <td
-                                                    class="px-4 py-3 md:px-6 md:py-4 font-bold text-green-600 text-sm whitespace-nowrap">
-                                                    + {{ number_format($transaction->amount, 0, ',', '.') }}đ
-                                                </td>
-                                            @else
-                                                <td class="px-4 py-3 md:px-6 md:py-4 font-bold text-sm whitespace-nowrap">
-                                                    {{ number_format($transaction->amount, 0, ',', '.') }}đ
-                                                </td>
-                                            @endif
-                                        @else
-                                            <td
-                                                class="px-4 py-3 md:px-6 md:py-4 font-bold text-red-500 text-sm whitespace-nowrap">
-                                                - {{ number_format($transaction->amount, 0, ',', '.') }}đ
-                                            </td>
-                                        @endif
-
-                                        @php
-                                            $status_color = match ($transaction->status_transaction) {
-                                                'Đang chờ' => 'blue',
-                                                'Thành công' => 'green',
-                                                'Thất bại' => 'red',
-                                                default => 'yellow',
-                                            };
-                                        @endphp
-                                        <td class="px-4 py-3 md:px-6 md:py-4 whitespace-nowrap">
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $status_color }}-100 text-{{ $status_color }}-800">
-                                                {{ $transaction->status_transaction }}
-                                            </span>
-                                        </td>
-
-                                        <td class="px-4 py-3 md:px-6 md:py-4 text-right whitespace-nowrap">
-                                            <button type="button"
-                                                class="text-gray-400 hover:text-blue-500 transition-colors inline-flex justify-end w-full"
-                                                title="Xem chi tiết"
-                                                data-before="{{ number_format($transaction->balance_before ?? 0, 0, ',', '.') }}đ"
-                                                data-after="{{ number_format($transaction->balance_after ?? 0, 0, ',', '.') }}đ"
-                                                data-desc="{{ $transaction->description ?? 'Không có mô tả' }}"
-                                                onclick="openTransactionModal(this)">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                    viewBox="0 0 20 20" fill="currentColor">
-                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                                    <path fill-rule="evenodd"
-                                                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                            </button>
-                                        </td>
-
-
-
-                                    </tr>
-                                @endforeach
-                            @else
-                                <tr>
-                                    <td colspan="7" class="px-6 py-8 text-center text-gray-500 italic">
-                                        Chưa có lịch sử giao dịch
-                                    </td>
-                                </tr>
-                            @endif
-
-                        </tbody>
-
-                    </table>
-
-                    <div class="p-4 border-t border-gray-100">
-                        {{-- SỬ DỤNG BIẾN MỚI ĐỂ GỌI LINKS() CHUẨN XÁC --}}
-                        {{ $paginatedTransactions->links() }}
+                    <div class="flex items-center gap-2">
+                        @if (request()->anyFilled(['type', 'status', 'date_from', 'date_to']))
+                            <a href="{{ url()->current() }}"
+                                class="w-full bg-orange-100 hover:bg-orange-200 dark:bg-orange-700 dark:hover:bg-orange-600 text-orange-600 dark:text-orange-300 font-bold py-2.5 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+                                title="Xóa bộ lọc">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                                Xóa lọc
+                            </a>
+                        @else
+                        @endif
                     </div>
                 </div>
-            </section>
+            </form>
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div
+                    class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20">
+                    <h3 class="font-bold text-slate-800 dark:text-slate-200">Lịch sử biến động</h3>
+                    <span class="text-xs text-slate-500">Tổng số: {{ $transactions->total() }} giao dịch</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead
+                            class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4">Giao dịch / Thời gian</th>
+                                <th class="px-6 py-4 text-center">Loại GD</th>
+                                <th class="px-6 py-4">Nội dung chi tiết</th>
+                                <th class="px-6 py-4 text-right">Số tiền</th>
+                                <th class="px-6 py-4 text-right">Biến động số dư</th>
+                                <th class="px-6 py-4 text-center">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                            @forelse ($transactions as $tx)
+                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+
+                                    <td class="px-6 py-4">
+                                        <p class="font-bold text-slate-700 dark:text-slate-300">#{{ $tx->id }}</p>
+                                        <p class="text-xs text-slate-500 mt-1">
+                                            {{ $tx->created_at->format('d/m/Y H:i:s') }}
+                                        </p>
+                                    </td>
+
+                                    <td class="px-6 py-4 text-center">
+                                        {!! $tx->type_transaction !!}
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        <p class="text-slate-700 dark:text-slate-300 font-medium line-clamp-2"
+                                            title="{{ $tx->description }}">
+                                            {{ $tx->description ?? 'Không có nội dung' }}
+                                        </p>
+
+                                        {{-- Hiển thị thông tin tham chiếu nếu có --}}
+                                        @if ($tx->reference_type && $tx->reference_id)
+                                            <p class="text-[11px] text-slate-400 mt-1">
+                                                Nguồn: {{ class_basename($tx->reference_type) }} #{{ $tx->reference_id }}
+                                            </p>
+                                        @endif
+                                    </td>
+
+                                    <td class="px-6 py-4 text-right whitespace-nowrap">
+                                        @if ($tx->status === 'completed')
+                                            @if ($tx->type === 'deposit' || $tx->type === 'refund')
+                                                <p class="text-base font-black text-green-600 dark:text-green-500">
+                                                    +{{ number_format($tx->amount) }}đ
+                                                </p>
+                                            @else
+                                                <p class="text-base font-black text-red-600 dark:text-red-500">
+                                                    -{{ number_format($tx->amount) }}đ
+                                                </p>
+                                            @endif
+                                        @elseif($tx->status === 'failed' || $tx->status === 'cancelled')
+                                            <p class="text-base font-bold text-slate-400 dark:text-slate-500 line-through">
+                                                {{ number_format($tx->amount) }}đ
+                                            </p>
+                                        @else
+                                            <p class="text-base font-bold text-slate-500 dark:text-slate-400">
+                                                {{ number_format($tx->amount) }}đ
+                                            </p>
+                                        @endif
+                                    </td>
+
+                                    <td class="px-6 py-4 text-right text-xs whitespace-nowrap">
+                                        @if ($tx->status === 'completed' || $tx->status === 'cancelled' )
+                                            <div class="flex flex-col gap-1 text-slate-500">
+                                                {{-- <p>Trước: <span
+                                                        class="font-medium">{{ number_format($tx->balance_before) }}đ</span>
+                                                </p> --}}
+                                                <p>SD: <span
+                                                        class="font-bold text-slate-800 dark:text-slate-200">{{ number_format($tx->balance_after) }}đ</span>
+                                                </p>
+                                            </div>
+                                        @else
+                                            <span class="text-slate-400 italic">Chưa biến động</span>
+                                        @endif
+                                    </td>
+
+                                    <td class="px-6 py-4 text-center">
+                                        @if ($tx->status === 'completed')
+                                            <span
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400 border border-green-100 dark:border-green-500/20 whitespace-nowrap">
+                                                <span class="size-1.5 rounded-full bg-green-500"></span>
+                                                {{ $tx->status_transaction }}
+                                            </span>
+                                        @elseif($tx->status === 'pending')
+                                            <span
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400 border border-orange-100 dark:border-orange-500/20 whitespace-nowrap">
+                                                <span class="size-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                                                {{ $tx->status_transaction }}
+                                            </span>
+                                        @elseif($tx->status === 'failed')
+                                            <span
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border border-red-100 dark:border-red-500/20 whitespace-nowrap">
+                                                <span class="size-1.5 rounded-full bg-red-500"></span>
+                                                {{ $tx->status_transaction }}
+                                            </span>
+                                        @else
+                                            <span
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 whitespace-nowrap">
+                                                <span class="size-1.5 rounded-full bg-slate-500"></span>
+                                                {{ $tx->status_transaction }}
+                                            </span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <span
+                                                class="material-symbols-outlined text-4xl mb-3 text-slate-300">receipt_long</span>
+                                            <p class="text-base font-medium text-slate-600 dark:text-slate-400">Ví này chưa
+                                                có giao dịch nào</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                @if ($transactions->hasPages())
+                    <div class="p-4 border-t border-slate-100 dark:border-slate-700">
+                        {{ $transactions->links() }}
+                    </div>
+                @endif
+            </div>
         @else
             <button type="button" onclick="openActivateModal()"
                 class="bg-[#f4c025] text-black px-8 py-3 rounded-xl font-bold hover:bg-yellow-400 transition-all flex items-center gap-2 shadow-lg shadow-yellow-900/20">
@@ -258,298 +336,10 @@
                 Kích hoạt ví ngay
             </button>
         @endif
-
-        {{-- card lịch sử rút tiền  --}}
-        <section class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mt-6"
-            data-purpose="withdrawal-list">
-            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="font-bold text-lg text-gray-900 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">history</span>
-                    Lịch sử rút tiền
-                </h3>
-                <button class="text-sm text-[#f4c025] font-semibold hover:underline">Xem tất cả</button>
-            </div>
-
-            <div class="overflow-x-auto w-full">
-                <table class="w-full text-left min-w-[800px]">
-                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
-                        <tr>
-                            <th class="px-4 py-3 md:px-6 md:py-4 font-bold whitespace-nowrap">Thời gian</th>
-                            <th class="px-4 py-3 md:px-6 md:py-4 font-bold whitespace-nowrap">Ngân hàng thụ hưởng</th>
-                            <th class="px-4 py-3 md:px-6 md:py-4 font-bold whitespace-nowrap text-right">Số tiền rút</th>
-                            <th class="px-4 py-3 md:px-6 md:py-4 font-bold whitespace-nowrap text-center">Trạng thái</th>
-                            <th class="px-4 py-3 md:px-6 md:py-4 font-bold text-right whitespace-nowrap">Chi tiết</th>
-                        </tr>
-                    </thead>
-
-                    <tbody class="divide-y divide-gray-100">
-                        @php
-                            $withdrawals = $user->withdrawalRequests()->latest()->paginate(10);
-                        @endphp
-
-                        @if ($withdrawals->count() != 0)
-                            @foreach ($withdrawals as $item)
-                                <tr class="hover:bg-gray-50 transition-colors">
-
-                                    <td class="px-4 py-3 md:px-6 md:py-4 text-sm whitespace-nowrap">
-                                        <div class="font-medium text-gray-700">
-                                            {{ $item->created_at->format('d/m/Y') }}
-                                        </div>
-                                        <div class="text-xs text-gray-500 mt-0.5">
-                                            {{ $item->created_at->format('H:i:s') }}
-                                        </div>
-                                    </td>
-
-                                    <td class="px-4 py-3 md:px-6 md:py-4 whitespace-nowrap">
-                                        <div class="font-medium text-gray-900 uppercase">
-                                            {{ $item->bank_name }}
-                                        </div>
-                                        <div class="text-xs text-gray-500 mt-0.5">
-                                            {{ $item->account_number }}
-                                        </div>
-                                    </td>
-
-                                    <td class="px-4 py-3 md:px-6 md:py-4 text-right whitespace-nowrap">
-                                        @if (in_array($item->status, ['canceled', 'rejected']))
-                                            <span class="font-bold text-green-500 text-sm">
-                                                + {{ number_format($item->amount, 0, ',', '.') }}đ
-                                            </span>
-                                            <div class="text-[10px] text-gray-400 mt-0.5">Đã hoàn ví</div>
-                                        @else
-                                            <span class="font-bold text-red-500 text-sm">
-                                                - {{ number_format($item->amount, 0, ',', '.') }}đ
-                                            </span>
-                                        @endif
-                                    </td>
-
-                                    <td class="px-4 py-3 md:px-6 md:py-4 text-center whitespace-nowrap">
-                                        @if ($item->status == 'pending')
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                Chờ duyệt
-                                            </span>
-                                        @elseif($item->status == 'approved')
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                Thành công
-                                            </span>
-                                        @elseif($item->status == 'rejected')
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                Từ chối
-                                            </span>
-                                        @elseif($item->status == 'canceled')
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-gray-800">
-                                                Đã hủy
-                                            </span>
-                                        @endif
-                                    </td>
-
-                                    <td class="px-4 py-3 md:px-6 md:py-4 text-right whitespace-nowrap">
-                                        <div class="flex items-center justify-end gap-3">
-                                            <button type="button" onclick="openWithdrawalModal({{ $item->id }})"
-                                                class="text-gray-400 hover:text-blue-500 transition-colors inline-flex justify-center"
-                                                title="Xem chi tiết">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                    viewBox="0 0 20 20" fill="currentColor">
-                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                                    <path fill-rule="evenodd"
-                                                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                            </button>
-
-                                            @if ($item->status == 'pending')
-                                                <form
-                                                    action="{{ route('wallet.withdrawal.cancelled', $item->transaction_id) }}"
-                                                    method="POST"
-                                                    onsubmit="return confirm('Bạn có chắc chắn muốn hủy lệnh này?');"
-                                                    class="inline m-0 p-0">
-                                                    @csrf
-                                                    <button type="submit"
-                                                        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-lg transition-all duration-200 border border-red-100"
-                                                        title="Hủy lệnh rút">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                                                            viewBox="0 0 20 20" fill="currentColor">
-                                                            <path fill-rule="evenodd"
-                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                                                clip-rule="evenodd" />
-                                                        </svg>
-                                                        <span>Hủy</span>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
-
-                                        <div id="modal-withdrawal-{{ $item->id }}"
-                                            class="fixed inset-0 z-50 hidden text-left" aria-labelledby="modal-title"
-                                            role="dialog" aria-modal="true">
-                                            <div class="fixed inset-0 bg-gray-900/50 transition-opacity backdrop-blur-sm"
-                                                onclick="closeWithdrawalModal({{ $item->id }})"></div>
-                                            <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-                                                <div
-                                                    class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                                                    <div
-                                                        class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                                                        <div
-                                                            class="bg-gray-50 px-4 py-4 border-b border-gray-100 flex justify-between items-center sm:px-6">
-                                                            <h3 class="text-base font-semibold leading-6 text-gray-900"
-                                                                id="modal-title">Chi tiết lệnh rút tiền</h3>
-                                                            <button type="button"
-                                                                onclick="closeWithdrawalModal({{ $item->id }})"
-                                                                class="text-gray-400 hover:text-gray-500 outline-none">
-                                                                <span class="material-symbols-outlined">close</span>
-                                                            </button>
-                                                        </div>
-                                                        <div
-                                                            class="px-4 py-5 sm:p-6 text-sm text-gray-600 space-y-3 whitespace-normal">
-                                                            <div
-                                                                class="flex justify-between border-b border-dashed border-gray-200 pb-2">
-                                                                <span class="text-gray-500">Mã giao dịch:</span>
-                                                                <span
-                                                                    class="font-medium text-gray-900">#{{ $item->id ?? 'N/A' }}</span>
-                                                            </div>
-                                                            <div
-                                                                class="flex justify-between border-b border-dashed border-gray-200 pb-2">
-                                                                <span class="text-gray-500">Số tiền:</span>
-                                                                <span
-                                                                    class="font-bold text-gray-900">{{ number_format($item->amount, 0, ',', '.') }}
-                                                                    VNĐ</span>
-                                                            </div>
-                                                            <div
-                                                                class="flex justify-between border-b border-dashed border-gray-200 pb-2">
-                                                                <span class="text-gray-500">Ngân hàng:</span>
-                                                                <span
-                                                                    class="font-medium text-gray-900 uppercase">{{ $item->bank_name }}</span>
-                                                            </div>
-                                                            <div
-                                                                class="flex justify-between border-b border-dashed border-gray-200 pb-2">
-                                                                <span class="text-gray-500">Số tài khoản:</span>
-                                                                <span
-                                                                    class="font-medium text-gray-900">{{ $item->account_number }}</span>
-                                                            </div>
-                                                            <div
-                                                                class="flex justify-between border-b border-dashed border-gray-200 pb-2">
-                                                                <span class="text-gray-500">Chủ tài khoản:</span>
-                                                                <span
-                                                                    class="font-medium text-gray-900 uppercase">{{ $item->account_name }}</span>
-                                                            </div>
-                                                            <div
-                                                                class="flex justify-between border-b border-dashed border-gray-200 pb-2">
-                                                                <span class="text-gray-500">Thời gian tạo:</span>
-                                                                <span
-                                                                    class="font-medium text-gray-900">{{ $item->created_at->format('H:i:s d/m/Y') }}</span>
-                                                            </div>
-                                                            @if ($item->admin_note)
-                                                                <div
-                                                                    class="bg-yellow-50 rounded-lg p-3 mt-4 border border-yellow-100">
-                                                                    <span
-                                                                        class="block text-xs font-semibold text-yellow-800 mb-1">Ghi
-                                                                        chú từ Admin:</span>
-                                                                    <p class="text-sm text-yellow-700">
-                                                                        {{ $item->admin_note }}</p>
-                                                                </div>
-                                                            @endif
-                                                            @if ($item->proof_image)
-                                                                <div class="mt-4">
-                                                                    <span
-                                                                        class="block text-sm font-medium text-gray-700 mb-2">Ảnh
-                                                                        minh chứng chuyển khoản:</span>
-                                                                    <img src="{{ asset('storage/' . $item->proof_image) }}"
-                                                                        alt="Proof"
-                                                                        class="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm">
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                        <div
-                                                            class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                                                            <button type="button"
-                                                                onclick="closeWithdrawalModal({{ $item->id }})"
-                                                                class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
-                                                                Đóng
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        @else
-                            <tr>
-                                <td colspan="5" class="px-6 py-8 text-center text-gray-500 italic">
-                                    Chưa có lịch sử rút tiền nào
-                                </td>
-                            </tr>
-                        @endif
-                    </tbody>
-                </table>
-
-                <div class="p-4 border-t border-gray-100 bg-white">
-                    {{ $withdrawals->links() }}
-                </div>
-            </div>
-        </section>
-
-        <script>
-            function openWithdrawalModal(id) {
-                document.getElementById('modal-withdrawal-' + id).classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeWithdrawalModal(id) {
-                document.getElementById('modal-withdrawal-' + id).classList.add('hidden');
-                document.body.style.overflow = 'auto';
-            }
-        </script>
     </main>
 
-    {{-- Popup cho chi tiết giao dịch --}}
-    <div id="transactionModal"
-        class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center transition-opacity">
 
-        <div
-            class="bg-white dark:bg-gray-800 w-full max-w-md rounded-2xl shadow-xl overflow-hidden transform transition-all">
-            <div
-                class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Chi tiết giao dịch</h3>
-                <button onclick="closeTransactionModal()" class="text-gray-400 hover:text-red-500">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-
-            <div class="px-6 py-6 space-y-4">
-                <div
-                    class="flex justify-between items-center pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-                    <span class="text-sm text-gray-500">Số dư trước GD:</span>
-                    <span id="modal-before" class="font-medium text-gray-900 dark:text-gray-300"></span>
-                </div>
-
-                <div
-                    class="flex justify-between items-center pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-                    <span class="text-sm text-gray-500">Số dư sau GD:</span>
-                    <span id="modal-after" class="font-bold text-gray-900 dark:text-white"></span>
-                </div>
-
-                <div>
-                    <span class="text-sm text-gray-500 block mb-2">Mô tả giao dịch:</span>
-                    <p id="modal-desc"
-                        class="text-sm p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg text-gray-700 dark:text-gray-300 italic">
-                    </p>
-                </div>
-            </div>
-
-            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 text-right">
-                <button onclick="closeTransactionModal()"
-                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white text-sm font-medium rounded-lg transition-colors">
-                    Đóng lại
-                </button>
-            </div>
-        </div>
-    </div>
-
+    {{-- Popup cho nạp tiền --}}
     <div id="depositModal"
         class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center transition-opacity">
 
