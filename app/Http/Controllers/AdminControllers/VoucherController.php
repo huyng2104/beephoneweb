@@ -14,6 +14,7 @@ use App\Models\Order;
 
 class VoucherController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */
@@ -187,7 +188,7 @@ class VoucherController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-   public function store(StoreVoucherRequest $request)
+    public function store(StoreVoucherRequest $request)
     {
         $data = [
             'name' => $request->name,
@@ -197,22 +198,21 @@ class VoucherController extends Controller
             'max_discount' => $request->max_discount,
             'min_order_value' => $request->min_order_value,
             'usage_limit' => $request->usage_limit,
+            // 'usage_limit_per_user' => $request->usage_limit_per_user,
             'description' => $request->description,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'status' => $request->has('status') ? 1 : 0,
-            'points_required' => $request->points_required, // Cột điểm thưởng
+            'points_required' => $request->points_required,
         ];
-
-        // 🚀 BẮT BUG 1: Phải thêm ?? [] để nếu khách không chọn thì nó là mảng rỗng, hàm sync() mới không bị lỗi
-        $brandIds = $request->brands ?? [];
-        $categoryIds = $request->categories ?? [];
-        $productIds = $request->products ?? [];
-
+        $brandIds = $request->brands;
+        $categoryIds = $request->categories;
+        $productIds = $request->products;
         try {
+
             DB::transaction(function () use ($data, $brandIds, $categoryIds, $productIds) {
+
                 $voucher = Voucher::create($data);
-                
                 $voucher->brands()->sync($brandIds);
                 $voucher->categories()->sync($categoryIds);
                 $voucher->products()->sync($productIds);
@@ -220,8 +220,8 @@ class VoucherController extends Controller
 
             return redirect()->route('admin.vouchers.index')->with('success', 'Voucher đã được tạo thành công');
         } catch (\Exception $e) {
-            // 🚀 TIP CHUYÊN NGHIỆP: In luôn cái lỗi ra để biết nó bị gì thay vì chỉ hiện "Lỗi thêm mới"
-            return back()->with('error', 'Lỗi thêm mới: ' . $e->getMessage());
+
+            return back()->with('error', 'Lỗi thêm mới!');
         }
     }
 
@@ -267,17 +267,10 @@ class VoucherController extends Controller
     public function update(StoreVoucherRequest $request, string $id)
     {
         try {
+
             DB::transaction(function () use ($request, $id) {
                 $voucher = Voucher::findOrFail($id);
-                
-                // 🚀 BẮT BUG 2: Lấy data đã validate, NHƯNG phải nhét thêm status và points_required vào tay
-                $data = $request->validated();
-                $data['status'] = $request->has('status') ? 1 : 0;
-                $data['points_required'] = $request->points_required; 
-                
-                $voucher->update($data);
-
-                // Sync y chang như trên
+                $voucher->update($request->validated());
                 $voucher->brands()->sync($request->brands ?? []);
                 $voucher->categories()->sync($request->categories ?? []);
                 $voucher->products()->sync($request->products ?? []);
@@ -285,7 +278,8 @@ class VoucherController extends Controller
 
             return redirect()->route('admin.vouchers.index')->with('success', 'Voucher đã được sửa thành công');
         } catch (\Exception $e) {
-            return back()->with('error', 'Lỗi sửa: ' . $e->getMessage());
+
+            return back()->with('error', 'Lỗi sửa!');
         }
     }
 

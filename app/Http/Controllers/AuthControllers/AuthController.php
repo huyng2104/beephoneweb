@@ -39,7 +39,6 @@ class AuthController extends Controller
                 'email' => 'Tài khoản của bạn đã bị xóa khỏi hệ thống.'
             ])->onlyInput('email');
         }
-
         $data = [
             'email' => $request->email,
             'password' => $request->password,
@@ -55,30 +54,24 @@ class AuthController extends Controller
 
         if (Auth::attempt($data)) {
             $request->session()->regenerate();
-            
-            // ĐÃ SỬA CHỖ NÀY: Ghi log trực tiếp vào Database
-            try {
-                DB::table('activity_logs')->insert([
-                    'user_id' => Auth::id(),
-                    'action' => 'login',
-                    'description' => 'Đăng nhập hệ thống',
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
-            } catch (\Exception $e) {
-                // Bỏ qua lỗi nếu bảng activity_logs chưa có
-            }
-
-            return redirect()->intended('/')->with([
-                'success' => 'Đăng nhập thành công'
-            ]);
+            activity('auth')
+                ->causedBy($user) // Xác định người vừa đăng nhập
+                ->withProperties([
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(), // Lưu thông tin trình duyệt, thiết bị
+                    'status'     => 'success'
+                ])
+                ->log('Đăng nhập hệ thống thành công.');
+            return redirect()->intended('/')->with(
+                [
+                    'success' => 'Đăng nhập thành công'
+                ]
+            );
         }
-        
         return back()->withErrors([
             'password' => 'Password không chính xác'
         ])->onlyInput('email');
     }
-
     public function postRegister(StoreRegister $request)
     {
         $role = Role::where('name', 'user')->first();
@@ -87,8 +80,8 @@ class AuthController extends Controller
             'email'    => $request->email,
             'phone'    => $request->phone,
             'password' => Hash::make($request->password),
-            'role_id'  => $role->id,
-            'status'   => 'active'
+            'role_id' => $role->id,
+            'status' => 'active'
         ];
 
         try {
@@ -107,23 +100,19 @@ class AuthController extends Controller
     }
     public function logOut(Request $request)
     {
-        // ĐÃ SỬA CHỖ NÀY: Ghi log trực tiếp vào Database
-        try {
-            DB::table('activity_logs')->insert([
-                'user_id' => Auth::id(),
-                'action' => 'logout',
-                'description' => 'Đăng xuất',
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-        } catch (\Exception $e) {
-             // Bỏ qua lỗi nếu bảng activity_logs chưa có
-        }
-
+        $user = Auth::id();
+        if ($user) {
+        // Thực hiện ghi log
+        activity('auth')
+            ->causedBy($user)
+            ->withProperties([
+                'ip_address' => $request->ip(),
+            ])
+            ->log('Đã đăng xuất khỏi hệ thống.');
+    }
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
         return redirect('login')->with('success', 'Bạn đã đăng xuất thành công!');
     }
 
@@ -134,6 +123,7 @@ class AuthController extends Controller
 
     public function postResetPassword(Request $request)
     {
+
         $request->validate(
             [
                 'email' => 'required|email|exists:users,email',
@@ -144,7 +134,6 @@ class AuthController extends Controller
                 'email.exists' => 'Email không tồn tại',
             ]
         );
-        
         $code = mt_rand(100000, 999999);
         session([
             'verify_otp' => $code,
@@ -152,12 +141,11 @@ class AuthController extends Controller
             'verify_attempt' => 0,
             'verify_email' => $request->email,
         ]);
-        
-        $data = [
-            'code' => $code,
-            'email' => $request->email
-        ];
-        
+        $data =
+            [
+                'code' => $code,
+                'email' => $request->email
+            ];
         Mail::send('mails/reset_password', $data, function ($message) use ($request) {
             $message->to($request->email, 'Tên người nhận');
             $message->subject('Khôi phục mật khẩu hệ thống');
@@ -168,7 +156,6 @@ class AuthController extends Controller
             $message->replyTo('support@yourdomain.com', 'Support Team');
             $message->priority(1);
         });
-        
         return redirect()->route('verify-code')->with([
             'success' => "Vui lòng lấy mã trong email"
         ]);
@@ -192,12 +179,13 @@ class AuthController extends Controller
             'otp.*.numeric' => 'OTP phải là số',
             'otp.*.digits' => 'Mỗi ô OTP chỉ được 1 số'
         ]);
-        
         $otp = implode('', $request->otp);
         $verify_otp = session('verify_otp');
         $verify_attempt = session('verify_attempt');
         $verify_expire = session('verify_expire');
+        // $verify_email = session('verify_email');
 
+        // dd($verify_email);
         if (empty($verify_otp)  || $verify_attempt >= 3 || now()->gt($verify_expire)) {
             session()->forget([
                 'verify_otp',
@@ -216,7 +204,6 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'password' => $newPassword
             ];
-            
             if ($user) {
                 $user->update([
                     'password' => Hash::make($newPassword)
@@ -233,7 +220,6 @@ class AuthController extends Controller
                     $message->priority(1);
                 });
             }
-            
             session()->forget([
                 'verify_otp',
                 'verify_expire',
@@ -244,11 +230,10 @@ class AuthController extends Controller
             return redirect()->route('login')->with([
                 'success' => "Mật khẩu được gửi trong gmail"
             ]);
-            
         } else {
             $verify_attempt = session()->increment('verify_attempt');
             return back()->withErrors([
-                'otp' => 'Mã nhập không đúng bạn còn ' . 3 - $verify_attempt . ' lần nhập'
+                'otp' => 'Mã nhập không đúng bạn còn ' . 3 - $verify_attempt . ' nhập'
             ]);
         }
     }

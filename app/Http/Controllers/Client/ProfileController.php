@@ -100,7 +100,7 @@ class ProfileController extends Controller
     {
 
         $user = Auth::user();
-        
+
         if (!$user) {
             abort(404);
         }

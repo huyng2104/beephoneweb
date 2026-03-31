@@ -48,10 +48,10 @@ class PointController extends Controller
 
         // Đẩy toàn bộ dữ liệu ra View
         return view('admin.points.index', compact(
-            'setting', 
-            'topUsers', 
-            'totalPointsIssued', 
-            'activeCustomers', 
+            'setting',
+            'topUsers',
+            'totalPointsIssued',
+            'activeCustomers',
             'totalPointsRedeemed',
             'vouchers' // 🚀 Truyền biến Vouchers ra đây
         ));
