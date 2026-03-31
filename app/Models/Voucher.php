@@ -75,4 +75,5 @@ class Voucher extends Model
 
         return round(($this->used_count / $this->usage_limit) * 100);
     }
+
 }

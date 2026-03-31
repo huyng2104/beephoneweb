@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="p-8 flex flex-col gap-8">
-    
+
     @if (session('success'))
     <div class="p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl font-bold flex items-center gap-2">
         <span class="material-symbols-outlined">check_circle</span>
@@ -67,7 +67,7 @@
         <h3 class="text-slate-900 dark:text-white text-xl font-extrabold mb-5 flex items-center gap-2">
             <span class="material-symbols-outlined text-primary">tune</span> Cấu hình tỷ lệ và quy đổi
         </h3>
-        
+
         <form action="{{ route('admin.points.settings.update') }}" method="POST" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             @csrf
             

@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
 use App\Models\OrderStatusHistory;
 
+use App\Notifications\SystemNotification;
+use App\Events\StatusUpdated;
+
 class OrderController extends Controller
 {
     public function index(Request $request): View
@@ -82,7 +85,6 @@ class OrderController extends Controller
             ]);
         }
 
-        // Báo lỗi nếu Admin cố tình truyền trạng thái Đã nhận
         if ($nextStatus === Order::STATUS_RECEIVED) {
             throw ValidationException::withMessages([
                 'status' => 'Trạng thái này là đặc quyền của Khách hàng. Admin chỉ được cập nhật đến Đã Giao Hàng!',
@@ -95,23 +97,56 @@ class OrderController extends Controller
             ]);
         }
 
-        // --- CẬP NHẬT TRẠNG THÁI VÀ THANH TOÁN ---
         $updateData = ['status' => $nextStatus];
-        
-        // TỰ ĐỘNG CHUYỂN "ĐÃ THANH TOÁN" KHI GIAO THÀNH CÔNG
         if (in_array($nextStatus, [Order::STATUS_DELIVERED, Order::STATUS_RECEIVED])) {
             $updateData['payment_status'] = 'paid';
         }
-
         $order->update($updateData);
 
-        // Lưu lịch sử
         OrderStatusHistory::create([
             'order_id' => $order->id,
             'user_id' => Auth::id(),
             'status' => $nextStatus,
             'note' => 'Cập nhật trạng thái bởi quản trị viên',
         ]);
+
+        // ==========================================
+        // LƯU VÀ BẮN THÔNG BÁO CHO KHÁCH & TẤT CẢ ADMIN
+        // ==========================================
+        try {
+            $statusLabels = Order::statusLabels();
+            $statusName = $statusLabels[$nextStatus] ?? $nextStatus;
+            
+            // Khách hàng
+            if ($order->user_id) {
+                $titleClient = "Cập nhật đơn hàng #" . $order->order_code;
+                $messageClient = "Đơn hàng của bạn đã chuyển sang trạng thái: " . $statusName;
+                $urlClient = route('client.orders.show', $order->id); 
+
+                $order->user->notify(new SystemNotification($titleClient, $messageClient, $urlClient));
+                broadcast(new StatusUpdated($order->user_id, $titleClient, $messageClient, $urlClient));
+            }
+
+            // Gửi cho TẤT CẢ tài khoản Admin (kể cả khi Shipper thao tác)
+            // LƯU Ý: Nếu role admin của bà tên là chữ khác (vd: 'Admin' in hoa), nhớ sửa chữ 'admin' ở dưới
+            $admins = \App\Models\User::whereHas('role', function($q) {
+                $q->where('name', 'admin'); 
+            })->get();
+
+            if ($admins->count() > 0) {
+                $adminTitle = "Đơn #" . $order->order_code . " vừa được cập nhật";
+                $adminMsg = "Trạng thái mới: " . $statusName . " (Bởi: " . Auth::user()->name . ")";
+                $adminUrl = route('admin.orders.show', $order->id);
+
+                foreach ($admins as $ad) {
+                    $ad->notify(new SystemNotification($adminTitle, $adminMsg, $adminUrl));
+                    broadcast(new StatusUpdated($ad->id, $adminTitle, $adminMsg, $adminUrl));
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Lỗi gửi thông báo: ' . $e->getMessage());
+        }
+        // ==========================================
 
         return back()->with('status', 'Đã cập nhật trạng thái đơn hàng.');
     }
@@ -135,13 +170,39 @@ class OrderController extends Controller
             'cancelled_at' => now(),
         ]);
 
-        // Lưu lịch sử
         OrderStatusHistory::create([
             'order_id' => $order->id,
             'user_id' => Auth::id(),
             'status' => Order::STATUS_CANCELLED,
             'note' => 'Lý do hủy: ' . $validated['cancellation_reason'],
         ]);
+
+        // ==========================================
+        try {
+            if ($order->user_id) {
+                $title = "Đơn hàng #" . $order->order_code . " đã bị hủy";
+                $message = "Lý do: " . $validated['cancellation_reason'];
+                $url = route('client.orders.show', $order->id);
+
+                $order->user->notify(new SystemNotification($title, $message, $url));
+                broadcast(new StatusUpdated($order->user_id, $title, $message, $url));
+            }
+
+            $admins = \App\Models\User::whereHas('role', function($q) { $q->where('name', 'admin'); })->get();
+            if ($admins->count() > 0) {
+                foreach ($admins as $ad) {
+                    $ad->notify(new SystemNotification(
+                        "Đã hủy đơn #" . $order->order_code, 
+                        "Lý do: " . $validated['cancellation_reason'], 
+                        route('admin.orders.show', $order->id)
+                    ));
+                    broadcast(new StatusUpdated($ad->id, "Đã hủy đơn #" . $order->order_code, "Lý do: " . $validated['cancellation_reason'], route('admin.orders.show', $order->id)));
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Lỗi gửi thông báo hủy đơn: ' . $e->getMessage());
+        }
+        // ==========================================
 
         return back()->with('status', 'Đã hủy đơn hàng.');
     }
@@ -165,13 +226,39 @@ class OrderController extends Controller
             'return_confirmed_at' => now(),
         ]);
 
-        // Lưu lịch sử
         OrderStatusHistory::create([
             'order_id' => $order->id,
             'user_id' => Auth::id(),
             'status' => '(Đổi/Trả) ' . Order::RETURN_CONFIRMED,
             'note' => 'Ghi chú đổi trả: ' . ($validated['return_note'] ?? 'Không có'),
         ]);
+
+        // ==========================================
+        try {
+            if ($order->user_id) {
+                $title = "Xác nhận đổi/trả đơn #" . $order->order_code;
+                $message = "Yêu cầu đổi/trả hàng của bạn đã được xác nhận.";
+                $url = route('client.orders.show', $order->id);
+
+                $order->user->notify(new SystemNotification($title, $message, $url));
+                broadcast(new StatusUpdated($order->user_id, $title, $message, $url));
+            }
+
+            $admins = \App\Models\User::whereHas('role', function($q) { $q->where('name', 'admin'); })->get();
+            if ($admins->count() > 0) {
+                foreach ($admins as $ad) {
+                    $ad->notify(new SystemNotification(
+                        "Xác nhận đổi/trả đơn #" . $order->order_code, 
+                        "Bạn vừa xác nhận yêu cầu đổi/trả.", 
+                        route('admin.orders.show', $order->id)
+                    ));
+                    broadcast(new StatusUpdated($ad->id, "Xác nhận đổi/trả đơn #" . $order->order_code, "Xác nhận đổi/trả.", route('admin.orders.show', $order->id)));
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Lỗi gửi thông báo đổi trả: ' . $e->getMessage());
+        }
+        // ==========================================
 
         return back()->with('status', 'Đã xác nhận đổi/trả hàng.');
     }
@@ -190,9 +277,7 @@ class OrderController extends Controller
     private function availableStatusesFor(Order $order): array
     {
         $statuses = [$order->status];
-
         foreach (Order::statuses() as $status) {
-            // Lọc ra các trạng thái hợp lệ, NHƯNG cấm Admin chọn Hủy và Đã Nhận Hàng
             if (
                 $order->canMoveTo($status) &&
                 !in_array($status, $statuses, true) &&
@@ -202,7 +287,6 @@ class OrderController extends Controller
                 $statuses[] = $status;
             }
         }
-
         return $statuses;
     }
 }

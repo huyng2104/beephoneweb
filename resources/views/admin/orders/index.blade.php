@@ -61,7 +61,7 @@
                         <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide text-right">Thao tác</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody id="realtime-order-list" class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse ($orders as $order)
                     @php
                     $statusClass = match($order->status) {
@@ -127,3 +127,61 @@
     </div>
 </div>
 @endsection
+
+@push('js')
+<script type="module">
+    document.addEventListener('DOMContentLoaded', function () {
+        const currentUserId = {{ auth()->id() ?? 'null' }};
+
+        // Chờ Echo khởi tạo xong
+        const initEcho = setInterval(() => {
+            if (window.Echo) {
+                clearInterval(initEcho);
+                console.log("✅ Bảng Đơn Hàng Admin đã gắn mắt thần Real-time!");
+
+                window.Echo.channel('order-tracker')
+                    .listen('.status-updated', (e) => {
+                        
+                        // Bắt chữ "đơn hàng mới" từ tiêu đề của thông báo
+                        let title = e.title.toLowerCase();
+
+                        // Nếu đúng là gửi cho Admin này VÀ là thông báo Đơn Mới
+                        if (e.targetUserId == currentUserId && title.includes('đơn hàng mới')) {
+                            console.log("🔥 Đang tải dữ liệu đơn mới lén lút trong nền...");
+
+                            // Bí kíp: Fetch lại chính trang hiện tại ngầm trong background
+                            fetch(window.location.href)
+                                .then(res => res.text())
+                                .then(html => {
+                                    // Phân tích HTML lấy được thành một trang web ảo (DOM ảo)
+                                    let doc = new DOMParser().parseFromString(html, 'text/html');
+                                    
+                                    // Bốc cái danh sách đơn hàng mới thay cho cái danh sách cũ
+                                    let newList = doc.querySelector('#realtime-order-list');
+                                    let currentList = document.querySelector('#realtime-order-list');
+
+                                    if (newList && currentList) {
+                                        currentList.innerHTML = newList.innerHTML;
+                                        
+                                        // TẠO HIỆU ỨNG ĐẲNG CẤP: Nhá đèn màu vàng cho đơn đầu tiên vừa rớt xuống
+                                        let firstRow = currentList.firstElementChild;
+                                        if (firstRow) {
+                                            // Đổi nền vàng nhạt để báo hiệu
+                                            firstRow.style.backgroundColor = 'rgba(244, 192, 37, 0.2)'; // Màu vàng Bee Phone nhạt
+                                            firstRow.style.transition = 'background-color 2s ease';
+                                            
+                                            // Nửa giây sau tự mờ dần về bình thường
+                                            setTimeout(() => {
+                                                firstRow.style.backgroundColor = 'transparent';
+                                            }, 2000);
+                                        }
+                                    }
+                                })
+                                .catch(err => console.error("Lỗi khi tải ngầm danh sách đơn hàng: ", err));
+                        }
+                    });
+            }
+        }, 500); // Kiểm tra mỗi 0.5s
+    });
+</script>
+@endpush 

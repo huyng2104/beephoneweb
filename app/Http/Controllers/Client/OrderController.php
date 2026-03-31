@@ -9,25 +9,39 @@ use App\Models\Order;
 use App\Models\PointSetting;
 use App\Models\PointHistory;
 
+// Bổ sung 2 cái này để bắn thông báo cho Admin
+use App\Notifications\SystemNotification;
+use App\Events\StatusUpdated;
+
 class OrderController extends Controller
 {
     // Hiển thị danh sách đơn hàng
-    public function index()
+    public function index(Request $request)
     {
-        // 1. Lấy thông tin user đang đăng nhập
-        $user = Auth::user(); 
+        if ($request->boolean('skip_review')) {
+            $request->session()->forget('review_order_id');
+            return redirect()->route('client.orders.index');
+        }
 
-        // 2. Lấy danh sách đơn hàng
-        $orders = Order::with('items')
+        $orders = Order::with(['items', 'items.product'])
             ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        // 3. Nhớ truyền thêm biến $user vào compact() nhé
-        return view('client.profiles.orders', compact('orders', 'user'));
+        $reviewOrder = null;
+        $reviewOrderId = $request->session()->get('review_order_id');
+        if (is_numeric($reviewOrderId)) {
+            $reviewOrder = Order::with(['items', 'items.product'])
+                ->where('user_id', Auth::id())
+                ->find((int) $reviewOrderId);
+            
+            $request->session()->forget('review_order_id');
+        }
+
+        return view('client.profiles.orders', compact('orders', 'reviewOrder'));
     }
 
-    // Hiển thị chi tiết 1 đơn hàng (Sẽ làm sau nếu bro cần)
+    // Hiển thị chi tiết 1 đơn hàng (Trang TechNoir)
     public function show($id)
     {
         $order = Order::with('items')->where('user_id', Auth::id())->findOrFail($id);
@@ -41,25 +55,21 @@ class OrderController extends Controller
 
         if ($order->status === Order::STATUS_DELIVERED) {
             
-            // 1. Chuyển sang trạng thái STATUS_RECEIVED (Khách đã nhận)
             $order->status = Order::STATUS_RECEIVED; 
-            $order->payment_status = 'paid'; // ĐÃ THÊM: Tự động đánh dấu đã thu tiền
+            $order->payment_status = 'paid'; 
             $order->save();
 
             // ==========================================
-            // 2. LOGIC TÍCH ĐIỂM THƯỞNG BEE POINT
+            // LOGIC TÍCH ĐIỂM THƯỞNG BEE POINT
             // ==========================================
             $pointsEarned = 0;
-            // Lấy tỷ lệ tích điểm từ Database
             $setting = PointSetting::first();
-            $earnRate = $setting ? $setting->earn_rate : 100000; // Mặc định 100k = 1 điểm nếu chưa cấu hình
+            $earnRate = $setting ? $setting->earn_rate : 100000; 
 
             if ($earnRate > 0) {
-                // Tính số điểm (Làm tròn xuống. VD: 150k / 100k = 1 điểm)
                 $pointsEarned = floor($order->total_amount / $earnRate);
 
                 if ($pointsEarned > 0) {
-                    // 1. Lưu vào lịch sử điểm
                     PointHistory::create([
                         'user_id' => $order->user_id,
                         'order_id' => $order->id,
@@ -68,20 +78,39 @@ class OrderController extends Controller
                         'description' => 'Tích điểm hoàn thành đơn hàng ' . $order->order_code
                     ]);
 
-                    // 2. CỘNG ĐIỂM TRỰC TIẾP VÀO BẢNG USERS
                     $customer = \App\Models\User::find($order->user_id);
                     $customer->reward_points += $pointsEarned;
                     $customer->save();
                 }
             }
+
             // ==========================================
+            // BẮN THÔNG BÁO CHO TẤT CẢ ADMIN
+            // ==========================================
+            try {
+                $admins = \App\Models\User::whereHas('role', function($q) { $q->where('name', 'admin'); })->get();
+                if ($admins->count() > 0) {
+                    $adminTitle = "Khách đã nhận hàng!";
+                    $adminMsg = "Đơn #" . $order->order_code . " đã được khách hàng xác nhận nhận thành công.";
+                    $adminUrl = route('admin.orders.show', $order->id);
+
+                    foreach ($admins as $ad) {
+                        $ad->notify(new SystemNotification($adminTitle, $adminMsg, $adminUrl));
+                        broadcast(new StatusUpdated($ad->id, $adminTitle, $adminMsg, $adminUrl));
+                    }
+                }
+            } catch (\Exception $e) {
+                \Log::error('Lỗi báo Admin nhận hàng: ' . $e->getMessage());
+            }
 
             $msg = 'Cảm ơn bạn đã xác nhận! Đơn hàng đã hoàn thành.';
             if ($pointsEarned > 0) {
                 $msg .= ' Bạn được cộng thêm ' . $pointsEarned . ' Bee Point vào tài khoản!';
             }
 
-            return redirect()->back()->with('success', $msg);
+            return redirect()->back()
+                ->with('success', $msg)
+                ->with('review_order_id', $order->id);
         }
 
         return redirect()->back()->with('error', 'Trạng thái đơn hàng không hợp lệ!');
@@ -90,18 +119,33 @@ class OrderController extends Controller
     // Khách hàng tự hủy đơn
     public function cancel($id)
     {
-        // 1. Tìm đơn hàng của user này
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
 
-        // 2. Chỉ cho phép hủy khi đơn ở trạng thái PENDING (chờ xác nhận)
         if ($order->status == Order::STATUS_PENDING) {
             
-            // Cập nhật trạng thái thành CANCELLED (hủy)
             $order->status = Order::STATUS_CANCELLED;
-            // Ghi chú lý do hủy giống với cấu trúc Admin của bro
             $order->cancellation_reason = 'Khách hàng tự hủy đơn trên web';
             $order->cancelled_at = now();
             $order->save();
+
+            // ==========================================
+            // BẮN THÔNG BÁO CHO TẤT CẢ ADMIN
+            // ==========================================
+            try {
+                $admins = \App\Models\User::whereHas('role', function($q) { $q->where('name', 'admin'); })->get();
+                if ($admins->count() > 0) {
+                    $adminTitle = "Khách vừa hủy đơn!";
+                    $adminMsg = "Đơn #" . $order->order_code . " vừa bị khách hàng tự hủy trên web.";
+                    $adminUrl = route('admin.orders.show', $order->id);
+
+                    foreach ($admins as $ad) {
+                        $ad->notify(new SystemNotification($adminTitle, $adminMsg, $adminUrl));
+                        broadcast(new StatusUpdated($ad->id, $adminTitle, $adminMsg, $adminUrl));
+                    }
+                }
+            } catch (\Exception $e) {
+                \Log::error('Lỗi báo Admin hủy đơn: ' . $e->getMessage());
+            }
 
             return redirect()->back()->with('success', 'Đã hủy đơn hàng thành công!');
         }
