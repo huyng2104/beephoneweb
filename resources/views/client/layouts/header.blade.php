@@ -34,30 +34,12 @@
                 </button>
                 <input name="search" value="{{ request('search') }}"
                     class="w-full h-10 pl-10 pr-4 rounded-lg border-none bg-[#f5f3f0] dark:bg-white/5 focus:ring-2 focus:ring-primary text-sm outline-none"
-                    placeholder="Tìm kiếm sản phẩm phuong..." type="text" />
+                    placeholder="Tìm kiếm sản phẩm..." type="text" />
             </form>
 
             <div class="flex items-center gap-2">
 
                 @auth
-                    <div class="relative group mr-1" id="client-notification-wrapper">
-                        <button id="client-bell-btn" class="flex items-center justify-center rounded-lg h-10 w-10 bg-[#f5f3f0] dark:bg-white/5 hover:bg-primary transition-colors focus:outline-none relative">
-                            <span class="material-symbols-outlined text-[#181611] dark:text-white group-hover:text-black">notifications</span>
-                            <span id="client-bell-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none hidden">0</span>
-                        </button>
-
-                        <div id="client-bell-dropdown" class="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-[#221e10] border border-gray-100 dark:border-white/10 rounded-xl shadow-lg hidden overflow-hidden transform transition-all origin-top-right z-50">
-                            <div class="p-3 border-b border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 font-bold text-[#181611] dark:text-white flex items-center justify-between">
-                                <span>Thông báo của bạn</span>
-                            </div>
-                            <div id="client-bell-list" class="max-h-80 overflow-y-auto no-scrollbar">
-                                <div class="p-8 text-center text-sm text-gray-400">Đang tải...</div>
-                            </div>
-                            <div class="p-2 text-center border-t border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5">
-                                <a href="{{ route('client.notifications.index') }}" class="text-xs font-semibold text-primary hover:underline">Xem tất cả</a>
-                            </div>
-                        </div>
-                    </div>
                     <div class="relative group">
                         <button
                             class="flex items-center justify-center rounded-lg h-10 w-10 bg-[#f5f3f0] dark:bg-white/5 hover:bg-primary transition-colors overflow-hidden">

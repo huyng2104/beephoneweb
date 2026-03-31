@@ -11,7 +11,7 @@
     @endif
 
     <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        
+
         <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow">
             <div class="flex justify-between items-start">
                 <p class="text-slate-500 text-sm font-medium">Tổng điểm phát hành</p>
@@ -70,7 +70,7 @@
 
         <form action="{{ route('admin.points.settings.update') }}" method="POST" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             @csrf
-            
+
             <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div class="flex justify-between items-start mb-6">
                     <div>
@@ -211,7 +211,7 @@
                     @endforelse
                 </tbody>
             </table>
-            
+
             {{-- 🚀 THANH PHÂN TRANG (PAGINATION) --}}
             @if($vouchers->hasPages())
                 <div class="p-4 border-t border-slate-200 dark:border-slate-700">
@@ -224,7 +224,7 @@
     <section>
         <div class="flex items-center justify-between mb-5">
             <h3 class="text-slate-900 dark:text-white text-xl font-extrabold flex items-center gap-2">
-                <span class="material-symbols-outlined text-yellow-500 text-3xl animate-pulse">emoji_events</span> 
+                <span class="material-symbols-outlined text-yellow-500 text-3xl animate-pulse">emoji_events</span>
                 Bảng vàng Khách hàng Tích điểm
             </h3>
             <a href="#" class="text-sm font-bold text-primary hover:underline flex items-center gap-1">
@@ -245,7 +245,7 @@
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
                     @forelse($topUsers ?? [] as $index => $user)
                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                        
+
                         {{-- Cột 1: Huy chương / Số thứ tự --}}
                         <td class="px-6 py-4 text-center">
                             @if($index == 0)
