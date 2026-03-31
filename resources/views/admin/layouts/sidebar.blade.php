@@ -229,9 +229,21 @@
                 </a>
 
                 {{-- 2. Thông tin User --}}
+                @php
+                    $sidebarRoleValue = Auth::user()->role;
+                    $sidebarRoleName = is_object($sidebarRoleValue)
+                        ? ($sidebarRoleValue->name ?? $sidebarRoleValue->name_role ?? null)
+                        : $sidebarRoleValue;
+
+                    $sidebarRoleLabel = match ($sidebarRoleName) {
+                        'admin' => 'Quản trị viên',
+                        'staff' => 'Nhân viên',
+                        default => 'Người dùng',
+                    };
+                @endphp
                 <div class="overflow-hidden flex-1">
                     <p class="text-sm font-semibold truncate text-slate-800 dark:text-white">{{ Auth::user()->name }}</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ Auth::user()->role->name_role }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ $sidebarRoleLabel }}</p>
                 </div>
 
                 {{-- 3. Nút Đăng xuất --}}

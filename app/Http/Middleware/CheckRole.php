@@ -16,17 +16,22 @@ class CheckRole
     {
         $user = Auth::user();
 
-        // 1. Kiểm tra xem người dùng đã đăng nhập chưa (Chống lỗi sập trang nếu chưa đăng nhập)
-        if (!$user) {
-            return redirect()->route('login'); // Hoặc abort(401);
+        // 1. Kiểm tra xem người dùng đã đăng nhập chưa.
+        if (! $user) {
+            return redirect()->route('login');
         }
 
-        // 2. Chặn tuyệt đối role 'user' không cho vào admin
-        if ($user->role?->name === 'user') {
+        $roleValue = $user->role;
+        $roleName = is_object($roleValue)
+            ? ($roleValue->name ?? $roleValue->name_role ?? null)
+            : $roleValue;
+
+        // 2. Chặn tuyệt đối role user không cho vào admin.
+        if ($roleName === 'user') {
             abort(403, 'Tài khoản thành viên không thể truy cập khu vực Admin!');
         }
 
-        // 3. Nếu là Admin, Editor, Manager,... (khác 'user') -> Cho đi tiếp
+        // 3. Nếu là admin/staff/... thì cho đi tiếp.
         return $next($request);
     }
 }

@@ -53,6 +53,85 @@ use App\Models\User;
 */
 
 // ==========================================
+// HỆ THỐNG CLIENT (Public)
+// ==========================================
+
+Route::middleware('check.verified')->group(function () {
+    // Trang chủ
+    Route::get('/', [HomeController::class, 'index'])->name('home');
+
+    // Chi tiết sản phẩm & Danh sách sản phẩm
+    Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
+    Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
+
+    // Thông tin tài khoản
+    Route::get('profile/wallet', [ProfileController::class, 'user_wallet'])->name('profile.wallet');
+    Route::resource('profile', ProfileController::class);
+    Route::post('prodile/password/update/{id}',[ProfileController::class,'passwordUpdate'])->name('profile.password.update');
+    // Kích hoạt ví
+    Route::post('wallet/active/{id}',[ClientWalletController::class,'active_wallet'])->name('wallet.active');
+
+    // Nạp ví (ĐÃ FIX CHUẨN XỊN)
+    Route::post('/wallet/deposit',[ClientWalletController::class,'createDeposit'])->name('wallet.deposit');
+    Route::get('/wallet/vnpay-return', [ClientWalletController::class, 'vnpayReturn'])->name('wallet.vnpay.return');
+
+    // Rút ví
+    Route::post('/wallet/withdrawal', [ClientWalletController::class, 'withdrawalPost'])->name('wallet.withdrawal');
+    Route::post('/wallet/withdrawal/cancelled/{id}', [ClientWalletController::class, 'withdrawalCancelled'])->name('wallet.withdrawal.cancelled');
+
+    // Thêm Ngân hàng người dùng
+    Route::post('wallet/bank-account/{id}',[ClientWalletController::class,'addBankAccount'])->name('wallet.bank-account');
+    // Gỡ ngân hàng người dùng
+    Route::post('wallet/remove/bank-account/{id}',[ClientWalletController::class,'removeBankAccount'])->name('wallet.remove.bank-account');
+    // QUẢN LÝ GIỎ HÀNG
+    Route::post('/cart/add', [CartController::class, 'add'])->name('client.cart.add');
+    Route::get('/cart/count', [CartController::class, 'count'])->name('client.cart.count');
+    Route::get('/gio-hang', [CartController::class, 'index'])->name('client.cart.index');
+    Route::post('/cart/update', [CartController::class, 'update'])->name('client.cart.update');
+    Route::post('/cart/remove', [CartController::class, 'remove'])->name('client.cart.remove');
+    Route::post('/cart/apply-voucher', [CartController::class, 'applyVoucher'])->name('client.cart.apply_voucher');
+Route::post('/cart/checkout-select', [App\Http\Controllers\Client\CartController::class, 'checkoutSelect'])->name('client.cart.checkout_select');
+    // THANH TOÁN (CHECKOUT)
+    Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('client.checkout.index');
+    Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('client.checkout.process');
+    Route::get('/dat-hang-thanh-cong', [CheckoutController::class, 'success'])->name('client.checkout.success');
+    Route::get('/vnpay/response', [App\Http\Controllers\Client\CheckoutController::class, 'vnpay_return'])->name('vnpay.return');
+Route::post('/thanh-toan/remove-voucher', [CheckoutController::class, 'removeVoucher'])->name('client.checkout.remove_voucher');
+    // QUẢN LÝ ĐƠN HÀNG CỦA KHÁCH
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/don-mua', [ClientOrderController::class, 'index'])->name('client.orders.index');
+        Route::get('/don-mua/{id}', [ClientOrderController::class, 'show'])->name('client.orders.show');
+        Route::patch('/don-mua/{id}/xac-nhan', [ClientOrderController::class, 'confirmReceived'])->name('client.orders.confirm');
+        Route::patch('/don-mua/{id}/huy', [ClientOrderController::class, 'cancel'])->name('client.orders.cancel');
+        Route::patch('/don-mua/{id}/hoan-hang', [ClientOrderController::class, 'requestReturn'])->name('client.orders.return');
+        Route::patch('/don-mua/{id}/gui-hang-hoan', [ClientOrderController::class, 'markReturnShipped'])->name('client.orders.return.shipped');
+    });
+
+    Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
+    Route::get('/bai-viet/{slug}', [ClientPostController::class, 'show'])->name('client.posts.show');
+    Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])->name('chatbot.chat');
+
+    // QUẢN LÝ ĐIỂM THƯỞNG (BEE POINT)
+    Route::get('/bee-point', [App\Http\Controllers\Client\PointController::class, 'index'])->name('client.points.index');
+    Route::post('/bee-point/redeem', [App\Http\Controllers\Client\PointController::class, 'redeem'])->name('client.points.redeem');
+
+    // Voucher người dùng
+    Route::get('user/vouchers' ,[ProfileController::class,'user_voucher'])->name('user.vouchers');
+    Route::delete('user/vouchers/{id}', [ClientVoucherController::class, 'delete'])->name('user.vouchers.delete');
+
+    // Danh sách vouchers
+    Route::get('vouchers' ,[ClientVoucherController::class,'index'])->name('vouchers');
+
+    // Lưu voucher người dùng
+    Route::post('vouchers/save/{id}', [ClientVoucherController::class, 'saveVoucher'])->name('vouchers.save');
+
+    // QUẢN LÝ VOUCHER (KHUYẾN MÃI) - KHÁCH HÀNG
+    Route::get('/khuyen-mai', [App\Http\Controllers\Client\VoucherController::class, 'index'])->name('vouchers.index');
+    Route::post('/khuyen-mai/luu/{id}', [App\Http\Controllers\Client\VoucherController::class, 'saveVoucher'])->name('vouchers.save');
+    Route::post('/khuyen-mai/bo-luu/{id}', [App\Http\Controllers\Client\VoucherController::class, 'delete'])->name('vouchers.delete');
+});
+
+// ==========================================
 // ĐĂNG NHẬP / ĐĂNG KÝ / QUÊN MẬT KHẨU
 // ==========================================
 Route::get('login', [AuthController::class, 'login'])->name('login');
@@ -266,7 +345,10 @@ Route::middleware(['auth', 'verified', 'role'])->group(function () {
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
         Route::patch('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
-        Route::patch('orders/{order}/return-confirm', [OrderController::class, 'confirmReturn'])->name('orders.return.confirm');
+        Route::patch('orders/{order}/return-approve', [OrderController::class, 'approveReturn'])->name('orders.return.approve');
+        Route::patch('orders/{order}/return-reject', [OrderController::class, 'rejectReturn'])->name('orders.return.reject');
+        Route::patch('orders/{order}/return-received', [OrderController::class, 'markReturnReceived'])->name('orders.return.received');
+        Route::patch('orders/{order}/return-refund', [OrderController::class, 'refundReturn'])->name('orders.return.refund');
         Route::get('orders/{order}/print-pdf', [OrderController::class, 'printPdf'])->name('orders.print.pdf');
 
         // Posts

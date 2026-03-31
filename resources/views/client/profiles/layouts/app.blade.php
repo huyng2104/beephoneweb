@@ -27,6 +27,20 @@
                             <div>
                                 <p class="font-bold text-[#181611] dark:text-white text-sm">{{ Auth::user()->name }}</p>
                                 <p class="text-xs text-amber-500 uppercase font-semibold">{{ Auth::user()->role->name_role ?? 'Khách hàng' }}</p>
+
+                            {{-- Phần Thông tin User --}}
+                            @php
+                                $roleValue = $user->role;
+                                $roleName = is_object($roleValue) ? $roleValue->name : (string) ($roleValue ?? 'user');
+                                $roleLabel = match ($roleName) {
+                                    'admin' => 'Quản trị viên',
+                                    'staff' => 'Nhân viên',
+                                    default => 'Người dùng',
+                                };
+                            @endphp
+                            <div>
+                                <p class="font-bold text-sm">{{ $user->name }}</p>
+                                <p class="text-xs text-amber-500 uppercase font-semibold">{{ $roleLabel }}</p>
                             </div>
 
                         </div>

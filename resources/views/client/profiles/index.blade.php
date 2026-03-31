@@ -241,22 +241,33 @@
                 <h3 class="font-bold text-lg">Vai trò &amp; Quyền hạn</h3>
             </div>
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+                @php
+                    $roleValue = $user->role;
+                    $roleName = is_object($roleValue) ? $roleValue->name : (string) ($roleValue ?? 'user');
+                    $roleLabel = match ($roleName) {
+                        'admin' => 'Quản trị viên',
+                        'staff' => 'Nhân viên',
+                        default => 'Người dùng',
+                    };
+                @endphp
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Vai
                         trò</label>
-                    <p class="text-base font-medium">{{ $user->role->name_role }}</p>
+                    <p class="text-base font-medium">{{ $roleLabel }}</p>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Quyền
                         hạn</label>
-                    @if ($user->role->name == 'admin')
+                    @if ($roleName == 'admin')
                         <p class="text-base font-medium">Toàn quyền truy cập hệ thống</p>
-                    @elseif ($user->role->name == 'staff')
-                        @foreach ($user->permissions as $permission)
+                    @elseif ($roleName == 'staff')
+                        @forelse ($user->permissions as $permission)
                             <p class="text-base font-medium">{{ $permission->name }}</p>
-                        @endforeach
+                        @empty
+                            <p class="text-base font-medium">Nhân viên</p>
+                        @endforelse
                     @else
-                        <p class="text-base font-medium"> Mua hàng</p>
+                        <p class="text-base font-medium">Mua hàng</p>
                     @endif
                 </div>
             </div>
