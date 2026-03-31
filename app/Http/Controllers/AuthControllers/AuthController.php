@@ -24,7 +24,6 @@ class AuthController extends Controller
         }
         return redirect()->route('home');
     }
-
     public function register()
     {
         if (!Auth::check()) {
@@ -32,7 +31,6 @@ class AuthController extends Controller
         }
         return redirect()->route('/');
     }
-
     public function postLogin(LoginRequest $request)
     {
         $user = User::withTrashed()->where('email', $request->email)->first();
@@ -107,7 +105,6 @@ class AuthController extends Controller
             ]);
         }
     }
-
     public function logOut(Request $request)
     {
         // ĐÃ SỬA CHỖ NÀY: Ghi log trực tiếp vào Database

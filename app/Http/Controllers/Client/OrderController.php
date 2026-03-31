@@ -16,7 +16,7 @@ use App\Events\StatusUpdated;
 class OrderController extends Controller
 {
     // Hiển thị danh sách đơn hàng
-    public function index(Request $request)
+   public function index(Request $request)
     {
         if ($request->boolean('skip_review')) {
             $request->session()->forget('review_order_id');
@@ -108,9 +108,7 @@ class OrderController extends Controller
                 $msg .= ' Bạn được cộng thêm ' . $pointsEarned . ' Bee Point vào tài khoản!';
             }
 
-            return redirect()->back()
-                ->with('success', $msg)
-                ->with('review_order_id', $order->id);
+            return redirect()->back()->with('success', $msg);
         }
 
         return redirect()->back()->with('error', 'Trạng thái đơn hàng không hợp lệ!');
