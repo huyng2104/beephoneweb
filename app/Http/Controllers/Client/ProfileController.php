@@ -11,6 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use  App\Models\WalletTransaction;
+use App\Models\BankAccount;
+use App\Models\WithdrawalRequest;
 
 class ProfileController extends Controller
 {
@@ -80,7 +83,7 @@ class ProfileController extends Controller
             return back()->with([
                 'success' => 'Cập nhật thông tin thành công.'
             ]);
-      } catch (\Throwable $th) {
+        } catch (\Throwable $th) {
             return back()->withErrors(['error' => 'Có lỗi xảy ra: ' . $th->getMessage()]);
         }
     }
@@ -93,15 +96,55 @@ class ProfileController extends Controller
         //
     }
 
-  public function user_wallet()
+    public function user_wallet(Request $request)
     {
+
         $user = Auth::user();
 
         if (!$user) {
             abort(404);
         }
+        $transactions = null;
+        $banks = null;
+        $wallet = Wallet::where('user_id', $user->id)->first();
+        if ($wallet) {
+
+            // Khởi tạo query giao dịch của ví này
+            $query = WalletTransaction::where('wallet_id', $wallet->id)->latest();
+
+            // 1. Lọc theo Loại giao dịch
+            $query->when($request->filled('type'), function ($q) use ($request) {
+                $q->where('type', $request->type);
+            });
+
+            // 2. Lọc theo Trạng thái
+            $query->when($request->filled('status'), function ($q) use ($request) {
+                $q->where('status', $request->status);
+            });
+
+            // 3. Lọc từ ngày
+            $query->when($request->filled('date_from'), function ($q) use ($request) {
+                // Ép về đầu ngày: 00:00:00
+                $q->whereDate('created_at', '>=', $request->date_from);
+            });
+
+            // 4. Lọc đến ngày
+            $query->when($request->filled('date_to'), function ($q) use ($request) {
+                // Ép về cuối ngày: 23:59:59
+                $q->whereDate('created_at', '<=', $request->date_to);
+            });
+
+            // Lấy dữ liệu và phân trang (Giữ lại các query string cũ khi bấm qua trang 2, 3...)
+            $transactions = $query->paginate(5)->withQueryString();
+            $banks = BankAccount::where('user_id', $wallet->user->id)->get();
+        }
+
+
         return view('client.profiles.wallet')->with([
-            'user' => $user
+            'user' => $user,
+            'transactions' => $transactions,
+            'banks' => $banks,
+
         ]);
     }
     public function user_voucher()
@@ -137,5 +180,46 @@ class ProfileController extends Controller
         return back()->with([
             'success' => 'Đổi mật khẩu thành công!'
         ]);
+    }
+    public function history_withdrawal(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        if (Auth::user() && $user->id != Auth::user()->id) {
+            abort(404);
+        }
+        // Xây dựng query cơ bản cho user này
+        $query = WithdrawalRequest::where('user_id', $id);
+
+        // Xử lý bộ lọc tìm kiếm, trạng thái, sắp xếp y như trang tổng
+        if ($request->filled('search')) {
+            $query->where('id', 'like', '%' . $request->search . '%');
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->sort == 'oldest') {
+            $query->oldest();
+        } elseif ($request->sort == 'amount_desc') {
+            $query->orderBy('amount', 'desc');
+        } else {
+            $query->latest(); // Sắp xếp mặc định
+        }
+
+        $withdrawals = $query->paginate(10);
+
+        // Thống kê dành riêng cho user này
+        $totalPendingAmount = WithdrawalRequest::where('user_id', $id)->where('status', 'pending')->sum('amount');
+        $pendingCount = WithdrawalRequest::where('user_id', $id)->where('status', 'pending')->count();
+        $totalCompletedAmount = WithdrawalRequest::where('user_id', $id)->where('status', 'approved')->sum('amount');
+        $rejectedCount = WithdrawalRequest::where('user_id', $id)->where('status', 'rejected')->count();
+
+        return view('client.profiles.withdrawals', compact(
+            'user',
+            'withdrawals',
+            'totalPendingAmount',
+            'pendingCount',
+            'totalCompletedAmount',
+            'rejectedCount'
+        ));
     }
 }

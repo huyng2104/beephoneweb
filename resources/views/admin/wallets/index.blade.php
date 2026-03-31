@@ -1,238 +1,227 @@
-@extends('admin.layouts.app') 
+@extends('admin.layouts.app')
+
+@section('title', 'Quản lý ví')
 
 @section('content')
-<script>
-    function openModalWallet(id) {
-        const overlay = document.getElementById('modalOverlay' + id);
-        const container = document.getElementById('modalContainer' + id);
-        if(overlay && container) {
-            overlay.classList.remove('hidden');
-            overlay.style.display = 'flex';
-            setTimeout(() => {
-                overlay.style.opacity = '1';
-                container.classList.remove('scale-95');
-                container.classList.add('scale-100');
-            }, 10);
-        }
-    }
+    <main class="flex-1 flex flex-col overflow-hidden">
 
-    function closeModalWallet(id) {
-        const overlay = document.getElementById('modalOverlay' + id);
-        const container = document.getElementById('modalContainer' + id);
-        if(overlay && container) {
-            container.classList.remove('scale-100');
-            container.classList.add('scale-95');
-            overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                overlay.classList.add('hidden');
-            }, 300);
-        }
-    }
-</script>
+        @include('popup_notify.index')
 
-<style>
-    .bg-bee { background-color: #FFC107 !important; }
-    .text-bee { color: #FFC107 !important; }
-    .wallet-modal-overlay {
-        position: fixed !important; inset: 0 !important; z-index: 99999 !important;
-        background-color: rgba(15, 23, 42, 0.6) !important; backdrop-filter: blur(4px) !important;
-        display: none; align-items: center; justify-content: center; opacity: 0; transition: all 0.3s;
-    }
-</style>
-
-<div class="p-8 bg-[#F8F9FA] min-h-screen">
-    <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-3xl font-black text-slate-900 tracking-tight">Quản Lý Ví Tiền</h1>
-            <p class="text-slate-500 font-medium italic">Hệ thống tài chính Bee Phone Admin</p>
-        </div>
-        
-        <div class="flex items-center gap-3 w-full md:w-auto">
-            <a href="{{ route('admin.system_wallet') }}" class="px-6 py-3 bg-yellow-500 text-black font-black rounded-2xl hover:bg-yellow-400 transition-all text-sm shadow-md flex items-center gap-2">
-                <span class="material-symbols-outlined text-[20px]">account_balance</span>
-                KHO BẠC HỆ THỐNG
-            </a>
-
-            <form action="{{ route('admin.wallets.index') }}" method="GET" class="flex items-center gap-2 w-full md:w-auto">
-                <div class="relative w-full md:w-80">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-                    </span>
-                    <input type="text" name="search" value="{{ request('search') }}" 
-                           placeholder="Tìm tên hoặc email khách hàng..." 
-                           class="block w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-bee outline-none shadow-sm transition-all">
+        <div class="flex-1 overflow-y-auto p-8 space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Quản lý ví</h2>
+                    <p class="text-slate-500 text-sm mt-1">Xem và quản lý số dư, trạng thái ví của người dùng trên hệ thống
+                    </p>
                 </div>
-                <button type="submit" class="px-6 py-3 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all text-sm shadow-md">
-                    TÌM
-                </button>
-                @if(request('search'))
-                    <a href="{{ route('admin.wallets.index') }}" class="px-4 py-3 bg-white text-slate-400 font-bold rounded-2xl hover:text-rose-500 transition-all text-sm border border-slate-200 shadow-sm">
-                        XÓA
-                    </a>
-                @endif
-            </form>
-        </div>
-    </div>
+                <a href="#">
+                    <button
+                        class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-bold px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 transition-all">
+                        <span class="material-symbols-outlined">download</span>
+                        Xuất báo cáo
+                    </button>
+                </a>
+            </div>
 
-    @if(session('success'))
-        <div class="mb-6 p-4 bg-emerald-100 text-emerald-700 rounded-2xl font-bold shadow-sm border border-emerald-200">
-            {{ session('success') }}
-        </div>
-    @endif
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng số dư hệ thống</p>
+                    <p class="text-2xl font-black mt-1 text-slate-900 dark:text-slate-100">
+                        {{ number_format($totalBalance ?? 0) }}đ
+                    </p>
+                </div>
 
-    @php
-        $totalBalance = \App\Models\Wallet::sum('balance');
-        $todayDeposit = \App\Models\WalletTransaction::where('type', 'deposit')->whereDate('created_at', today())->sum('amount');
-        $todayWithdraw = \App\Models\WalletTransaction::whereIn('type', ['withdraw', 'payment'])->whereDate('created_at', today())->sum('amount');
-    @endphp
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng nạp (Tháng này)</p>
+                    <p class="text-2xl font-black mt-1 text-blue-500">
+                        +{{ number_format($totalDeposit ?? 0) }}đ
+                    </p>
+                </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-white">
-        <div class="bg-slate-900 p-6 rounded-[2rem] shadow-xl shadow-slate-200">
-            <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">Tổng tiền ví khách hàng</p>
-            <h3 class="text-2xl font-black mt-1">{{ number_format($totalBalance, 0, ',', '.') }} đ</h3>
-        </div>
-        <div class="bg-emerald-500 p-6 rounded-[2rem] shadow-xl shadow-emerald-100">
-            <p class="text-emerald-100 text-[10px] font-black uppercase tracking-widest">Nạp tiền hôm nay</p>
-            <h3 class="text-2xl font-black mt-1">+{{ number_format($todayDeposit, 0, ',', '.') }} đ</h3>
-        </div>
-        <div class="bg-rose-500 p-6 rounded-[2rem] shadow-xl shadow-rose-100">
-            <p class="text-rose-100 text-[10px] font-black uppercase tracking-widest">Chi tiêu hôm nay</p>
-            <h3 class="text-2xl font-black mt-1">-{{ number_format($todayWithdraw, 0, ',', '.') }} đ</h3>
-        </div>
-    </div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng rút (Tháng này)</p>
+                    <p class="text-2xl font-black mt-1 text-red-500">
+                        -{{ number_format($totalWithdraw ?? 0) }}đ
+                    </p>
+                </div>
 
-    <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-        <table class="w-full text-left">
-            <thead class="bg-slate-50/50 border-b border-slate-100">
-                <tr>
-                    <th class="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Khách hàng</th>
-                    <th class="px-8 py-5 text-xs font-black text-slate-400 uppercase text-right tracking-widest">Số dư ví</th>
-                    <th class="px-8 py-5 text-xs font-black text-slate-400 uppercase text-center tracking-widest">Thao tác</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-50">
-                @forelse($users as $user)
-                <tr class="hover:bg-slate-50/80 transition-all">
-                    <td class="px-8 py-5">
-                        <div class="flex items-center gap-4">
-                            <div class="relative">
-                                @if($user->avatar)
-                                    <img src="{{ asset('storage/' . $user->avatar) }}" class="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-md">
-                                @else
-                                    <div class="w-12 h-12 rounded-2xl bg-bee text-white flex items-center justify-center font-black shadow-lg shadow-bee/30">
-                                        {{ strtoupper(substr($user->name, 0, 1)) }}
-                                    </div>
-                                @endif
-                                <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></span>
-                            </div>
-                            <div>
-                                <div class="font-black text-slate-800">{{ $user->name }}</div>
-                                <div class="text-xs text-slate-400 font-bold">{{ $user->email }}</div>
-                            </div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Ví đang bị khóa</p>
+                    <p class="text-2xl font-black mt-1 text-orange-500">
+                        {{ number_format($lockedWalletsCount ?? 0) }}
+                    </p>
+                </div>
+            </div>
+
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <form action="" method="GET" id="filter-form">
+                    <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-wrap gap-4 items-center">
+                        <div class="flex-1 min-w-[300px] relative">
+                            <span
+                                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                            <input name="search" value="{{ request('search') }}"
+                                class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg pl-10 focus:ring-primary focus:border-primary text-sm dark:text-slate-200"
+                                placeholder="Tìm tên, email người dùng..." type="text" />
                         </div>
-                    </td>
-                    <td class="px-8 py-5 text-right">
-                        <div class="text-lg font-black text-emerald-600">
-                            {{ $user->wallet ? number_format($user->wallet->balance, 0, ',', '.') : '0' }} <span class="text-xs opacity-60 font-bold">đ</span>
-                        </div>
-                    </td>
-                    <td class="px-8 py-5 text-center">
-                        <div class="flex justify-center gap-3">
-                            <a href="{{ route('admin.wallets.history', $user->id) }}" class="px-4 py-2 bg-slate-100 text-slate-600 text-xs font-black rounded-xl hover:bg-slate-200 transition-all">Lịch sử</a>
-                            <button type="button" onclick="openModalWallet('{{ $user->id }}')" class="px-4 py-2 bg-bee text-white text-xs font-black rounded-xl shadow-lg shadow-bee/20 hover:scale-105 transition-all">
-                                Nạp/Trừ
+
+                        <div class="flex gap-2">
+                            <select name="status" onchange="this.form.submit()"
+                                class="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:ring-primary focus:border-primary dark:text-slate-200">
+                                <option value="">Trạng thái ví</option>
+                                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Đang hoạt động
+                                </option>
+                                <option value="locked" {{ request('status') == 'locked' ? 'selected' : '' }}>Đã khóa
+                                </option>
+                            </select>
+
+                            <select name="sort_balance" onchange="this.form.submit()"
+                                class="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:ring-primary focus:border-primary dark:text-slate-200">
+                                <option value="">Sắp xếp số dư</option>
+                                <option value="desc" {{ request('sort_balance') == 'desc' ? 'selected' : '' }}>Nhiều nhất
+                                </option>
+                                <option value="asc" {{ request('sort_balance') == 'asc' ? 'selected' : '' }}>Ít nhất
+                                </option>
+                            </select>
+
+                            @if (request()->filled('search') || request()->filled('status') || request()->filled('sort_balance'))
+                                <a href="{{ route('admin.wallet.index') }}"
+                                    class="bg-slate-100 dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-red-500 transition-colors"
+                                    title="Xóa tất cả bộ lọc">
+                                    <span class="material-symbols-outlined">filter_list_off</span>
+                                </a>
+                            @endif
+
+                            <button type="submit"
+                                class="bg-primary hover:bg-primary/90 p-2 rounded-lg border border-transparent flex items-center justify-center text-slate-900 transition-colors font-medium text-sm gap-1">
+                                <span class="material-symbols-outlined text-lg">filter_list</span>
+                                Tìm kiếm
                             </button>
                         </div>
-                    </td>
-                </tr>
-
-                <div class="wallet-modal-overlay hidden" id="modalOverlay{{ $user->id }}" onclick="closeModalWallet('{{ $user->id }}')">
-                    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md mx-4 transform scale-95 transition-all" id="modalContainer{{ $user->id }}" onclick="event.stopPropagation()">
-                        <form action="{{ route('admin.wallets.update') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="user_id" value="{{ $user->id }}">
-                            <div class="p-8 border-b border-slate-50 flex justify-between items-center text-left">
-                                <h3 class="text-xl font-black text-slate-800">Cập nhật ví</h3>
-                                <button type="button" onclick="closeModalWallet('{{ $user->id }}')" class="text-slate-300 hover:text-slate-900 text-2xl font-bold">&times;</button>
-                            </div>
-                            <div class="p-8 space-y-5 text-left">
-                                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Chủ ví</p>
-                                    <p class="font-bold text-slate-700">{{ $user->name }}</p>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-black text-slate-400 uppercase mb-2">Hình thức giao dịch</label>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <label class="flex items-center justify-center p-4 border-2 rounded-2xl cursor-pointer transition-all has-[:checked]:border-bee has-[:checked]:bg-bee/5">
-                                            <input checked class="hidden" name="action" type="radio" value="add"/>
-                                            <span class="text-sm font-black text-slate-700">+ Cộng tiền</span>
-                                        </label>
-                                        <label class="flex items-center justify-center p-4 border-2 rounded-2xl cursor-pointer transition-all has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50">
-                                            <input class="hidden" name="action" type="radio" value="subtract"/> 
-                                            <span class="text-sm font-black text-slate-700">- Trừ tiền</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-black text-slate-400 uppercase mb-2">Số tiền (VNĐ)</label>
-                                    <input required name="amount" class="block w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-bee font-black text-xl outline-none" placeholder="0" type="number" min="1000">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-black text-slate-400 uppercase mb-2">Lý do/Ghi chú</label>
-                                    <textarea name="description" rows="2" class="w-full bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-bee font-medium outline-none" placeholder="Ví dụ: Nạp tiền quà tặng đồ án..."></textarea>
-                                </div>
-                            </div>
-                            <div class="p-8 pt-0 flex gap-3">
-                                <button type="button" onclick="closeModalWallet('{{ $user->id }}')" class="flex-1 py-4 bg-slate-100 text-slate-500 font-black rounded-2xl uppercase text-xs tracking-widest hover:bg-slate-200">Hủy</button>
-                                <button type="submit" class="flex-1 py-4 bg-bee text-white font-black rounded-2xl uppercase text-xs tracking-widest shadow-lg shadow-bee/30 hover:bg-beeDark">Xác nhận</button>
-                            </div>
-                        </form>
                     </div>
+                </form>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead
+                            class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4">STT</th>
+                                <th class="px-6 py-4">Người dùng</th>
+                                <th class="px-6 py-4">Số dư khả dụng</th>
+                                <th class="px-6 py-4">Trạng thái</th>
+                                <th class="px-6 py-4">Cập nhật lúc</th>
+                                <th class="px-6 py-4 text-right">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+
+                            @forelse ($wallets as $index => $wallet)
+                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                    <td class="px-6 py-4 text-sm font-medium text-slate-400">
+                                        {{ $wallets->firstItem() + $index }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="size-10 rounded-full bg-slate-200 overflow-hidden flex-shrink-0">
+                                                <img class="w-full h-full object-cover"
+                                                    src="{{ $wallet->user->avatar ? Storage::url($wallet->user->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode($wallet->user->name) . '&background=cbd5e1&color=1e293b' }}"
+                                                    alt="Avatar" />
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-bold text-slate-900 dark:text-slate-100">
+                                                    {{ $wallet->user->name }}</p>
+                                                <p class="text-xs text-slate-500">{{ $wallet->user->email }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <p class="text-sm font-black text-blue-600 dark:text-blue-500">
+                                            {{ number_format($wallet->balance) }}đ
+                                        </p>
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        @if ($wallet->status === 'active')
+                                            <div class="flex items-center gap-1.5 text-green-600 dark:text-green-500">
+                                                <span class="size-1.5 rounded-full bg-green-500"></span>
+                                                <span class="text-xs font-bold">Hoạt động</span>
+                                            </div>
+                                        @else
+                                            <div class="flex flex-col gap-1">
+                                                <div class="flex items-center gap-1.5 text-red-600 dark:text-red-500">
+                                                    <span class="size-1.5 rounded-full bg-red-500"></span>
+                                                    <span class="text-xs font-bold">Đã khóa</span>
+                                                </div>
+                                                @if ($wallet->lock_reason)
+                                                    <span class="text-[11px] text-slate-400 line-clamp-1"
+                                                        title="{{ $wallet->lock_reason }}">
+                                                        Lý do: {{ $wallet->lock_reason }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-slate-500">
+                                        {{ $wallet->updated_at->format('d/m/Y H:i') }}
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex justify-end gap-2">
+                                            {{-- Nút xem lịch sử giao dịch của ví này --}}
+                                            <a href="{{ route('admin.wallet.transactions', $wallet->id) }}">
+                                                <button class="p-2 text-slate-400 hover:text-blue-500 transition-colors"
+                                                    title="Lịch sử giao dịch">
+                                                    <span class="material-symbols-outlined text-lg">history</span>
+                                                </button>
+                                            </a>
+
+                                            {{-- Nút Khóa / Mở khóa ví --}}
+                                            @if ($wallet->status === 'active')
+                                                <form action="{{ route('admin.wallet.lock', $wallet->id) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    {{-- @method('PATCH') --}} <button
+                                                        onclick="return confirm('Bạn có chắc chắn muốn KHÓA ví của {{ $wallet->user->name }}?')"
+                                                        class="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                                                        title="Khóa ví">
+                                                        <span class="material-symbols-outlined text-lg">lock</span>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('admin.wallet.unlock', $wallet->id) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    {{-- @method('PATCH') --}} <button
+                                                        onclick="return confirm('Mở khóa ví cho {{ $wallet->user->name }}?')"
+                                                        class="p-2 text-slate-400 hover:text-green-500 transition-colors"
+                                                        title="Mở khóa ví">
+                                                        <span class="material-symbols-outlined text-lg">lock_open</span>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-6 py-8 text-center text-slate-500">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <span
+                                                class="material-symbols-outlined text-4xl mb-2 text-slate-300">account_balance_wallet</span>
+                                            <p>Không tìm thấy ví nào phù hợp.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+
+                        </tbody>
+                    </table>
                 </div>
-                @empty
-                <tr>
-                    <td colspan="3" class="px-8 py-20 text-center text-slate-400 font-bold uppercase tracking-widest">
-                        Không tìm thấy khách hàng nào khớp với từ khóa
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-        <div class="p-8 bg-slate-50/30">
-            {{ $users->links() }}
+                <div class="p-5">{{ $wallets->links() }}</div>
+
+
+            </div>
         </div>
-    </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-    // Kiểm tra nếu có lỗi từ session
-    @if(session('error'))
-        Swal.fire({
-            icon: 'error',
-            title: 'Ối! Có lỗi xảy ra',
-            text: '{!! session('error') !!}',
-            confirmButtonText: 'Đã hiểu',
-            confirmButtonColor: '#FFC107', 
-            background: '#fff',
-            borderRadius: '2rem',
-            customClass: {
-                title: 'font-black text-slate-800',
-                confirmButton: 'rounded-xl font-bold uppercase tracking-widest px-8 py-3'
-            }
-        });
-    @endif
-
-    @if(session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: 'Thành công!',
-            text: '{!! session('success') !!}',
-            timer: 2000,
-            showConfirmButton: false,
-            borderRadius: '2rem'
-        });
-    @endif
-</script>
+    </main>
 @endsection
