@@ -132,8 +132,7 @@ class OrderController extends Controller
                 broadcast(new StatusUpdated($order->user_id, $titleClient, $messageClient, $urlClient));
             }
 
-            // Gửi cho TẤT CẢ tài khoản Admin (kể cả khi Shipper thao tác)
-            // LƯU Ý: Nếu role admin của bà tên là chữ khác (vd: 'Admin' in hoa), nhớ sửa chữ 'admin' ở dưới
+            // Gửi cho TẤT CẢ tài khoản Admin
             $admins = \App\Models\User::whereHas('role', function($q) {
                 $q->where('name', 'admin'); 
             })->get();
@@ -268,7 +267,6 @@ class OrderController extends Controller
         }
         // ==========================================
 
-        return back()->with('status', 'Đã xác nhận đổi/trả hàng.');
         return back()->with('status', 'Đã duyệt yêu cầu hoàn hàng. Chờ khách gửi hàng lại.');
     }
 

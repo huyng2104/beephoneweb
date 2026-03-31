@@ -18,7 +18,6 @@ use App\Events\StatusUpdated;
 class OrderController extends Controller
 {
     // Hiển thị danh sách đơn hàng
-   public function index(Request $request)
     public function index(Request $request)
     {
         if ($request->boolean('skip_review')) {
@@ -40,7 +39,6 @@ class OrderController extends Controller
             $reviewOrder = Order::with(['items', 'items.product'])
                 ->where('user_id', Auth::id())
                 ->find((int) $reviewOrderId);
-            
         }
 
         if ($reviewOrderId !== null) {
@@ -54,31 +52,24 @@ class OrderController extends Controller
     public function show($id)
     {
         $order = Order::with('items')->where('user_id', Auth::id())->findOrFail($id);
-
         return view('client.orders.show', compact('order'));
     }
 
+    // Khách hàng xác nhận đã nhận hàng
     public function confirmReceived($id)
     {
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
 
         if ($order->status === Order::STATUS_DELIVERED) {
             
-            $order->status = Order::STATUS_RECEIVED; 
-            $order->payment_status = 'paid'; 
-            $order->save();
-
-            // ==========================================
-            // LOGIC TÍCH ĐIỂM THƯỞNG BEE POINT
-            // ==========================================
-            $pointsEarned = 0;
-            $setting = PointSetting::first();
-            $earnRate = $setting ? $setting->earn_rate : 100000; 
             $order->status = Order::STATUS_RECEIVED;
             $order->payment_status = 'paid';
             $order->paid_at = $order->paid_at ?? now();
             $order->save();
 
+            // ==========================================
+            // LOGIC TÍCH ĐIỂM THƯỞNG BEE POINT
+            // ==========================================
             $pointsEarned = 0;
             $setting = PointSetting::first();
             $earnRate = $setting ? $setting->earn_rate : 100000;
@@ -125,7 +116,6 @@ class OrderController extends Controller
                 $message .= ' Bạn được cộng thêm ' . $pointsEarned . ' Bee Point vào tài khoản.';
             }
 
-            return redirect()->back()->with('success', $msg);
             return redirect()->back()
                 ->with('success', $message)
                 ->with('review_order_id', $order->id);
@@ -134,12 +124,11 @@ class OrderController extends Controller
         return redirect()->back()->with('error', 'Trạng thái đơn hàng không hợp lệ.');
     }
 
+    // Khách hàng tự hủy đơn
     public function cancel($id)
     {
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
 
-        if ($order->status == Order::STATUS_PENDING) {
-            
         if ($order->status === Order::STATUS_PENDING) {
             $order->status = Order::STATUS_CANCELLED;
             $order->cancellation_reason = 'Khách hàng tự hủy đơn trên web';
@@ -166,12 +155,12 @@ class OrderController extends Controller
             }
 
             return redirect()->back()->with('success', 'Đã hủy đơn hàng thành công!');
-            return redirect()->back()->with('success', 'Đã hủy đơn hàng thành công.');
         }
 
         return redirect()->back()->with('error', 'Đơn hàng này đang được xử lý, không thể hủy.');
     }
 
+    // Gửi yêu cầu hoàn hàng (Code của ông Vũ)
     public function requestReturn(Request $request, $id)
     {
         $validated = $request->validate([
@@ -216,6 +205,7 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Đã gửi yêu cầu hoàn hàng. Cửa hàng sẽ phản hồi sớm nhất.');
     }
 
+    // Xác nhận đã gửi hàng hoàn về shop
     public function markReturnShipped($id)
     {
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
