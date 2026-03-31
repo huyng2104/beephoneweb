@@ -4,11 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
+
 class Voucher extends Model
 {
-    use LogsActivity;
     use SoftDeletes;
     protected $fillable = [
         'name',
@@ -30,14 +28,6 @@ class Voucher extends Model
         'start_date' => 'datetime',
         'end_date' => 'datetime',
     ];
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll()
-            ->useLogName('voucher')
-            ->logOnlyDirty();
-    }
-
     public function users()
     {
         return $this->belongsToMany(User::class, 'user_vouchers')

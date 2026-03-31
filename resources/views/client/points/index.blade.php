@@ -10,7 +10,7 @@
         .text-on-surface { color: #181611; }
         .bg-on-surface { background-color: #181611; }
         .text-on-primary { color: #000000; }
-
+        
         .ai-sparkle {
             background: linear-gradient(90deg, #f4c025 0%, #ffffff 50%, #f4c025 100%);
             -webkit-background-clip: text;
@@ -20,7 +20,7 @@
     </style>
 
     <main class="pt-10 pb-20 max-w-7xl mx-auto px-6 min-h-screen">
-
+        
         @if(session('success'))
             <div class="bg-green-100 text-green-700 p-4 rounded-xl mb-6 font-bold flex items-center gap-2">
                 <span class="material-symbols-outlined">check_circle</span> {{ session('success') }}
@@ -49,7 +49,7 @@
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-
+            
             <section class="md:col-span-8 bg-on-surface text-white rounded-xl p-8 relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[320px]">
                 <div class="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-[100px] -mr-32 -mt-32"></div>
                 <div class="relative z-10">
@@ -103,7 +103,7 @@
                 <div class="flex justify-between items-center mb-8">
                     <h2 class="text-3xl text-on-surface font-bold tracking-tight">Cửa hàng đổi quà</h2>
                 </div>
-
+                
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     @forelse($vouchers as $voucher)
                     @php
@@ -127,10 +127,10 @@
                                 @endif
                                 <br>Đơn từ {{ number_format($voucher->min_order_value) }}đ
                             </p>
-
+                            
                             <div class="mt-auto pt-4 border-t border-zinc-100 flex items-center justify-between">
                                 <span class="font-bold text-on-surface">{{ number_format($pointCost) }} BP</span>
-
+                                
                                 <form action="{{ route('client.points.redeem') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="voucher_id" value="{{ $voucher->id }}">

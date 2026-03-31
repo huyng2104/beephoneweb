@@ -7,12 +7,10 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Attribute;
-use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\View\View;
 
 class ProductController extends Controller
 {
@@ -138,42 +136,6 @@ class ProductController extends Controller
 
         $product->load(['categories', 'brand', 'images', 'variants.attributeValues']);
         return view('admin.products.show', compact('product'));
-    }
-
-    public function comments(Product $product): View
-    {
-        // Keep it consistent with com/showcom: only root comments in the list, with nested replies.
-        $comments = Comment::query()
-            ->where('product_id', $product->id)
-            ->whereNull('parent_id')
-            ->with([
-                'user',
-                'children.user',
-                'children.children.user',
-                'children.children.children.user',
-                'children.children.children.children.user',
-            ])
-            ->latest()
-            ->get();
-
-        $rated = $comments->whereNotNull('rating');
-        $totalRatings = $rated->count();
-        $averageRating = $totalRatings > 0 ? round((float) $rated->avg('rating'), 1) : 0.0;
-
-        $ratingBreakdown = collect(range(5, 1))
-            ->mapWithKeys(fn (int $star) => [$star => $rated->where('rating', $star)->count()]);
-
-        // Load product relations used by the UI (thumbnail/status/description already on model).
-        $product->loadMissing(['brand', 'categories']);
-
-        // Render exactly like the existing com/showcom layout (admin & product comment pages look different).
-        return view('com.showcom', compact(
-            'product',
-            'comments',
-            'totalRatings',
-            'averageRating',
-            'ratingBreakdown',
-        ));
     }
 
     public function edit(Product $product)

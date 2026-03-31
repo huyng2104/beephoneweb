@@ -148,17 +148,17 @@
             </div>
         </div>
         <!-- Content Tabs & Sections -->
-
-
-        {{-- lịch sử đặt hàng --}}
-
-
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
-            <div class="lg:col-span-12 space-y-8"> {{-- 🔥 Thêm space-y-8 để các card cách nhau đẹp --}}
-
+            <!-- Tabs and Main Info (Left/Main Column) -->
+            <div class="lg:col-span-12">
                 <div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-primary/10 shadow-sm">
+
                     <div class="p-8">
-                        <div>
+
+                        <!-- Info Section -->
+
+                        <!-- Role Section (Summary) -->
+                        <div class="">
                             <h3 class="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100 mb-6">
                                 <span class="w-1.5 h-6 bg-primary rounded-full"></span> Vai trò &amp; Phân quyền
                             </h3>
@@ -174,405 +174,118 @@
                                                 {{ $user->role->name }}</p>
                                         </div>
                                     </div>
-                                    <div class="flex flex-wrap gap-2"> {{-- 🔥 Thêm flex-wrap gap-2 để tag hiển thị hàng ngang đẹp --}}
+                                    <div class="space-y-2">
+                                        <p class="text-sm text-slate-600 dark:text-slate-400">Các quyền cụ thể:</p>
                                         @switch($user->role->name)
+                                            @case('staff')
+                                                <div class="flex flex-wrap gap-2">
+                                                    @foreach ($user->permissions as $permission)
+                                                        <span
+                                                            class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">•
+                                                            {{ $permission->name }}</span>
+                                                    @endforeach
+                                                </div>
+                                            @break
+
                                             @case('admin')
                                                 <span
                                                     class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">•
                                                     Toàn quyền truy cập hệ thống</span>
                                             @break
 
-                                            @case('user')
+                                            @default
                                                 <span
                                                     class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">•
                                                     Mua hàng</span>
-                                            @break
-
-                                            @default
-                                                <div class="w-full mb-1">
-                                                    <p class="text-sm text-slate-600 dark:text-slate-400">Quyền mặc định theo vai
-                                                        trò:</p>
-                                                </div>
-                                                @foreach ($user->role->permissions as $permission)
-                                                    <span
-                                                        class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">•
-                                                        {{ $permission->name }}</span>
-                                                @endforeach
-
-                                                <div class="w-full mt-3 mb-1">
-                                                    <p class="text-sm text-slate-600 dark:text-slate-400">Quyền cấp riêng:</p>
-                                                </div>
-                                                @forelse ($user->permissions as $pms)
-                                                    <span
-                                                        class="px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">•
-                                                        {{ $pms->name }}</span>
-                                                @empty
-                                                    <span class="text-xs text-slate-400 italic">Không có quyền riêng</span>
-                                                @endforelse
-                                            @endswitch
-                                        </div>
+                                        @endswitch
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
-
-                    <div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-primary/10 shadow-sm">
-                        <div class="p-8">
-                            <h3 class="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100 mb-6">
-                                <span class="w-1.5 h-6 bg-primary rounded-full"></span> Lịch sử đặt hàng
-                            </h3>
-
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-                                    <thead class="bg-slate-50 dark:bg-slate-800/50">
-                                        <tr>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">Mã
-                                                Đơn</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">
-                                                Ngày đặt</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">
-                                                Tổng tiền</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">
-                                                Trạng thái</th>
-                                            <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">
-                                                Thao tác</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-
-                                        {{-- 🔥 Đã thêm collect()->sortByDesc('created_at') ở đây --}}
-                                        @forelse (collect($user->orders ?? [])->sortByDesc('created_at') as $order)
-                                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                                <td class="px-4 py-4 font-medium text-slate-900 dark:text-slate-100">
-                                                    #{{ $order->order_code ?? $order->id }}</td>
-                                                <td class="px-4 py-4 text-slate-500 dark:text-slate-400">
-                                                    {{ $order->created_at->format('d/m/Y') }}</td>
-                                                <td class="px-4 py-4 font-semibold text-slate-900 dark:text-slate-100">
-                                                    {{ number_format($order->total_price ?? 0) }}đ</td>
-                                                <td class="px-4 py-4">
-                                                    @php
-                                                        $status_class = match ($order->status ?? 'pending') {
-                                                            'completed',
-                                                            'received'
-                                                                => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', // Gộp chung màu xanh lá
-                                                            'shipping'
-                                                                => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-                                                            'cancelled'
-                                                                => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                                                            'pending'
-                                                                => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', // Cố định màu vàng cho Chờ xác nhận
-                                                            default
-                                                                => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400', // Màu xám cho trường hợp lạ
-                                                        };
-
-                                                        $status_text = match ($order->status ?? 'pending') {
-                                                            'pending' => 'Chờ xác nhận',
-                                                            'shipping' => 'Đang giao',
-                                                            'received' => 'Đã nhận',
-                                                            'completed' => 'Thành công',
-                                                            'cancelled' => 'Đã hủy',
-                                                            default
-                                                                => 'Chờ xử lý', // Đóng vai trò bao quát tất cả các trường hợp còn lại
-                                                        };
-                                                    @endphp
-                                                    <span
-                                                        class="px-2.5 py-1 text-xs font-bold rounded-full {{ $status_class }}">
-                                                        {{ $status_text }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-4 py-4 text-center">
-                                                    <a href="{{ route('admin.orders.show', $order->id) }}"
-                                                        class="text-primary hover:underline text-xs font-bold flex items-center justify-center gap-1">
-                                                        Xem chi tiết
-                                                        <span class="material-symbols-outlined text-sm">chevron_right</span>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="5"
-                                                    class="px-4 py-8 text-center text-slate-400 dark:text-slate-500 italic">
-                                                    Người dùng này chưa có đơn hàng nào.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
-
-            <div class="bg-white dark:bg-slate-900 rounded-xl p-6 mb-8 border border-primary/10 shadow-sm">
-    <div class="flex-1">
-        <div class="flex items-center justify-between mb-4">
-            <p class="text-sm font-bold text-slate-900 dark:text-slate-100">Lịch sử hoạt động của người dùng</p>
-            <span class="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-1 rounded-md dark:bg-blue-900/30 dark:text-blue-400">
-                Tổng: {{ $activities->total() }} bản ghi
-            </span>
         </div>
-
-        @if($activities->isEmpty())
-            <div class="text-center py-8 text-slate-500">
-                <span class="material-symbols-outlined text-4xl mb-2 opacity-50">history</span>
-                <p>Người dùng này chưa có hoạt động nào.</p>
-            </div>
-        @else
-            <div class="space-y-6">
-                @foreach ($activities as $activity)
-                    @php
-                        // 1. Dùng SWITCH để gán Class và Tên hiển thị
-                        $badge_class = '';
-                        $log_name_display = '';
-
-                        switch ($activity->log_name) {
-                            case 'voucher':
-                                $badge_class = 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
-                                $log_name_display = 'MÃ GIẢM GIÁ';
-                                break;
-                            case 'user':
-                                $badge_class = 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-                                $log_name_display = 'NGƯỜI DÙNG';
-                                break;
-                            case 'product':
-                                $badge_class = 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-                                $log_name_display = 'SẢN PHẨM';
-                                break;
-                            case 'order':
-                                $badge_class = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-                                $log_name_display = 'ĐƠN HÀNG';
-                                break;
-                            case 'auth':
-                                $badge_class = 'bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-300';
-                                $log_name_display = 'BẢO MẬT';
-                                break;
-                            case 'post category':
-                                $badge_class = 'bg-pink-100 text-pink-700 dark:bg-pink-800 dark:text-pink-300';
-                                $log_name_display = 'Danh mục BV';
-                                break;
-                            default:
-                                $badge_class = 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
-                                $log_name_display = strtoupper($activity->log_name ?? 'HỆ THỐNG');
-                                break;
-                        }
-
-                        // 2. Dùng SWITCH xử lý hành động
-                        $action_text = '';
-                        switch ($activity->description) {
-                            case 'created':
-                                $action_text = 'đã thêm mới';
-                                break;
-                            case 'updated':
-                                $action_text = 'đã cập nhật';
-                                break;
-                            case 'deleted':
-                                $action_text = 'đã xóa';
-                                break;
-                            default:
-                                $action_text = $activity->description;
-                                break;
-                        }
-
-                        // 3. Lấy tên đối tượng (Subject) để Admin biết User thao tác lên cái gì
-                        $new_attributes = $activity->properties['attributes'] ?? [];
-                        $old_attributes = $activity->properties['old'] ?? [];
-
-                        $subject_display =
-                            $activity->subject?->name ??
-                            $activity->subject?->code ??
-                            $activity->subject?->order_code ??
-                            ($new_attributes['name'] ??
-                            ($new_attributes['code'] ??
-                            ($old_attributes['name'] ??
-                            ($old_attributes['code'] ?? null))));
-
-                        // 4. Lọc dữ liệu thay đổi / bị xóa
-                        $changed_fields = [];
-                        $deleted_fields = [];
-                        $ignored_keys = ['id', 'created_at', 'updated_at', 'deleted_at', 'remember_token', 'password'];
-
-                        if ($activity->description === 'updated') {
-                            foreach ($new_attributes as $key => $newValue) {
-                                if (!in_array($key, $ignored_keys)) {
-                                    $oldValue = $old_attributes[$key] ?? null;
-                                    if ($oldValue !== $newValue) {
-                                        $changed_fields[$key] = ['old' => $oldValue, 'new' => $newValue];
-                                    }
-                                }
-                            }
-                        } elseif ($activity->description === 'deleted') {
-                            foreach ($old_attributes as $key => $oldValue) {
-                                if (!in_array($key, $ignored_keys)) {
-                                    $deleted_fields[$key] = $oldValue;
-                                }
-                            }
-                        }
-                    @endphp
-
-                    <div class="relative pl-6 border-l-2 border-slate-200 dark:border-slate-700 ml-3">
-                        <span class="absolute -left-[9px] top-4 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-slate-900 border-2 border-slate-400">
-                            <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
-                        </span>
-
-                        <div class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
-                            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-700">
-                                <div class="flex items-center gap-2">
-                                    {{-- Huy hiệu chức năng --}}
-                                    <span class="px-2.5 py-0.5 text-xs font-bold rounded-full {{ $badge_class }}">
-                                        {{ $log_name_display }}
-                                    </span>
-
-                                    <span class="text-sm text-slate-600 dark:text-slate-300">
-                                        {{-- Mô tả hành động --}}
-                                        <span class="{{ $activity->description === 'deleted' ? 'text-red-600 dark:text-red-400' : '' }}">
-                                            {{ $action_text }}
-                                        </span>
-
-                                        {{-- Tên đối tượng tác động --}}
-                                        @if($subject_display)
-                                            <strong class="text-slate-900 dark:text-white ml-1">
-                                                {{ $subject_display }}
-                                            </strong>
-                                        @elseif($activity->subject_id)
-                                            <strong class="text-slate-900 dark:text-white ml-1">
-                                                ID: {{ $activity->subject_id }}
-                                            </strong>
-                                        @endif
-                                    </span>
-                                </div>
-
-                                <div class="text-right whitespace-nowrap">
-                                    <div class="text-xs font-bold text-slate-600 dark:text-slate-400">
-                                        {{ $activity->created_at->format('H:i') }}
-                                    </div>
-                                    <div class="text-[10px] text-slate-400">
-                                        {{ $activity->created_at->format('d/m/Y') }}
-                                    </div>
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-6 mb-8 border border-primary/10 shadow-sm">
+            <div class="flex-1">
+                <p class="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">Lịch sử
+                    hoạt động gần đây</p>
+                <div class="space-y-4">
+                    @foreach ($user->activityLogs()->latest()->take(5)->get() as $log)
+                        <div class="flex gap-4">
+                            <div class="relative flex flex-col items-center">
+                                <div class="size-3 bg-slate-300 rounded-full z-10"></div>
+                                <div class="w-0.5 h-full bg-slate-200 dark:bg-slate-700 absolute top-2">
                                 </div>
                             </div>
-
-                            {{-- Hiển thị thông tin bảo mật (Nếu log auth) --}}
-                            @if($activity->log_name === 'auth' && isset($activity->properties['ip_address']))
-                                <div class="mt-2 text-xs text-slate-500 flex gap-3">
-                                    <span>🌐 IP: {{ $activity->properties['ip_address'] }}</span>
-                                    @if(isset($activity->properties['user_agent']))
-                                        <span class="truncate max-w-[200px] md:max-w-md">💻 Thiết bị: {{ $activity->properties['user_agent'] }}</span>
+                            <div>
+                                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                    {{ $log->description }}
+                                    @if ($log->model)
+                                        - <a class="text-blue-500" href="#">{{ $log->model->name ?? '' }}</a>
                                     @endif
-                                </div>
-                            @endif
+                                </p>
 
-                            {{-- Bảng thay đổi dữ liệu (Khi CẬP NHẬT) --}}
-                            @if ($activity->description === 'updated' && !empty($changed_fields))
-                                <div class="mt-3 space-y-2">
-                                    <div class="text-xs font-semibold text-slate-500 mb-1">Dữ liệu thay đổi:</div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        @foreach ($changed_fields as $field => $data)
-                                            <div class="p-2 border border-slate-100 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 flex flex-col justify-center text-xs">
-                                                <div class="font-bold text-slate-700 dark:text-slate-300 mb-1 truncate">
-                                                    📋 {{ strtoupper($field) }}
-                                                </div>
-                                                <div class="flex items-center gap-2 flex-wrap">
-                                                    <span class="line-through decoration-red-400 text-slate-400 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded truncate max-w-[150px]">
-                                                        {{ is_array($data['old']) ? 'Mảng dữ liệu' : ($data['old'] ?: 'Trống') }}
-                                                    </span>
-                                                    <span class="text-slate-400">➔</span>
-                                                    <span class="text-green-700 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded truncate max-w-[150px]">
-                                                        {{ is_array($data['new']) ? 'Mảng dữ liệu' : ($data['new'] ?: 'Trống') }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- Bảng dữ liệu bị mất (Khi XÓA) --}}
-                            @if ($activity->description === 'deleted' && !empty($deleted_fields))
-                                <div class="mt-3 space-y-2">
-                                    <div class="text-xs font-semibold text-red-500 mb-1">Dữ liệu đã xóa:</div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        @foreach ($deleted_fields as $field => $value)
-                                            <div class="p-2 border border-red-100 dark:border-red-900/30 rounded-lg bg-red-50 dark:bg-red-900/10 flex flex-col justify-center text-xs">
-                                                <div class="font-bold text-slate-700 dark:text-slate-300 mb-1 truncate">
-                                                    🗑️ {{ strtoupper($field) }}
-                                                </div>
-                                                <div class="flex items-center">
-                                                    <span class="line-through decoration-red-400 text-slate-500 px-1 py-0.5 rounded truncate max-w-full">
-                                                        {{ is_array($value) ? 'Mảng dữ liệu' : ($value ?: 'Trống') }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-
+                                <p class="text-xs text-slate-500">
+                                    {{ $log->created_at->format('H:i') }}, Ngày {{ $log->created_at->format('d/m/Y') }}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                @endforeach
-            </div>
-
-            {{-- Phân trang paginate(5) của bạn --}}
-            @if ($activities->hasPages())
-                <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-                    {{ $activities->links() }}
-                </div>
-            @endif
-        @endif
-
-    </div>
-</div>
-        </main>
-        @if (session('new_password'))
-            <div id="password-modal"
-                class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] p-4">
-
-                <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 text-center border border-gray-100">
-
-                    <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-green-100 mb-4">
-                        <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                            </path>
-                        </svg>
-                    </div>
-
-                    <h3 class="text-xl font-bold text-gray-900 mb-1">Mật khẩu mới</h3>
-                    <p class="text-sm text-gray-500 mb-6">Đã cập nhật thành công cho người dùng.</p>
-
-                    <div class="bg-gray-50 border-2 border-dashed border-blue-200 p-4 rounded-xl mb-6">
-                        <span class="text-2xl font-mono font-bold text-blue-600 tracking-wider">
-                            {{ session('new_password') }}
-                        </span>
-                    </div>
-
-                    <button onclick="document.getElementById('password-modal').remove()"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200">
-                        Đã hiểu và lưu lại
-                    </button>
+                    @endforeach
+                    {{-- @dd($user->activityLogs) --}}
+                    <button class="text-primary text-xs font-bold hover:underline">Xem tất cả
+                        lịch sử</button>
                 </div>
             </div>
-        @endif
+        </div>
+    </main>
+    @if (session('new_password'))
+        <div id="password-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] p-4">
 
-        <style>
-            /* Hiệu ứng hiện lên nhẹ nhàng */
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                    transform: scale(0.95);
-                }
+            <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 text-center border border-gray-100">
 
-                to {
-                    opacity: 1;
-                    transform: scale(1);
-                }
+                <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-green-100 mb-4">
+                    <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                        </path>
+                    </svg>
+                </div>
+
+                <h3 class="text-xl font-bold text-gray-900 mb-1">Mật khẩu mới</h3>
+                <p class="text-sm text-gray-500 mb-6">Đã cập nhật thành công cho người dùng.</p>
+
+                <div class="bg-gray-50 border-2 border-dashed border-blue-200 p-4 rounded-xl mb-6">
+                    <span class="text-2xl font-mono font-bold text-blue-600 tracking-wider">
+                        {{ session('new_password') }}
+                    </span>
+                </div>
+
+                <button onclick="document.getElementById('password-modal').remove()"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200">
+                    Đã hiểu và lưu lại
+                </button>
+            </div>
+        </div>
+    @endif
+
+    <style>
+        /* Hiệu ứng hiện lên nhẹ nhàng */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
             }
 
-            #password-modal>div {
-                animation: fadeIn 0.3s ease-out;
+            to {
+                opacity: 1;
+                transform: scale(1);
             }
-        </style>
-    @endsection
+        }
+
+        #password-modal>div {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+@endsection

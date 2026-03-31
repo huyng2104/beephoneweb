@@ -11,16 +11,41 @@ use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
-
-    public function index()
+    public function index(Request $request)
     {
-        // $posts = Post::with(['category', 'user'])->latest()->get();
+        $query = Post::with(['category', 'user']);
 
-        $posts = Post::with(['category', 'user'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(5); // mỗi trang 5 bài
+        // tìm kiếm
+        if ($request->keyword) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->keyword . '%')
+                    ->orWhereHas('user', function ($u) use ($request) {
+                        $u->where('name', 'like', '%' . $request->keyword . '%');
+                    });
+            });
+        }
 
-        return view('admin.posts.index', compact('posts'));
+        // lọc theo danh mục
+        if ($request->category_id) {
+            $query->where('post_categories_id', $request->category_id);
+        }
+
+        $posts = $query->orderBy('created_at', 'desc')->paginate(5);
+
+        $categories = PostCategory::all();
+
+        // thống kê
+        $totalPosts = Post::count();
+        $viewsThisMonth = Post::whereMonth('created_at', now()->month)->sum('views');
+        $totalCategories = PostCategory::count();
+
+        return view('admin.posts.index', compact(
+            'posts',
+            'categories',
+            'totalPosts',
+            'viewsThisMonth',
+            'totalCategories'
+        ));
     }
 
     public function create()

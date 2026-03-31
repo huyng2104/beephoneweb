@@ -17,6 +17,11 @@ use App\Models\WalletTransaction;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderPlacedMail;
 
+// IMPORT 3 THƯ VIỆN NÀY ĐỂ BẮN THÔNG BÁO CHO ADMIN
+use App\Models\User;
+use App\Notifications\SystemNotification;
+use App\Events\StatusUpdated;
+
 class CheckoutController extends Controller
 {
     /**
@@ -30,14 +35,12 @@ class CheckoutController extends Controller
                 else $q->where('session_id', Session::getId());
             })->first();
 
-        // ---------------- THÊM ĐOẠN NÀY LÀ XONG ----------------
         // Lọc giỏ hàng: CHỈ giữ lại các item có ID nằm trong Session đã chọn
         $selectedIds = session('selected_cart_items', []);
         if (!empty($selectedIds)) {
             // Ép cái relationship items chỉ lấy những món khách chọn
             $cart->setRelation('items', $cart->items->whereIn('id', $selectedIds));
         }
-        // --------------------------------------------------------
 
         if (!$cart || $cart->items->count() == 0) {
             return redirect()->route('client.products.index')->with('error', 'Không có sản phẩm nào để thanh toán!');
@@ -149,7 +152,7 @@ class CheckoutController extends Controller
                 $stockObj->decrement('stock', $item->quantity);
             }
 
-            // 2.3 XỬ LÝ VOUCHER (Upsert chống lỗi Duplicate 1062)
+            // 2.3 XỬ LÝ VOUCHER 
             $discountAmount = 0;
             if (session()->has('voucher')) {
                 $voucherSession = session('voucher');
@@ -211,26 +214,47 @@ class CheckoutController extends Controller
             // 2.5 DỌN DẸP GIỎ HÀNG (CHỈ XÓA MÓN ĐÃ MUA)
             // ==========================================
             if (!empty($selectedIds)) {
-                // Chỉ xóa các item được tích chọn thanh toán
                 CartItem::whereIn('id', $selectedIds)->delete();
             } else {
-                $cart->items()->delete(); // Mặc định thì xóa hết (nếu có lỗi gì đó)
+                $cart->items()->delete(); 
             }
 
-            // Kiểm tra xem giỏ hàng còn món nào không, nếu không còn thì xóa luôn cái vỏ Cart
             if ($cart->items()->count() == 0) {
                 $cart->delete();
             }
 
-            // Xóa session voucher và session chọn món để khách mua đơn tiếp theo
             session()->forget('voucher'); 
             session()->forget('selected_cart_items');
 
             DB::commit();
 
             // ==========================================
-            // LƯU SESSION ID ĐỂ HIỂN THỊ GIAO DIỆN SUCCESS
+            // 🚀 BẮN THÔNG BÁO CÓ ĐƠN HÀNG MỚI CHO ADMIN
             // ==========================================
+            try {
+                // Quét tìm tất cả các sếp Admin
+                $admins = User::whereHas('role', function($q) { 
+                    $q->where('name', 'admin'); 
+                })->get();
+
+                if ($admins->count() > 0) {
+                    $adminTitle = "Ting ting! Có đơn hàng mới! 🚀";
+                    $adminMsg = "Khách hàng " . $order->customer_name . " vừa chốt đơn #" . $order->order_code . " trị giá " . number_format($finalAmount, 0, ',', '.') . "đ.";
+                    $adminUrl = route('admin.orders.show', $order->id);
+
+                    foreach ($admins as $ad) {
+                        // 1. Lưu vào DB cho Admin
+                        $ad->notify(new SystemNotification($adminTitle, $adminMsg, $adminUrl));
+                        // 2. Bắn Real-time
+                        broadcast(new StatusUpdated($ad->id, $adminTitle, $adminMsg, $adminUrl));
+                    }
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Lỗi báo Admin có đơn mới: ' . $e->getMessage());
+            }
+            // ==========================================
+
+            // Lưu session id để hiện trang success
             session(['new_order_id' => $order->id]);
 
             // Gửi email
@@ -287,7 +311,7 @@ class CheckoutController extends Controller
                 $vnp_Url = $vnp_Url . "?" . $query;
                 if (isset($vnp_HashSecret)) {
                     $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
-                    $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
+                    $vnp_Url .= '&vnp_SecureHash=' . $vnpSecureHash;
                 }
 
                 return redirect($vnp_Url);
@@ -332,7 +356,6 @@ class CheckoutController extends Controller
         $order = Order::find($request->vnp_TxnRef);
 
         if ($secureHash == $vnp_SecureHash) {
-            // LƯU SESSION ĐỂ HIỆN TRANG SUCCESS (NẾU KHÁCH TỪ VNPAY QUAY VỀ)
             if ($order) {
                 session(['new_order_id' => $order->id]);
             }
@@ -358,15 +381,12 @@ class CheckoutController extends Controller
      */
     public function success()
     {
-        // Phải có 1 trong 2 thông báo success hoặc có ID đơn hàng mới cho xem
         if (!session('success') || !session('new_order_id')) {
             return redirect()->route('home');
         }
 
-        // Truy vấn lấy đơn hàng và danh sách món hàng
         $order = Order::with('items')->find(session('new_order_id'));
 
-        // Nếu vì lý do tâm linh nào đó mất đơn hàng thì đuổi về home
         if (!$order) {
             return redirect()->route('home');
         }
