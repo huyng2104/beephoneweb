@@ -22,7 +22,7 @@ use App\Http\Controllers\AdminControllers\UserController;
 use App\Http\Controllers\AdminControllers\OrderController;
 use App\Http\Controllers\AdminControllers\PointController;
 use App\Http\Controllers\AdminControllers\BannerController;
-
+use App\Http\Controllers\AdminControllers\TicketController;
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
 use App\Http\Controllers\AdminControllers\RoleController;
@@ -268,6 +268,17 @@ Route::middleware(['auth', 'verified', 'role'])->group(function () {
         Route::post('posts/upload', [PostController::class, 'upload'])->name('posts.upload');
         Route::post('posts/toggle-status/{id}', [PostController::class, 'toggleStatus'])
             ->name('posts.toggleStatus');
+        Route::get('/admin/posts/trash', [PostController::class, 'trash'])->name('posts.trash');
+        Route::post('/admin/posts/restore/{id}', [PostController::class, 'restore'])->name('posts.restore');
+        Route::delete('/admin/posts/force-delete/{id}', [PostController::class, 'forceDelete'])->name('posts.forceDelete');
+
+        // Quản lý yêu cầu hỗ trợ
+        Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
+
+        Route::get('/tickets/{id}', [TicketController::class, 'show'])->name('tickets.show');
+
+        Route::post('/tickets/{id}/status', [TicketController::class, 'updateStatus'])
+            ->name('tickets.updateStatus');
 
         // 9. Quản lý Banner
         Route::get('banners/trash', [BannerController::class, 'trash'])->name('banners.trash');
