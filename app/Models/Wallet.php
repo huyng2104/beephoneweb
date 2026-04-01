@@ -25,7 +25,7 @@ class Wallet extends Model
     // Mối quan hệ: Một ví thuộc về 1 User
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withTrashed();
     }
 
     // Mối quan hệ: Một ví có nhiều Giao dịch

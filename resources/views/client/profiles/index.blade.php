@@ -30,61 +30,79 @@
         </div>
 
         <!-- Quick Stats Widgets -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8" data-purpose="quick-stats">
-            <div
-                class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 transition-all duration-300 hover:shadow-md hover:border-[#f4c025] group cursor-default">
-                <div class="bg-blue-50 p-3 rounded-full text-blue-600">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round" stroke-linejoin="round"
-                            stroke-width="2"></path>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Tổng đơn hàng</p>
-                    <p class="text-xl font-bold">{{ $user->orders->count() }}</p>
-                </div>
-            </div>
-            <div
-                class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 transition-all duration-300 hover:shadow-md hover:border-[#f4c025] group cursor-default">
-                <div class="bg-yellow-50 p-3 rounded-full text-[#f4c025]">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Bee Point</p>
-                    <p class="text-xl font-bold">{{ number_format($user->reward_points, 0, ',', '.') }}</p>
-                </div>
-            </div>
-            <div
-                class="bg-[#1a1a1a] p-5 rounded-xl shadow-sm flex items-center gap-4 text-white transition-all duration-300 hover:shadow-md hover:ring-1 hover:ring-[#f4c025] group cursor-default">
-                <div class="bg-[#f4c025] p-3 rounded-full text-[#1a1a1a]">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-400">Số dư ví</p>
-                    <p class="text-xl font-bold">
-                        @if ($user->wallet)
-                            @if ($user->wallet->status === 'active')
-                                {{ number_format($user->wallet?->balance ?? 0, 0, ',', '.') }}đ
-                                @else
-                                <span class="text-red-500">Bị khóa bỏi: {{$user->wallet->lock_reason}}</span>
-                            @endif
-                        @else
-                            <span class="text-[#f4c025]">Chưa kích hoạt</span>
-                        @endif
-                    </p>
-                </div>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+
+    <!-- Tổng đơn -->
+    <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 hover:shadow-md hover:border-[#f4c025] transition">
+        <div class="bg-blue-50 p-3 rounded-full text-blue-600">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                      stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+            </svg>
         </div>
+        <div>
+            <p class="text-sm text-gray-500">Tổng đơn hàng</p>
+            <p class="text-xl font-bold">{{ $user->orders->count() }}</p>
+        </div>
+    </div>
+
+    <!-- Bee Point -->
+    <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 hover:shadow-md hover:border-[#f4c025] transition">
+        <div class="bg-yellow-50 p-3 rounded-full text-[#f4c025]">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+            </svg>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">Bee Point</p>
+            <p class="text-xl font-bold">
+                {{ number_format($user->reward_points, 0, ',', '.') }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Ví -->
+    <div class="bg-[#1a1a1a] p-5 rounded-xl shadow-sm flex items-start gap-4 text-white hover:shadow-md hover:ring-1 hover:ring-[#f4c025] transition">
+
+        <div class="bg-[#f4c025] p-3 rounded-full text-[#1a1a1a] shrink-0">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                      stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+            </svg>
+        </div>
+
+        <div class="flex-1">
+            <p class="text-sm text-gray-300 mb-1">Số dư ví</p>
+
+            @if ($user->wallet)
+                @if ($user->wallet->status === 'active')
+                    <p class="text-2xl font-bold text-green-400">
+                        {{ number_format($user->wallet?->balance ?? 0, 0, ',', '.') }}đ
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">Ví đang hoạt động</p>
+                @else
+                    <div class="text-red-400 text-xs space-y-1">
+                        <p class="font-semibold">⚠️ Ví bị khóa</p>
+                        <p>• {{ $user->wallet->lock_reason ?? 'Không rõ lý do' }}</p>
+                        <p>
+                            • Mở lại:
+                            {{ $user->wallet->locked_until
+                                ? \Carbon\Carbon::parse($user->wallet->locked_until)->format('d/m/Y H:i')
+                                : 'Không xác định' }}
+                        </p>
+                    </div>
+                @endif
+            @else
+                <div class="text-yellow-400 text-xs">
+                    <p class="font-medium">⚠️ Chưa kích hoạt</p>
+                </div>
+            @endif
+        </div>
+
+    </div>
+
+</div>
         <!-- Personal Info Card -->
         {{-- Bọc toàn bộ vào thẻ form để có thể submit dữ liệu --}}
         <form id="profileForm" action="{{ route('profile.update', $user->id) }}" method="POST"

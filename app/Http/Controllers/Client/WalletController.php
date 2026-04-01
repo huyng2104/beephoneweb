@@ -210,6 +210,7 @@ class WalletController extends Controller
             // Kiểm tra nếu sai từ 5 lần trở lên -> Khóa ví
             if ($wallet->pin_attempts >= 5) {
                 $wallet->update([
+                    'locked_until' => now()->addMinutes(15),
                     'status'      => 'locked',
                     'lock_reason' => 'Nhập sai mã PIN quá 5 lần.'
                 ]);

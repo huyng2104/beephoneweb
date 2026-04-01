@@ -9,41 +9,89 @@
                 <p class="text-gray-500 text-sm mt-1">Quản lý số dư và thực hiện thanh toán nội bộ nhanh chóng</p>
             </section>
             <section>
-                <div class="bg-[#1a1a1a] text-white p-8 rounded-2xl relative overflow-hidden shadow-xl"
-                    data-purpose="balance-display">
-                    <div class="absolute -top-12 -right-12 w-64 h-64 bg-[#f4c025] opacity-10 rounded-full"></div>
-                    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-                        <div>
-                            <p class="text-gray-400 text-sm font-medium mb-1">Số dư hiện tại trong hệ thống</p>
-                            <h2 class="text-5xl font-bold tracking-tight">
-                                {{ number_format($user->wallet->balance, 0, ',', '.') ?? '' }}<span
-                                    class="text-2xl ml-1 text-[#f4c025]">đ</span></h2>
-                        </div>
-                        <div class="flex flex-wrap gap-4">
-                            @if ($user->wallet->status == 'active')
-                                <button type="button" onclick="openDepositModal()"
-                                    class="bg-[#f4c025] text-black px-8 py-3 rounded-xl font-bold hover:bg-yellow-400 transition-all flex items-center gap-2 shadow-lg shadow-yellow-900/20">
-                                    <svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path clip-rule="evenodd"
-                                            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                                            fill-rule="evenodd"></path>
-                                    </svg>
-                                    Nạp tiền
-                                </button>
-                                <button onclick="openWithdrawModal()"
-                                    class="bg-transparent border border-gray-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-white/10 transition-colors">
-                                    Rút tiền
-                                </button>
-                            @else
-                                <span class="text-red-500 font-bold">Bị khóa bỏi: {{ $user->wallet->lock_reason }}</span>
-                            @endif
+    <div class="bg-[#1a1a1a] text-white p-8 rounded-2xl relative overflow-hidden shadow-xl">
 
-                        </div>
+        <!-- Background effect -->
+        <div class="absolute -top-12 -right-12 w-64 h-64 bg-[#f4c025] opacity-10 rounded-full"></div>
 
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+
+            <!-- Số dư -->
+            <div>
+                <p class="text-gray-400 text-sm font-medium mb-1">
+                    Số dư hiện tại trong hệ thống
+                </p>
+
+                @if ($user->wallet)
+                    <h2 class="text-5xl font-bold tracking-tight">
+                        {{ number_format($user->wallet->balance ?? 0, 0, ',', '.') }}
+                        <span class="text-2xl ml-1 text-[#f4c025]">đ</span>
+                    </h2>
+
+                    @if ($user->wallet->status !== 'active')
+                        <p class="text-red-400 text-sm mt-2">
+                            ⚠️ Ví bị khóa
+                        </p>
+                    @endif
+                @else
+                    <h2 class="text-3xl font-bold text-yellow-400">
+                        Chưa kích hoạt ví
+                    </h2>
+                @endif
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-wrap gap-4">
+
+                @if ($user->wallet && $user->wallet->status === 'active')
+
+                    <!-- Nạp -->
+                    <button type="button" onclick="openDepositModal()"
+                        class="bg-[#f4c025] text-black px-6 py-3 rounded-xl font-bold hover:bg-yellow-400 transition flex items-center gap-2 shadow-lg shadow-yellow-900/20">
+
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                clip-rule="evenodd" />
+                        </svg>
+
+                        Nạp tiền
+                    </button>
+
+                    <!-- Rút -->
+                    <button onclick="openWithdrawModal()"
+                        class="border border-gray-600 px-6 py-3 rounded-xl font-bold hover:bg-white/10 transition">
+                        Rút tiền
+                    </button>
+
+                @elseif ($user->wallet && $user->wallet->status !== 'active')
+
+                    <!-- Bị khóa -->
+                    <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm max-w-xs">
+                        <p class="font-semibold mb-1">⚠️ Ví bị khóa</p>
+                        <p>• {{ $user->wallet->lock_reason ?? 'Không rõ lý do' }}</p>
+                        <p>
+                            • Mở lại:
+                            {{ $user->wallet->locked_until
+                                ? \Carbon\Carbon::parse($user->wallet->locked_until)->format('d/m/Y H:i')
+                                : 'Không xác định' }}
+                        </p>
                     </div>
-                </div>
-            </section>
+
+                @else
+
+                    <!-- Chưa kích hoạt -->
+                    <div class="bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 px-4 py-3 rounded-xl text-sm">
+                        Vui lòng kích hoạt ví để sử dụng
+                    </div>
+
+                @endif
+
+            </div>
+
+        </div>
+    </div>
+</section>
             <section class="mt-6">
                 <div class="bg-[#1e1e1e] border border-gray-800 p-6 rounded-2xl shadow-xl">
 
