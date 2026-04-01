@@ -111,9 +111,6 @@
                                                 class="material-symbols-outlined text-[16px]">calendar_today</span>
                                             {{ $featuredPost->created_at->format('d/m/Y') }}</span>
                                         <span class="flex items-center gap-1"><span
-                                                class="material-symbols-outlined text-[16px]">chat_bubble</span> 15 bình
-                                            luận</span>
-                                        <span class="flex items-center gap-1"><span
                                                 class="material-symbols-outlined text-[16px]">visibility</span>{{ $featuredPost->views }}
                                         </span>
                                     </div>

@@ -11,16 +11,41 @@ use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
-
-    public function index()
+    public function index(Request $request)
     {
-        // $posts = Post::with(['category', 'user'])->latest()->get();
+        $query = Post::with(['category', 'user']);
 
-        $posts = Post::with(['category', 'user'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(5); // mỗi trang 5 bài
+        // tìm kiếm
+        if ($request->keyword) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->keyword . '%')
+                    ->orWhereHas('user', function ($u) use ($request) {
+                        $u->where('name', 'like', '%' . $request->keyword . '%');
+                    });
+            });
+        }
 
-        return view('admin.posts.index', compact('posts'));
+        // lọc theo danh mục
+        if ($request->category_id) {
+            $query->where('post_categories_id', $request->category_id);
+        }
+
+        $posts = $query->orderBy('created_at', 'desc')->paginate(5);
+
+        $categories = PostCategory::all();
+
+        // thống kê
+        $totalPosts = Post::count();
+        $viewsThisMonth = Post::whereMonth('created_at', now()->month)->sum('views');
+        $totalCategories = PostCategory::count();
+
+        return view('admin.posts.index', compact(
+            'posts',
+            'categories',
+            'totalPosts',
+            'viewsThisMonth',
+            'totalCategories'
+        ));
     }
 
     public function create()
@@ -75,66 +100,6 @@ class PostController extends Controller
         return view('admin.posts.edit', compact('post', 'categories'));
     }
 
-    // public function update(Request $request, $id)
-    // {
-
-    //     $post = Post::findOrFail($id);
-
-    //     $thumbnail = $post->thumbnail;
-
-    //     if ($request->hasFile('thumbnail')) {
-
-    //         $file = $request->file('thumbnail');
-
-    //         $name = time() . '.' . $file->getClientOriginalExtension();
-
-    //         $file->move(public_path('uploads/posts'), $name);
-
-    //         $thumbnail = $name;
-    //     }
-
-    //     $post->update([
-    //         'title' => $request->title,
-    //         'slug' => Str::slug($request->title),
-    //         'thumbnail' => $thumbnail,
-    //         'content' => $request->content,
-    //         'post_categories_id' => $request->post_categories_id,
-    //         'status' => $request->status
-    //     ]);
-
-    //     return redirect()
-    //         ->route('admin.posts.index')
-    //         ->with('success', 'Cập nhật bài viết thành công!');
-    // }
-
-    // public function update(Request $request, Post $post)
-    // {
-    //     $request->validate([
-    //         'title' => 'required',
-    //         'content' => 'required',
-    //         'post_categories_id' => 'required',
-    //         'thumbnail' => 'nullable|image|mimes:jpg,png,jpeg,webp|max:2048'
-    //     ]);
-
-    //     $data = $request->all();
-
-    //     if ($request->hasFile('thumbnail')) {
-
-    //         if ($post->thumbnail && file_exists(public_path('storage/' . $post->thumbnail))) {
-    //             unlink(public_path('storage/' . $post->thumbnail));
-    //         }
-
-    //         $thumbnail = $request->file('thumbnail')->store('posts', 'public');
-    //         $data['thumbnail'] = $thumbnail;
-    //     }
-
-    //     $post->update($data);
-
-    //     return redirect()
-    //         ->route('admin.posts.index')
-    //         ->with('success', 'Cập nhật bài viết thành công');
-    // }
-
     public function update(Request $request, $id)
     {
         $post = \App\Models\Post::findOrFail($id);
@@ -175,16 +140,36 @@ class PostController extends Controller
     {
         $post = Post::findOrFail($id);
 
-        // if ($post->thumbnail && file_exists(public_path('uploads/posts/' . $post->thumbnail))) {
-
-        //     unlink(public_path('uploads/posts/' . $post->thumbnail));
-        // }
-
         $post->delete();
 
         return redirect()
             ->route('admin.posts.index')
             ->with('success', 'Xóa bài viết thành công!');
+    }
+
+    public function trash()
+    {
+        $posts = Post::onlyTrashed()->paginate(10);
+
+        return view('admin.posts.trash', compact('posts'));
+    }
+
+    public function restore($id)
+    {
+        $post = Post::onlyTrashed()->findOrFail($id);
+
+        $post->restore();
+
+        return redirect()->back()->with('success', 'Khôi phục bài viết thành công!');
+    }
+
+    public function forceDelete($id)
+    {
+        $post = Post::onlyTrashed()->findOrFail($id);
+
+        $post->forceDelete();
+
+        return redirect()->back()->with('success', 'Đã xóa vĩnh viễn!');
     }
 
     public function upload(Request $request)
