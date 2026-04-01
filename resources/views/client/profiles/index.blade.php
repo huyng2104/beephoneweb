@@ -73,10 +73,10 @@
                     <p class="text-sm text-gray-400">Số dư ví</p>
                     <p class="text-xl font-bold">
                         @if ($user->wallet)
-                            @if (!$user->wallet->status === 'locked')
+                            @if ($user->wallet->status === 'active')
                                 {{ number_format($user->wallet?->balance ?? 0, 0, ',', '.') }}đ
                                 @else
-                                <span class="text-red-500">Bị khóa</span>
+                                <span class="text-red-500">Bị khóa bỏi: {{$user->wallet->lock_reason}}</span>
                             @endif
                         @else
                             <span class="text-[#f4c025]">Chưa kích hoạt</span>

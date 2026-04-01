@@ -22,21 +22,21 @@
                         <div class="flex flex-wrap gap-4">
                             @if ($user->wallet->status == 'active')
                                 <button type="button" onclick="openDepositModal()"
-                                class="bg-[#f4c025] text-black px-8 py-3 rounded-xl font-bold hover:bg-yellow-400 transition-all flex items-center gap-2 shadow-lg shadow-yellow-900/20">
-                                <svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <path clip-rule="evenodd"
-                                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                                        fill-rule="evenodd"></path>
-                                </svg>
-                                Nạp tiền
-                            </button>
-                            <button onclick="openWithdrawModal()"
-                                class="bg-transparent border border-gray-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-white/10 transition-colors">
-                                Rút tiền
-                            </button>
+                                    class="bg-[#f4c025] text-black px-8 py-3 rounded-xl font-bold hover:bg-yellow-400 transition-all flex items-center gap-2 shadow-lg shadow-yellow-900/20">
+                                    <svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path clip-rule="evenodd"
+                                            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                            fill-rule="evenodd"></path>
+                                    </svg>
+                                    Nạp tiền
+                                </button>
+                                <button onclick="openWithdrawModal()"
+                                    class="bg-transparent border border-gray-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-white/10 transition-colors">
+                                    Rút tiền
+                                </button>
                             @else
-                            <span class=" text-red-500">Bị khóa</span>
+                                <span class="text-red-500 font-bold">Bị khóa bỏi: {{ $user->wallet->lock_reason }}</span>
                             @endif
 
                         </div>
@@ -129,7 +129,23 @@
             <form method="GET" action="{{ url()->current() }}"
                 class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tìm kiếm</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <svg class="w-4 h-4 text-slate-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 20 20">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                                </svg>
+                            </div>
 
+                            <input type="text" name="search" value="{{ request('search') }}"
+                                placeholder="Mã GD, nội dung... (Ấn Enter)"
+                                onkeydown="if(event.key === 'Enter') this.form.submit();"
+                                class="w-full pl-9 pr-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:ring-primary focus:border-primary text-sm transition-colors outline-none">
+                        </div>
+                    </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Loại giao
                             dịch</label>
@@ -145,21 +161,6 @@
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Trạng
-                            thái</label>
-                        <select name="status" onchange="this.form.submit()"
-                            class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:ring-primary focus:border-primary text-sm py-2.5">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Thành công
-                            </option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Đang chờ
-                            </option>
-                            <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Thất bại</option>
-                            {{-- <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Đã hủy
-                            </option> --}}
-                        </select>
-                    </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Từ ngày</label>
@@ -177,7 +178,7 @@
                     </div>
 
                     <div class="flex items-center gap-2">
-                        @if (request()->anyFilled(['type', 'status', 'date_from', 'date_to']))
+                        @if (request()->anyFilled(['type', 'search', 'date_from', 'date_to']))
                             <a href="{{ url()->current() }}"
                                 class="w-full bg-orange-100 hover:bg-orange-200 dark:bg-orange-700 dark:hover:bg-orange-600 text-orange-600 dark:text-orange-300 font-bold py-2.5 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
                                 title="Xóa bộ lọc">
@@ -185,6 +186,12 @@
                                 Xóa lọc
                             </a>
                         @else
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+                                title="Lọc dữ liệu">
+                                <span class="material-symbols-outlined text-sm">search</span>
+                                Lọc
+                            </button>
                         @endif
                     </div>
                 </div>
@@ -203,11 +210,11 @@
                             class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 text-xs font-bold uppercase tracking-wider">
                             <tr>
                                 <th class="px-6 py-4">Giao dịch / Thời gian</th>
-                                <th class="px-6 py-4 text-center">Loại GD</th>
+                                <th class="px-6 py-4 text-center">Loại giao dịch</th>
                                 <th class="px-6 py-4">Nội dung chi tiết</th>
                                 <th class="px-6 py-4 text-right">Số tiền</th>
                                 <th class="px-6 py-4 text-right">Biến động số dư</th>
-                                <th class="px-6 py-4 text-center">Trạng thái</th>
+                                {{-- <th class="px-6 py-4 text-center">Trạng thái</th> --}}
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
@@ -262,7 +269,7 @@
                                     </td>
 
                                     <td class="px-6 py-4 text-right text-xs whitespace-nowrap">
-                                        @if ($tx->status === 'completed' || $tx->status === 'cancelled' )
+                                        @if ($tx->status === 'completed' || $tx->status === 'cancelled')
                                             <div class="flex flex-col gap-1 text-slate-500">
                                                 {{-- <p>Trước: <span
                                                         class="font-medium">{{ number_format($tx->balance_before) }}đ</span>
@@ -276,7 +283,7 @@
                                         @endif
                                     </td>
 
-                                    <td class="px-6 py-4 text-center">
+                                    {{-- <td class="px-6 py-4 text-center">
                                         @if ($tx->status === 'completed')
                                             <span
                                                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400 border border-green-100 dark:border-green-500/20 whitespace-nowrap">
@@ -302,7 +309,7 @@
                                                 {{ $tx->status_transaction }}
                                             </span>
                                         @endif
-                                    </td>
+                                    </td> --}}
                                 </tr>
                             @empty
                                 <tr>

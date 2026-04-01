@@ -167,15 +167,15 @@ class WithdrawalController extends Controller
                 ]);
 
                 // 2. Cập nhật giao dịch trừ tiền ban đầu thành 'failed'
-                $originalTransaction = WalletTransaction::where('reference_type', WithdrawalRequest::class)
-                    ->where('reference_id', $withdrawal->id)
-                    ->first();
+                // $originalTransaction = WalletTransaction::where('reference_type', WithdrawalRequest::class)
+                //     ->where('reference_id', $withdrawal->id)
+                //     ->first();
 
-                if ($originalTransaction) {
-                    $originalTransaction->update([
-                        'status' => 'failed' // Khớp với model của bạn là 'Thất bại'
-                    ]);
-                }
+                // if ($originalTransaction) {
+                //     $originalTransaction->update([
+                //         'status' => 'failed' // Khớp với model của bạn là 'Thất bại'
+                //     ]);
+                // }
 
                 // 3. Xử lý hoàn tiền nếu người dùng có ví
                 if ($wallet) {
