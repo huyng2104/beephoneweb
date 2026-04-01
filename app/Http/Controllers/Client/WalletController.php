@@ -24,37 +24,28 @@ class WalletController extends Controller
         $request->validate(['amount' => 'required|numeric|min:10000']);
         $user = Auth::user();
 
-        // 1. Tạo giao dịch Pending trong DB
-        $transaction = $user->wallet->transactions()->create([
-            'type'           => 'deposit',
-            'amount'         => $request->amount,
-            'balance_before' => $user->wallet->balance,
-            'balance_after' => $user->wallet->balance,
-            'status'         => 'pending',
-            'description'    => 'Nạp tiền vào ví qua VNPay',
-        ]);
+        // TẠO MÃ GIAO DỊCH TẠM THỜI
+        // Cấu trúc: PREFIX _ USERID _ TIMESTAMP (Ví dụ: NAP_1_1712345678)
+        $vnp_TxnRef = 'NAP_' . $user->id . '_' . time();
 
-        // 2. Cấu hình tham số gửi lên VNPay
         $vnp_Url = env('VNPAY_URL');
         $vnp_HashSecret = env('VNPAY_HASH_SECRET');
 
         $inputData = [
             "vnp_Version"    => "2.1.0",
             "vnp_TmnCode"    => env('VNPAY_TMN_CODE'),
-            "vnp_Amount"     => $transaction->amount * 100, // VNPay yêu cầu nhân số tiền với 100
+            "vnp_Amount"     => $request->amount * 100,
             "vnp_Command"    => "pay",
             "vnp_CreateDate" => date('YmdHis'),
             "vnp_CurrCode"   => "VND",
             "vnp_IpAddr"     => $request->ip(),
             "vnp_Locale"     => "vn",
-            "vnp_OrderInfo"  => "Nap tien vao vi GD: " . $transaction->id,
+            "vnp_OrderInfo"  => "Nap tien vao vi: " . $user->name,
             "vnp_OrderType"  => "billpayment",
-            // QUAN TRỌNG: Gọi route hứng kết quả nạp ví (Không dùng env nữa)
             "vnp_ReturnUrl"  => route('wallet.vnpay.return'),
-            "vnp_TxnRef"     => $transaction->id, // Mã giao dịch
+            "vnp_TxnRef"     => $vnp_TxnRef,
         ];
 
-        // 3. Sắp xếp dữ liệu và tạo chữ ký (Signature)
         ksort($inputData);
         $query = "";
         $hashdata = "";
@@ -75,7 +66,6 @@ class WalletController extends Controller
             $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
         }
 
-        // 4. Chuyển hướng khách sang trang VNPay
         return redirect($vnp_Url);
     }
 
@@ -95,46 +85,64 @@ class WalletController extends Controller
         $vnp_SecureHash = $inputData['vnp_SecureHash'] ?? '';
         unset($inputData['vnp_SecureHash']);
         ksort($inputData);
-        $i = 0;
+
         $hashData = "";
+        $i = 0;
         foreach ($inputData as $key => $value) {
             if ($i == 1) {
-                $hashData = $hashData . '&' . urlencode($key) . "=" . urlencode($value);
+                $hashData .= '&' . urlencode($key) . "=" . urlencode($value);
             } else {
-                $hashData = $hashData . urlencode($key) . "=" . urlencode($value);
+                $hashData .= urlencode($key) . "=" . urlencode($value);
                 $i = 1;
             }
         }
 
         $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
-        $transactionId = $request->vnp_TxnRef;
-        $transaction = WalletTransaction::find($transactionId);
 
         if ($secureHash == $vnp_SecureHash) {
             if ($request->vnp_ResponseCode == '00') {
-                // TING TING: GIAO DỊCH THÀNH CÔNG
-                if ($transaction && $transaction->status == 'pending') {
-                    $wallet = $transaction->wallet;
 
-                    // Cộng tiền vào ví
-                    $wallet->increment('balance', $transaction->amount);
+                // 1. Phân tách mã vnp_TxnRef để lấy ID User (Ví dụ: NAP_1_1712345678 => 1)
+                $parts = explode('_', $request->vnp_TxnRef);
+                $userId = $parts[1] ?? null;
 
-                    // Cập nhật trạng thái giao dịch
-                    $transaction->update([
-                        'status' => 'completed',
-                        'balance_after' => $wallet->balance // Cập nhật lại số dư mới nhất
-                    ]);
+                // 2. Kiểm tra giao dịch đã tồn tại chưa bằng cách tìm trong cột description
+                // Nếu description chứa mã vnp_TxnRef này nghĩa là đơn đã được cộng tiền rồi
+                $alreadyExists = WalletTransaction::where('description', 'LIKE', '%' . $request->vnp_TxnRef . '%')->exists();
+
+                if (!$alreadyExists && $userId) {
+                    $user = \App\Models\User::find($userId);
+
+                    if ($user) {
+                        $wallet = $user->wallet;
+                        $amount = $request->vnp_Amount / 100;
+
+                        $balanceBefore = $wallet->balance;
+                        $balanceAfter = $balanceBefore + $amount;
+
+                        // 3. Cập nhật tiền vào ví
+                        $wallet->update(['balance' => $balanceAfter]);
+
+                        // 4. Tạo Transaction mới (Lưu vnp_TxnRef thẳng vào description để sau này dò lại)
+                        WalletTransaction::create([
+                            'user_id'        => $user->id,
+                            'wallet_id'      => $wallet->id,
+                            'type'           => 'deposit',
+                            'amount'         => $amount,
+                            'balance_before' => $balanceBefore,
+                            'balance_after'  => $balanceAfter,
+                            'status'         => 'completed',
+                            'description'    => 'Nạp tiền VNPay (Mã đơn: ' . $request->vnp_TxnRef . ' - Mã NH: ' . $request->vnp_BankTrano . ')',
+                        ]);
+
+                        return redirect()->route('profile.wallet')->with('success', 'Nạp tiền vào ví thành công!');
+                    }
                 }
-                return redirect()->route('profile.wallet')->with('success', 'Nạp tiền vào ví thành công!');
+
+                return redirect()->route('profile.wallet')->with('info', 'Giao dịch đã được xử lý hoặc không hợp lệ.');
             } else {
-                // GIAO DỊCH THẤT BẠI HOẶC KHÁCH HỦY
-                if ($transaction && $transaction->status == 'pending') {
-                    $transaction->update([
-                        'status' => 'failed',
-                        'description' => 'Nạp tiền thất bại hoặc bị hủy'
-                    ]);
-                }
-                return redirect()->route('profile.wallet')->with('error', 'Nạp tiền thất bại hoặc đã bị hủy!');
+                // Thất bại thì không cần tạo DB, chỉ báo lỗi cho user biết
+                return redirect()->route('profile.wallet')->with('error', 'Thanh toán không thành công (Code: ' . $request->vnp_ResponseCode . ')');
             }
         } else {
             return redirect()->route('profile.wallet')->with('error', 'Lỗi bảo mật dữ liệu VNPAY!');
@@ -148,8 +156,7 @@ class WalletController extends Controller
     {
         $user = User::find(Auth::id());
 
-        // 1. Validate dữ liệu linh hoạt theo lựa chọn của người dùng
-        // 1. Validate form (Thêm luôn kiểm tra bắt buộc nhập PIN vào đây cho xịn)
+        // 1. Validate form
         $request->validateWithBag('withdrawal', [
             'wallet_pin_confirm'    => 'required|string|size:6',
             'amount'                => 'required|numeric|min:50000',
@@ -168,9 +175,21 @@ class WalletController extends Controller
 
         $wallet = $user->wallet;
 
+        // --------------------------------------------------------------------------
+        // A. KIỂM TRA TRẠNG THÁI KHÓA VÍ TRƯỚC KHI LÀM BẤT CỨ ĐIỀU GÌ
+        // --------------------------------------------------------------------------
+        if ($wallet->status === 'locked') {
+            return back()->with('error', 'Ví của bạn đang bị khóa. Lý do: ' . $wallet->lock_reason);
+        }
+
+        // Nếu bạn có dùng tính năng khóa tạm thời (theo thời gian)
+        if ($wallet->locked_until && now()->lessThan($wallet->locked_until)) {
+            return back()->with('error', 'Ví của bạn đang bị khóa tạm thời đến ' . \Carbon\Carbon::parse($wallet->locked_until)->format('H:i d/m/Y'));
+        }
+        // --------------------------------------------------------------------------
+
         // 2. Kiểm tra số dư ví
         if ($wallet->balance < $request->amount) {
-            // Đẩy lỗi thẳng vào ô 'amount' của túi 'withdrawal'
             return back()->withErrors(['amount' => 'Số tiền rút nhiều hơn số dư trong ví!'], 'withdrawal')
                 ->withInput();
         }
@@ -181,14 +200,38 @@ class WalletController extends Controller
                 ->withInput();
         }
 
-        // 4. So sánh mã PIN nhập vào với mã băm trong DB
+        // --------------------------------------------------------------------------
+        // B. KIỂM TRA PIN & CỘNG DỒN SỐ LẦN SAI
+        // --------------------------------------------------------------------------
         if (!Hash::check($request->wallet_pin_confirm, $wallet->wallet_pin)) {
-            // Ép lỗi vào túi 'withdrawal' để mở Modal
-            return back()->withErrors(['wallet_pin_confirm' => 'Mã PIN giao dịch không chính xác.'], 'withdrawal')
-                ->withInput($request->except('wallet_pin_confirm')); // Sửa chữ 'wallet_pin' thành 'wallet_pin_confirm' cho khớp form
+            // Tăng số lần nhập sai lên 1
+            $wallet->increment('pin_attempts');
+
+            // Kiểm tra nếu sai từ 5 lần trở lên -> Khóa ví
+            if ($wallet->pin_attempts >= 5) {
+                $wallet->update([
+                    'status'      => 'locked',
+                    'lock_reason' => 'Nhập sai mã PIN quá 5 lần.'
+                ]);
+
+                return back()->withErrors(['wallet_pin_confirm' => 'Bạn đã nhập sai mã PIN 5 lần. Ví của bạn đã bị khóa để bảo đảm an toàn!'], 'withdrawal')
+                    ->withInput($request->except('wallet_pin_confirm'));
+            }
+
+            // Báo lỗi và hiển thị số lần nhập còn lại
+            $remaining = 5 - $wallet->pin_attempts;
+            return back()->withErrors(['wallet_pin_confirm' => "Mã PIN không chính xác. Bạn còn $remaining lần thử trước khi bị khóa ví."], 'withdrawal')
+                ->withInput($request->except('wallet_pin_confirm'));
         }
 
-        // 3. Kiểm tra xem có lệnh rút nào đang chờ duyệt không
+        // NẾU NHẬP ĐÚNG PIN: Reset số lần nhập sai về 0
+        if ($wallet->pin_attempts > 0) {
+            $wallet->update(['pin_attempts' => 0]);
+        }
+        // --------------------------------------------------------------------------
+
+
+        // 4. Kiểm tra xem có lệnh rút nào đang chờ duyệt không
         $hasPendingRequest = WithdrawalRequest::where('user_id', $user->id)
             ->where('status', 'pending')
             ->exists();
@@ -197,18 +240,16 @@ class WalletController extends Controller
             return back()->withInput()->with('error', 'Bạn đang có một lệnh rút tiền đang được xử lý. Vui lòng chờ Admin duyệt xong trước khi tạo lệnh mới!');
         }
 
-        // 4. Lấy thông tin Ngân hàng thụ hưởng dựa trên lựa chọn
+        // 5. Lấy thông tin Ngân hàng thụ hưởng dựa trên lựa chọn
         $bankName = '';
         $accountNumber = '';
         $accountName = '';
 
         if ($request->bank_account_id === 'manual') {
-            // Nếu nhập thủ công (lấy mã code VCB, MB... từ frontend)
             $bankName = $request->manual_bank_name;
             $accountNumber = $request->manual_account_number;
-            $accountName = strtoupper($request->manual_account_name); // Ép viết hoa tên chủ thẻ
+            $accountName = strtoupper($request->manual_account_name);
         } else {
-            // Nếu chọn ngân hàng đã lưu, kiểm tra xem ID này có thuộc về user không
             $bank = $user->bankAccounts()->where('id', $request->bank_account_id)->first();
 
             if (!$bank) {
@@ -220,11 +261,11 @@ class WalletController extends Controller
             $accountName = $bank->account_name;
         }
 
-        // 5. Thực thi Transaction lưu vào DB
+        // 6. Thực thi Transaction lưu vào DB
         try {
             DB::transaction(function () use ($wallet, $request, $bankName, $accountNumber, $accountName) {
 
-                // 1. Tạo yêu cầu rút tiền trước
+                // Tạo yêu cầu rút tiền
                 $withdrawal = WithdrawalRequest::create([
                     'user_id'        => $wallet->user->id,
                     'amount'         => $request->amount,
@@ -234,7 +275,7 @@ class WalletController extends Controller
                     'status'         => 'pending',
                 ]);
 
-                // 2. Tạo giao dịch ví và liên kết với $withdrawal->id
+                // Tạo giao dịch ví
                 $transaction = $wallet->transactions()->create([
                     'type'           => 'withdraw',
                     'amount'         => $request->amount,
@@ -242,15 +283,13 @@ class WalletController extends Controller
                     'balance_after'  => $wallet->balance - $request->amount,
                     'description'    => 'Trừ tiền đơn rút (' . $withdrawal->id . ')',
                     'status'         => 'completed',
-                    // Gán 2 cột này để Admin có thể lấy ra sau này
                     'reference_type' => WithdrawalRequest::class,
                     'reference_id'   => $withdrawal->id,
                 ]);
 
-                // 3. Cập nhật lại transaction_id cho đơn rút (Nếu bạn vẫn muốn dùng cột này)
                 $withdrawal->update(['transaction_id' => $transaction->id]);
 
-                // 4. Trừ số dư ví ngay lập tức
+                // Trừ số dư ví ngay lập tức
                 $wallet->decrement('balance', $request->amount);
             });
 
@@ -266,7 +305,7 @@ class WalletController extends Controller
     public function withdrawalCancelled($id)
     {
         $withdrawalRequest = WithdrawalRequest::find($id);
-        $transaction = WalletTransaction::where('id', $withdrawalRequest->transaction_id )->first();
+        $transaction = WalletTransaction::where('id', $withdrawalRequest->transaction_id)->first();
         // Kiểm tra nếu đã hủy rồi thì không xử lý nữa (tránh cộng tiền 2 lần)
         if ($transaction->status === 'cancelled') {
             return back()->with('error', 'Giao dịch này đã được hủy trước đó.');

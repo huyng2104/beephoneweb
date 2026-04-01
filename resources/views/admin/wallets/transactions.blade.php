@@ -76,7 +76,7 @@
                     </div>
 
                     <div class="flex items-center gap-3">
-                        <a href="{{route('admin.withdrawals.history',$wallet->user->id)}}"
+                        <a href="{{ route('admin.withdrawals.history', $wallet->user->id) }}"
                             class="px-4 py-2.5 bg-transparent border border-slate-600 text-slate-300 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-800 hover:text-white transition-colors">
                             <span class="material-symbols-outlined text-base">history</span>
                             Lịch sử rút tiền
@@ -141,6 +141,23 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
 
                     <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tìm kiếm</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <svg class="w-4 h-4 text-slate-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 20 20">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                                </svg>
+                            </div>
+
+                            <input type="text" name="search" value="{{ request('search') }}"
+                                placeholder="Mã GD, nội dung... (Ấn Enter)"
+                                onkeydown="if(event.key === 'Enter') this.form.submit();"
+                                class="w-full pl-9 pr-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:ring-primary focus:border-primary text-sm transition-colors outline-none">
+                        </div>
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Loại giao
                             dịch</label>
                         <select name="type" onchange="this.form.submit()"
@@ -155,37 +172,23 @@
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Trạng
-                            thái</label>
-                        <select name="status" onchange="this.form.submit()"
-                            class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:ring-primary focus:border-primary text-sm py-2.5">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Thành công
-                            </option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Đang chờ
-                            </option>
-                            <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Thất bại</option>
-                            {{-- <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Đã hủy
-                            </option> --}}
-                        </select>
-                    </div>
+
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Từ ngày</label>
                         <input type="date" name="date_from" value="{{ request('date_from') }}"
                             onchange="this.form.submit()"
-                            class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:ring-primary focus:border-primary text-sm py-2.5">
+                            class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:ring-primary focus:border-primary text-sm py-2.5 px-3">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Đến ngày</label>
                         <input type="date" name="date_to" value="{{ request('date_to') }}" onchange="this.form.submit()"
-                            class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:ring-primary focus:border-primary text-sm py-2.5">
+                            class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:ring-primary focus:border-primary text-sm py-2.5 px-3">
                     </div>
 
                     <div class="flex items-center gap-2">
-                        @if (request()->anyFilled(['type', 'status', 'date_from', 'date_to']))
+                        @if (request()->anyFilled(['type', 'search', 'date_from', 'date_to']))
                             <a href="{{ url()->current() }}"
                                 class="w-full bg-orange-100 hover:bg-orange-200 dark:bg-orange-700 dark:hover:bg-orange-600 text-orange-600 dark:text-orange-300 font-bold py-2.5 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
                                 title="Xóa bộ lọc">
@@ -193,7 +196,12 @@
                                 Xóa lọc
                             </a>
                         @else
-                            <div class="w-full py-2.5"></div>
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+                                title="Lọc dữ liệu">
+                                <span class="material-symbols-outlined text-sm">search</span>
+                                Lọc
+                            </button>
                         @endif
                     </div>
                 </div>
@@ -210,13 +218,13 @@
                     <table class="w-full text-left text-sm">
                         <thead
                             class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 text-xs font-bold uppercase tracking-wider">
-                            <tr>
+                             <tr>
                                 <th class="px-6 py-4">Giao dịch / Thời gian</th>
-                                <th class="px-6 py-4 text-center">Loại GD</th>
+                                <th class="px-6 py-4 text-center">Loại giao dịch</th>
                                 <th class="px-6 py-4">Nội dung chi tiết</th>
                                 <th class="px-6 py-4 text-right">Số tiền</th>
                                 <th class="px-6 py-4 text-right">Biến động số dư</th>
-                                <th class="px-6 py-4 text-center">Trạng thái</th>
+                                {{-- <th class="px-6 py-4 text-center">Trạng thái</th> --}}
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
@@ -285,7 +293,7 @@
                                         @endif
                                     </td>
 
-                                    <td class="px-6 py-4 text-center">
+                                    {{-- <td class="px-6 py-4 text-center">
                                         @if ($tx->status === 'completed')
                                             <span
                                                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400 border border-green-100 dark:border-green-500/20 whitespace-nowrap">
@@ -311,7 +319,7 @@
                                                 {{ $tx->status_transaction }}
                                             </span>
                                         @endif
-                                    </td>
+                                    </td> --}}
                                 </tr>
                             @empty
                                 <tr>

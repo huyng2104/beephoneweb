@@ -190,9 +190,9 @@
                                             {{-- Nút Hủy --}}
                                             @if ($withdrawal->status === 'pending' || $withdrawal->status === 'Chờ duyệt')
                                                 <form action="{{ route('wallet.withdrawal.cancelled', $withdrawal->id) }}"
-                                                    method="POST">
+                                                    method="POST"  >
                                                     @csrf
-                                                    <button type="submit"
+                                                    <button type="submit" onclick="return confirm('Bạn có chắc muốn hủy lệnh rút {{$withdrawal->id}}')"
                                                         class="p-2 text-slate-400 hover:text-red-500 transition-colors bg-slate-50 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-900/30 rounded-lg"
                                                         title="Hủy bỏ">
                                                         <span class="material-symbols-outlined text-lg">close</span>

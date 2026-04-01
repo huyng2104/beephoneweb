@@ -118,8 +118,11 @@ class ProfileController extends Controller
             });
 
             // 2. Lọc theo Trạng thái
-            $query->when($request->filled('status'), function ($q) use ($request) {
-                $q->where('status', $request->status);
+            $query->when($request->filled('search'), function ($q) use ($request) {
+                $q->where(function ($subQ) use ($request) {
+                    $subQ->where('description', 'LIKE', '%' . $request->search . '%')
+                        ->orWhere('id', 'LIKE', '%' . $request->search . '%');
+                });
             });
 
             // 3. Lọc từ ngày
