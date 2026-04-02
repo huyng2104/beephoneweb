@@ -690,7 +690,7 @@
                 panel.classList.remove('opacity-0', 'translate-y-3', 'scale-95');
                 panel.classList.add('opacity-100', 'translate-y-0', 'scale-100');
 
-                if (ratingInput && !ratingInput.value) setRating(5);
+                // Rating is optional: don't auto-select stars.
 
                 var content = byId('review_content');
                 if (content && content.focus) content.focus();
