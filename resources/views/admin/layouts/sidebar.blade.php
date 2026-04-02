@@ -135,49 +135,52 @@
             </li>
         @endcan
 
-        <li class="mb-1 list-none">
-            <div id="btn-toggle-permission"
-                class="px-3 py-2 flex items-center justify-between text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white transition-colors">
-                <span class="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        @can('roles.view')
+            <li class="mb-1 list-none">
+                <div id="btn-toggle-permission"
+                    class="px-3 py-2 flex items-center justify-between text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white transition-colors">
+                    <span class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        Phân quyền
+                    </span>
+
+                    <svg id="icon-arrow" xmlns="http://www.w3.org/2000/svg"
+                        class="w-4 h-4 transition-transform duration-200 {{ request()->routeIs('admin.role.*') || request()->routeIs('admin.member*') ? 'rotate-180' : '' }}"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
-                    Phân quyền
-                </span>
+                </div>
 
-                <svg id="icon-arrow" xmlns="http://www.w3.org/2000/svg"
-                    class="w-4 h-4 transition-transform duration-200 {{ request()->routeIs('admin.role.*') || request()->routeIs('admin.member*') ? 'rotate-180' : '' }}"
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </div>
+                <ul id="menu-permission-sub"
+                    class="space-y-1 mt-1 list-none transition-all duration-300 {{ request()->routeIs('admin.role.*') || request()->routeIs('admin.member*') ? '' : 'hidden' }}">
 
-            <ul id="menu-permission-sub"
-                class="space-y-1 mt-1 list-none transition-all duration-300 {{ request()->routeIs('admin.role.*') || request()->routeIs('admin.member*') ? '' : 'hidden' }}">
+                    <li>
+                        <a href="{{ route('admin.role.index') }}"
+                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.role.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                            <div
+                                class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.role.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                            </div>
+                            Quản lý nhóm
+                        </a>
+                    </li>
 
-                <li>
-                    <a href="{{ route('admin.role.index') }}"
-                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.role.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
-                        <div
-                            class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.role.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                        </div>
-                        Quản lý nhóm
-                    </a>
-                </li>
+                    <li>
+                        <a href="{{ route('admin.member') }}"
+                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.member*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                            <div
+                                class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.member*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                            </div>
+                            Quản lý thành viên
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endcan
 
-                <li>
-                    <a href="{{ route('admin.member') }}"
-                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.member*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
-                        <div
-                            class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.member*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                        </div>
-                        Quản lý thành viên
-                    </a>
-                </li>
-            </ul>
-        </li>
         @can('voucher.view')
             <a class="{{ request()->routeIs('admin.vouchers.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
                 href="{{ route('admin.vouchers.index') }}">
@@ -186,36 +189,90 @@
             </a>
         @endcan
 
-        <a class="{{ request()->routeIs('admin.posts.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ route('admin.posts.index') }}">
-            <span class="material-symbols-outlined">post</span>
-            <span>Bài viết</span>
-        </a>
+        @can('posts.view')
+            <a class="{{ request()->routeIs('admin.posts.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                href="{{ route('admin.posts.index') }}">
+                <span class="material-symbols-outlined">post</span>
+                <span>Bài viết</span>
+            </a>
+        @endcan
 
-        <a class="{{ request()->routeIs('admin.tickets.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ route('admin.tickets.index') }}">
-            <span class="material-symbols-outlined">support</span>
-            <span>Yêu cầu hỗ trợ</span>
-        </a>
+        @can('tickets.view')
+            <a class="{{ request()->routeIs('admin.tickets.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                href="{{ route('admin.tickets.index') }}">
+                <span class="material-symbols-outlined">support</span>
+                <span>Yêu cầu hỗ trợ</span>
+            </a>
+        @endcan
 
-        <a class="{{ request()->routeIs('admin.banners.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ route('admin.banners.index') }}">
-            <span class="material-symbols-outlined">ad_units</span>
-            <span>Banner</span>
-        </a>
+        @can('banner.view')
+            <a class="{{ request()->routeIs('admin.banners.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                href="{{ route('admin.banners.index') }}">
+                <span class="material-symbols-outlined">ad_units</span>
+                <span>Banner</span>
+            </a>
+        @endcan
 
-        <a class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.wallets.*') ? 'bg-bee text-white shadow-lg shadow-bee/30' : 'text-slate-600 dark:text-slate-400 hover:bg-bee/10 hover:text-bee' }}"
-            href="{{ route('admin.wallets.index') }}">
-            <span class="material-symbols-outlined transition-transform group-hover:scale-110">
-                account_balance_wallet
-            </span>
-            <span class="font-medium">Quản lý ví</span>
-        </a>
-        <a class="{{ request()->routeIs('admin.points.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ route('admin.points.index') }}">
-            <span class="material-symbols-outlined">stars</span>
-            <span>Điểm thưởng</span>
-        </a>
+        @can('wallet.view')
+            <li class="mb-1 list-none">
+                <div id="btn-toggle-wallet"
+                    class="px-3 py-2 flex items-center justify-between text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white transition-colors">
+                    <span class="flex items-center gap-2">
+                        <span class="material-symbols-outlined w-5 h-5 flex items-center justify-center !text-[20px]">
+                            account_balance_wallet
+                        </span>
+                        Quản lý tài chính
+                    </span>
+
+                    <svg id="icon-arrow-wallet" xmlns="http://www.w3.org/2000/svg"
+                        class="w-4 h-4 transition-transform duration-200 {{ request()->routeIs('admin.wallet.*') || request()->routeIs('admin.withdrawals.*') ? 'rotate-180' : '' }}"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+
+                <ul id="menu-wallet-sub"
+                    class="space-y-1 mt-1 list-none transition-all duration-300 {{ request()->routeIs('admin.wallet.*') || request()->routeIs('admin.withdrawals.*') ? '' : 'hidden' }}">
+
+                    <li>
+                        <a href="{{ route('admin.wallet.index') }}"
+                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.wallet.index') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                            <div
+                                class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.wallet.index') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                            </div>
+                            Danh sách ví
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('admin.withdrawals.index') }}"
+                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.withdrawals.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                            <div
+                                class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.withdrawals.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                            </div>
+                            Yêu cầu rút tiền
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endcan
+
+        <script>
+            document.getElementById('btn-toggle-wallet')?.addEventListener('click', function() {
+                const menu = document.getElementById('menu-wallet-sub');
+                const arrow = document.getElementById('icon-arrow-wallet');
+
+                menu.classList.toggle('hidden');
+                arrow.classList.toggle('rotate-180');
+            });
+        </script>
+        @can('point.view')
+            <a class="{{ request()->routeIs('admin.points.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                href="{{ route('admin.points.index') }}">
+                <span class="material-symbols-outlined">stars</span>
+                <span>Điểm thưởng</span>
+            </a>
+        @endcan
 
         <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
             <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium transition-colors"
@@ -244,9 +301,21 @@
                 </a>
 
                 {{-- 2. Thông tin User --}}
+                @php
+                    $sidebarRoleValue = Auth::user()->role;
+                    $sidebarRoleName = is_object($sidebarRoleValue)
+                        ? ($sidebarRoleValue->name ?? $sidebarRoleValue->name_role ?? null)
+                        : $sidebarRoleValue;
+
+                    $sidebarRoleLabel = match ($sidebarRoleName) {
+                        'admin' => 'Quản trị viên',
+                        'staff' => 'Nhân viên',
+                        default => 'Người dùng',
+                    };
+                @endphp
                 <div class="overflow-hidden flex-1">
                     <p class="text-sm font-semibold truncate text-slate-800 dark:text-white">{{ Auth::user()->name }}</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ Auth::user()->role->name_role }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ $sidebarRoleLabel }}</p>
                 </div>
 
                 {{-- 3. Nút Đăng xuất --}}

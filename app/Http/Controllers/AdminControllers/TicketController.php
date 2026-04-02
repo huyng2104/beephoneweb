@@ -9,35 +9,53 @@ use Illuminate\Support\Str;
 
 class TicketController extends Controller
 {
+    // public function index(Request $request)
+    // {
+    //     $query = Ticket::query();
+
+    //     if ($request->keyword) {
+    //         $query->where('customer_name', 'like', '%' . $request->keyword . '%')
+    //             ->orWhere('ticket_code', 'like', '%' . $request->keyword . '%');
+    //     }
+
+    //     if ($request->status) {
+    //         $query->where('status', $request->status);
+    //     }
+
+    //     if ($request->priority) {
+    //         $query->where('priority', $request->priority);
+    //     }
+
+    //     $tickets = $query->latest()->paginate(10);
+
+    //     return view('admin.tickets.index', compact('tickets'));
+    // }
+
     public function index(Request $request)
-    {
-        $query = Ticket::query();
+{
+    $query = Ticket::query();
 
-        // tìm kiếm
-        if ($request->keyword) {
-            $query->where('customer_name', 'like', '%' . $request->keyword . '%')
-                ->orWhere('ticket_code', 'like', '%' . $request->keyword . '%');
-        }
-
-        $tickets = $query->latest()->paginate(10);
-
-        // thống kê
-        $totalTickets = Ticket::count();
-
-        $pendingTickets = Ticket::where('status', 'new')->count();
-
-        $processingTickets = Ticket::where('status', 'processing')->count();
-
-        $doneTickets = Ticket::where('status', 'done')->count();
-
-        return view('admin.tickets.index', compact(
-            'tickets',
-            'totalTickets',
-            'pendingTickets',
-            'processingTickets',
-            'doneTickets'
-        ));
+    if ($request->keyword) {
+        $query->where('customer_name', 'like', '%' . $request->keyword . '%')
+              ->orWhere('ticket_code', 'like', '%' . $request->keyword . '%');
     }
+
+    $tickets = $query->latest()->paginate(10);
+
+    // THỐNG KÊ
+    $totalTickets = Ticket::count();
+    $pendingTickets = Ticket::where('status','new')->count();
+    $processingTickets = Ticket::where('status','processing')->count();
+    $doneTickets = Ticket::where('status','done')->count();
+
+    return view('admin.tickets.index', compact(
+        'tickets',
+        'totalTickets',
+        'pendingTickets',
+        'processingTickets',
+        'doneTickets'
+    ));
+}
 
     public function show($id)
     {

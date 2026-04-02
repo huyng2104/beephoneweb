@@ -87,13 +87,22 @@ font-weight: 500;
                             <p class="text-[#8a8060] dark:text-[#b5ae98] text-base font-normal leading-normal">Quản lý nội
                                 dung Blog, Tin tức và Đánh giá công nghệ Bee Phone</p>
                         </div>
-                        <a href="{{ route('admin.posts.create') }}">
-                            <button
-                                class="flex min-w-[180px] items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-primary text-[#181611] text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#e0b020] transition-all shadow-sm">
-                                <span class="material-symbols-outlined mr-2">add</span>
-                                <span class="truncate">Thêm bài viết mới</span>
-                            </button>
-                        </a>
+                        <div class="flex">
+                            <a href="{{ route('admin.posts.trash') }}">
+                                <button
+                                    class="flex items-center justify-center rounded-lg h-12 px-6 bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all shadow-sm">
+                                    <span class="material-symbols-outlined mr-2">delete</span>
+                                    Thùng rác
+                                </button>
+                            </a>
+                            <a href="{{ route('admin.posts.create') }}">
+                                <button
+                                    class="ms-3 flex min-w-[180px] items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-primary text-[#181611] text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#e0b020] transition-all shadow-sm">
+                                    <span class="material-symbols-outlined mr-2">add</span>
+                                    <span class="truncate">Thêm bài viết mới</span>
+                                </button>
+                            </a>
+                        </div>
                     </div>
                     <!-- Tabs & Quick Stats -->
                     <div

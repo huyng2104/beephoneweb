@@ -41,6 +41,8 @@
             color: #231e0f;
         }
     </style>
+
+    @stack('styles')
     @stack('css')
 </head>
 

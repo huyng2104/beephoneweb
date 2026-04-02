@@ -34,7 +34,7 @@ class StoreVoucherRequest extends FormRequest
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
             'status' => 'boolean',
-            'points_required' => 'numeric'
+            'points_required' => 'nullable'
         ];
     }
     public function messages()

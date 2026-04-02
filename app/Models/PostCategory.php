@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 class PostCategory extends Model
 {
-    use SoftDeletes;
+        use LogsActivity;
 
     protected $fillable = [
         'name',
@@ -15,10 +15,15 @@ class PostCategory extends Model
         'status'
     ];
 
-    protected $dates = ['deleted_at'];
-
     public function posts()
     {
         return $this->hasMany(Post::class, 'post_categories_id');
+    }
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->useLogName('post category')
+            ->logOnlyDirty();
     }
 }
