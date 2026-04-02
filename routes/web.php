@@ -37,6 +37,7 @@ use App\Http\Controllers\Client\PostController as ClientPostController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
 use App\Models\User;
 use App\Http\Controllers\AdminControllers\CommentController as AdminCommentController;
+use App\Http\Controllers\AdminControllers\ReviewController as AdminReviewController;
 use App\Http\Controllers\CommentController;
 
 /*
@@ -60,10 +61,10 @@ Route::middleware('check.verified')->group(function () {
     // Thông tin tài khoản
     Route::get('profile/wallet', [ProfileController::class, 'user_wallet'])->name('profile.wallet');
     Route::resource('profile', ProfileController::class);
-    Route::post('prodile/password/update/{id}',[ProfileController::class,'passwordUpdate'])->name('profile.password.update');
+    Route::post('prodile/password/update/{id}', [ProfileController::class, 'passwordUpdate'])->name('profile.password.update');
 
     // Nạp ví (ĐÃ FIX CHUẨN XỊN)
-    Route::post('/wallet/deposit',[ClientWalletController::class,'createDeposit'])->name('wallet.deposit');
+    Route::post('/wallet/deposit', [ClientWalletController::class, 'createDeposit'])->name('wallet.deposit');
     Route::get('/wallet/vnpay-return', [ClientWalletController::class, 'vnpayReturn'])->name('wallet.vnpay.return');
 
     // Rút ví
@@ -101,11 +102,11 @@ Route::middleware('check.verified')->group(function () {
     Route::post('/bee-point/redeem', [App\Http\Controllers\Client\PointController::class, 'redeem'])->name('client.points.redeem');
 
     // Voucher người dùng
-    Route::get('user/vouchers' ,[ProfileController::class,'user_voucher'])->name('user.vouchers');
+    Route::get('user/vouchers', [ProfileController::class, 'user_voucher'])->name('user.vouchers');
     Route::delete('user/vouchers/{id}', [ClientVoucherController::class, 'delete'])->name('user.vouchers.delete');
 
     // Danh sách vouchers
-    Route::get('vouchers' ,[ClientVoucherController::class,'index'])->name('vouchers');
+    Route::get('vouchers', [ClientVoucherController::class, 'index'])->name('vouchers');
 
     // Lưu voucher người dùng
     Route::post('vouchers/save/{id}', [ClientVoucherController::class, 'saveVoucher'])->name('vouchers.save');
@@ -222,7 +223,11 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         // 5.1 Quản lý Comments (Admin)
         Route::get('comments', [AdminCommentController::class, 'index'])->name('comments.index');
         Route::post('comments/{comment}/reply', [AdminCommentController::class, 'reply'])->name('comments.reply');
+        Route::patch('comments/{comment}/toggle-hidden', [AdminCommentController::class, 'toggleHidden'])->name('comments.toggle_hidden');
         Route::delete('comments/{comment}', [AdminCommentController::class, 'destroy'])->name('comments.destroy');
+
+        // 5.2 Quản lý Đánh giá (Admin)
+        Route::get('reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
 
         // Link từ danh sách sản phẩm -> trang quản lý comments (lọc theo product nếu cần)
         // Xem comment theo từng sản phẩm (UI giống trang com/showcom, khác với trang quản lý comment dạng bảng)
@@ -266,5 +271,6 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
 });
 // Public product routes and comment endpoints
 Route::get('/products/{product}', [ClientProductController::class, 'show'])->name('products.show');
-Route::post('/products/{product}/comments', [CommentController::class, 'store'])->name('products.comments.store');
-
+ Route::post('/products/{product}/comments', [CommentController::class, 'store'])->name('products.comments.store');
+// Allow deleting comments from client UI (admin/owner only, with confirm modal in UI)
+Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
