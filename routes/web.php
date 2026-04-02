@@ -68,6 +68,8 @@ Route::middleware('check.verified')->group(function () {
     Route::post('prodile/password/update/{id}', [ProfileController::class, 'passwordUpdate'])->name('profile.password.update');
     // Kích hoạt ví
     Route::post('wallet/active/{id}', [ClientWalletController::class, 'active_wallet'])->name('wallet.active');
+    Route::post('wallet/forgot-password', [ClientWalletController::class, 'forgotPassword'])->name('wallet.forgot-password');
+    Route::post('wallet/change-password', [ClientWalletController::class, 'changePassword'])->name('wallet.change-password');
 
     // Lịch sử rút tiền
     Route::get('wallet/withdrawals/{id}', [ProfileController::class, 'history_withdrawal'])->name('wallet.withdrawals');
@@ -202,6 +204,8 @@ Route::middleware('check.verified')->group(function () {
     Route::post('profile/password/update/{id}', [ProfileController::class, 'passwordUpdate'])->name('profile.password.update');
 
     Route::post('wallet/active/{id}', [ClientWalletController::class, 'active_wallet'])->name('wallet.active');
+    Route::post('wallet/forgot-password', [ClientWalletController::class, 'forgotPassword'])->name('wallet.forgot-password');
+    Route::post('wallet/change-password', [ClientWalletController::class, 'changePassword'])->name('wallet.change-password');
     Route::post('/wallet/deposit', [ClientWalletController::class, 'createDeposit'])->name('wallet.deposit');
     Route::get('/wallet/vnpay-return', [ClientWalletController::class, 'vnpayReturn'])->name('wallet.vnpay.return');
     Route::post('/wallet/withdrawal', [ClientWalletController::class, 'withdrawalPost'])->name('wallet.withdrawal');

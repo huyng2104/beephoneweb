@@ -254,6 +254,13 @@
                             <span class="text-red-500">{{ $message }}</span>
                         @enderror
                     </div>
+                    
+                    <div class="flex items-center">
+                        <input id="remember" name="remember" type="checkbox" {{ old('remember') ? 'checked' : '' }}
+                            class="w-4 h-4 text-primary bg-slate-50 border-slate-300 rounded focus:ring-primary focus:ring-2 dark:bg-slate-900 dark:border-slate-800 transition-all">
+                        <label for="remember" class="ml-2 text-sm font-semibold text-slate-700 dark:text-slate-300">Ghi nhớ đăng nhập</label>
+                    </div>
+
                     <button
                         class="w-full bg-primary hover:bg-primary/90 text-slate-900 font-black py-4 rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] text-lg"
                         type="submit">

@@ -81,6 +81,7 @@
                         {{ number_format($user->wallet?->balance ?? 0, 0, ',', '.') }}đ
                     </p>
                     <p class="text-xs text-gray-400 mt-1">Ví đang hoạt động</p>
+
                 @else
                     <div class="text-red-400 text-xs space-y-1">
                         <p class="font-semibold">⚠️ Ví bị khóa</p>
@@ -435,6 +436,8 @@
             </form>
         </div>
     </div>
+
+
 @endsection
 @push('js')
     <script>
@@ -544,6 +547,8 @@
                     passwordModal.classList.add('hidden');
                 }
             });
+
+
         });
     </script>
 @endpush

@@ -74,7 +74,8 @@
 
     @stack('styles')
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
+    @vite(['resources/js/app.js'])
 </head>
 
 <body class="bg-background-light dark:bg-background-dark text-[#181611] dark:text-white transition-colors duration-200">

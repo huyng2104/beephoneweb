@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    
+
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -38,8 +38,9 @@
 
     @stack('styles')
     @stack('css')
-    
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
+    @vite(['resources/js/app.js'])
 </head>
 
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
@@ -121,14 +122,14 @@
                     if (notiId && notiId !== 'temp') {
                         fetch(`/api/notifications/${notiId}/read`, {
                             method: 'POST',
-                            headers: { 
+                            headers: {
                                 'X-CSRF-TOKEN': csrfToken,
                                 'Content-Type': 'application/json'
                             }
                         }).then(() => {
                             item.classList.remove('bg-primary/10', 'font-bold');
                             item.classList.add('bg-white', 'opacity-60');
-                            
+
                             let count = parseInt(bellCount.innerText);
                             if (count > 1) {
                                 bellCount.innerText = count - 1;
@@ -150,7 +151,7 @@
                             bellCount.classList.remove('hidden');
 
                             if(bellList.innerHTML.includes('Không có thông báo mới')) bellList.innerHTML = '';
-                            
+
                             // Nhét cái mới lên đầu, đảm bảo chỉ giữ 5 cái hiển thị
                             bellList.insertAdjacentHTML('afterbegin', renderNotification('temp', e.title, e.message, e.url, false));
                             if (bellList.children.length > 5) {
@@ -178,7 +179,7 @@
             }
         });
     </script>
-    
+
     @stack('js')
 </body>
 </html>
