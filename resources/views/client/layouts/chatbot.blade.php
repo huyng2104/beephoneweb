@@ -125,6 +125,10 @@
 
     // jQuery Chat Functionality
     $(document).ready(function() {
+        const CHAT_TICKET_ID_KEY = 'beephone_chat_ticket_id';
+        const CHAT_LAST_MESSAGE_ID_KEY = 'beephone_chat_last_message_id';
+        let pollingTimer = null;
+
         function saveChatHistory() {
             sessionStorage.setItem('beephone_chat_history', $('#chat-box').html());
         }
@@ -136,10 +140,99 @@
             }
         }
 
+        function escapeHtml(text) {
+            return $('<div>').text(text ?? '').html();
+        }
+
+        function getTicketId() {
+            return sessionStorage.getItem(CHAT_TICKET_ID_KEY);
+        }
+
+        function setTicketId(ticketId) {
+            if (ticketId) {
+                sessionStorage.setItem(CHAT_TICKET_ID_KEY, String(ticketId));
+            }
+        }
+
+        function getLastMessageId() {
+            const id = sessionStorage.getItem(CHAT_LAST_MESSAGE_ID_KEY);
+            return id ? Number(id) : 0;
+        }
+
+        function setLastMessageId(id) {
+            if (id) {
+                sessionStorage.setItem(CHAT_LAST_MESSAGE_ID_KEY, String(id));
+            }
+        }
+
+        function appendAdminReply(senderName, message, createdAt) {
+            $('#chat-box').append(`
+                <div class="flex items-start gap-2">
+                    <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-white text-sm">support_agent</span>
+                    </div>
+                    <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-2xl rounded-tl-none shadow-sm text-blue-900 dark:text-blue-100 max-w-[80%]">
+                        <p class="text-xs font-semibold opacity-80 mb-1">${escapeHtml(senderName || 'Nhân viên hỗ trợ')} • ${escapeHtml(createdAt || '')}</p>
+                        <p>${escapeHtml(message)}</p>
+                    </div>
+                </div>
+            `);
+            scrollToBottom();
+            saveChatHistory();
+        }
+
+        function formatTime(timeString) {
+            if (!timeString) return '';
+            const d = new Date(timeString);
+            if (isNaN(d.getTime())) return '';
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
+        }
+
+        function pollTicketMessages() {
+            const ticketId = getTicketId();
+            if (!ticketId) return;
+
+            $.ajax({
+                url: `/api/tickets/${ticketId}/messages`,
+                type: 'GET',
+                success: function(response) {
+                    if (!response || !response.success || !Array.isArray(response.messages)) return;
+
+                    let currentLastId = getLastMessageId();
+                    const newMessages = response.messages.filter(msg => Number(msg.id) > currentLastId);
+
+                    newMessages.forEach(function(msg) {
+                        if (Number(msg.id) > currentLastId) {
+                            currentLastId = Number(msg.id);
+                        }
+
+                        if (msg.sender_type === 'admin') {
+                            appendAdminReply(msg.sender_name, msg.message, formatTime(msg.created_at));
+                        }
+                    });
+
+                    if (currentLastId > getLastMessageId()) {
+                        setLastMessageId(currentLastId);
+                    }
+                }
+            });
+        }
+
+        function startPolling() {
+            if (pollingTimer) return;
+            pollingTimer = setInterval(pollTicketMessages, 5000);
+            pollTicketMessages();
+        }
+
         // Restore chat history
         if (sessionStorage.getItem('beephone_chat_history')) {
             $('#chat-box').html(sessionStorage.getItem('beephone_chat_history'));
             scrollToBottom();
+        }
+
+        if (getTicketId()) {
+            startPolling();
         }
 
         // XỬ LÝ GỬI TIN NHẮN (Đã tích hợp Lớp Giáp chống Spam)
@@ -304,6 +397,25 @@
                 data: formData,
                 success: function(response) {
                     if (response.success) {
+                        // Lưu ticket id để đồng bộ phản hồi từ admin
+                        setTicketId(response.ticket_id);
+
+                        // Gắn mốc message đầu tiên để chỉ lấy phản hồi mới sau này
+                        $.ajax({
+                            url: `/api/tickets/${response.ticket_id}/messages`,
+                            type: 'GET',
+                            success: function(res) {
+                                if (res && res.success && Array.isArray(res.messages) && res.messages.length > 0) {
+                                    const maxId = Math.max(...res.messages.map(m => Number(m.id) || 0));
+                                    if (maxId > 0) setLastMessageId(maxId);
+                                }
+                                startPolling();
+                            },
+                            error: function() {
+                                startPolling();
+                            }
+                        });
+
                         // Hiển thị thông báo thành công
                         $('#chat-box').append(`
                             <div class="flex items-start gap-2">

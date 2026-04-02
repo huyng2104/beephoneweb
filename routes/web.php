@@ -31,6 +31,8 @@ use App\Http\Controllers\AdminControllers\WalletController;
 use App\Http\Controllers\AdminControllers\SupportController;
 use App\Http\Controllers\AdminControllers\CustomerActivityController;
 use App\Http\Controllers\AdminControllers\ChatbotFaqController;
+use App\Http\Controllers\AdminControllers\TicketController;
+use App\Http\Controllers\AdminControllers\BannerController;
 
 use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\Client\ProfileController;

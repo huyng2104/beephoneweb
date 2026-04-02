@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Ticket;
+use App\Models\SupportTicket;
 use App\Models\TicketMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -24,14 +24,15 @@ class TicketController extends Controller
 
         try {
             // Tạo ticket mới
-            $ticket = Ticket::create([
+            $ticket = SupportTicket::create([
                 'ticket_code' => 'TK-' . strtoupper(Str::random(8)),
                 'customer_name' => $validated['customer_name'],
                 'customer_email' => $validated['customer_email'],
-                'title' => $validated['title'],
+                'subject' => $validated['title'],
                 'description' => $validated['initial_message'],
                 'priority' => 'medium',
-                'status' => 'new',
+                'status' => 'open',
+                'category' => 'general',
             ]);
 
             // Lưu message đầu tiên
@@ -62,7 +63,7 @@ class TicketController extends Controller
     public function addMessage(Request $request)
     {
         $validated = $request->validate([
-            'ticket_id' => 'required|exists:tickets,id',
+            'ticket_id' => 'required|exists:support_tickets,id',
             'sender_type' => 'required|in:customer,admin',
             'sender_name' => 'required|string',
             'message' => 'required|string',

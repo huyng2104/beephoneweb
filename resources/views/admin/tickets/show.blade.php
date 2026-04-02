@@ -10,7 +10,7 @@
                 <span class="material-symbols-outlined text-[18px]">arrow_back</span>
                 <span>Quay lại danh sách</span>
             </a>
-            <h1 class="text-3xl font-bold text-slate-900 dark:text-white mt-2">{{ $ticket->title }}</h1>
+            <h1 class="text-3xl font-bold text-slate-900 dark:text-white mt-2">{{ $ticket->subject }}</h1>
             <p class="text-slate-600 dark:text-slate-400 text-sm">Mã: <strong>{{ $ticket->ticket_code }}</strong></p>
         </div>
         <div class="text-right">
@@ -18,10 +18,10 @@
             <form action="{{ route('admin.tickets.updateStatus', $ticket->id) }}" method="POST" class="inline-block">
                 @csrf
                 <select name="status" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary" onchange="this.form.submit()">
-                    <option value="new" {{ $ticket->status === 'new' ? 'selected' : '' }}>🟠 Mới</option>
-                    <option value="processing" {{ $ticket->status === 'processing' ? 'selected' : '' }}>🟡 Đang xử lý</option>
-                    <option value="waiting" {{ $ticket->status === 'waiting' ? 'selected' : '' }}>🟣 Chờ khách</option>
-                    <option value="done" {{ $ticket->status === 'done' ? 'selected' : '' }}>✅ Hoàn tất</option>
+                    <option value="open" {{ $ticket->status === 'open' ? 'selected' : '' }}>🟠 Mới</option>
+                    <option value="in_progress" {{ $ticket->status === 'in_progress' ? 'selected' : '' }}>🟡 Đang xử lý</option>
+                    <option value="resolved" {{ $ticket->status === 'resolved' ? 'selected' : '' }}>✅ Đã xử lý</option>
+                    <option value="closed" {{ $ticket->status === 'closed' ? 'selected' : '' }}>⚫ Đóng</option>
                 </select>
             </form>
         </div>
