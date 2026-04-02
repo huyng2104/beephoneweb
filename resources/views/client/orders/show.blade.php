@@ -4,7 +4,7 @@
 
 @section('profile_content')
     <section class="flex-1" data-purpose="user-main-section">
-        
+
         <div class="mb-6 flex items-center justify-between border-b border-gray-100 dark:border-white/10 pb-4">
             <div class="flex items-center gap-3">
                 <a href="{{ route('client.orders.index') }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-[#f4c025] hover:text-black transition-colors text-gray-600 dark:text-gray-300">
@@ -15,7 +15,7 @@
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Mã đơn: <span class="font-bold text-[#f4c025]">#{{ $order->order_code }}</span></p>
                 </div>
             </div>
-            
+
             <div id="order-status-badge">
                 @if($order->status == 'pending')
                     <span class="text-yellow-700 bg-yellow-100 border border-yellow-200 px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wider">Chờ xác nhận</span>
@@ -39,7 +39,7 @@
             if(in_array($order->status, ['packing'])) $step = 2;
             if(in_array($order->status, ['shipping'])) $step = 3;
             if(in_array($order->status, ['delivered', 'completed'])) $step = 4;
-            
+
             $progressWidth = '0%';
             if($step == 1) $progressWidth = '0%';
             if($step == 2) $progressWidth = '33%';
@@ -50,7 +50,7 @@
         <section class="bg-white dark:bg-[#1a1a1a] p-8 rounded-2xl mb-8 relative overflow-hidden shadow-sm border border-gray-100 dark:border-white/10" id="timeline-section">
             <div class="absolute top-0 left-0 w-1.5 h-full {{ $order->status == 'cancelled' ? 'bg-red-500' : 'bg-[#f4c025]' }}" id="timeline-border-color"></div>
             <h2 class="text-lg font-bold mb-8 uppercase tracking-tight text-[#181611] dark:text-white">Tiến trình xử lý</h2>
-            
+
             <div id="cancelled-view" class="flex items-center gap-4 text-red-500 {{ $order->status == 'cancelled' ? '' : 'hidden' }}">
                 <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center border-4 border-white dark:border-[#1a1a1a] shadow-lg">
                     <span class="material-symbols-outlined text-3xl">cancel</span>
@@ -99,14 +99,14 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div class="lg:col-span-2 bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-white/10 relative overflow-hidden group hover:border-[#f4c025] transition-colors">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-[#f4c025]/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
-                
+
                 <div class="flex items-center gap-3 mb-6">
                     <div class="w-10 h-10 rounded-full bg-[#f4c025]/20 flex items-center justify-center text-[#f4c025]">
                         <span class="material-symbols-outlined">location_on</span>
                     </div>
                     <h2 class="text-lg font-bold uppercase tracking-tight text-[#181611] dark:text-white">Thông tin nhận hàng</h2>
                 </div>
-                
+
                 <div class="grid sm:grid-cols-2 gap-6">
                     <div>
                         <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Người nhận</p>
@@ -162,7 +162,7 @@
                     {{ $order->items->count() }} MẶT HÀNG
                 </span>
             </div>
-            
+
             <div class="max-h-[400px] overflow-y-auto custom-scrollbar divide-y divide-gray-100 dark:divide-white/10 p-2">
                 @foreach($order->items as $item)
                     @php
@@ -185,7 +185,7 @@
         </section>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-            
+
             <div class="flex flex-col gap-4">
                 @if($order->status == \App\Models\Order::STATUS_PENDING)
                     <form action="{{ route('client.orders.cancel', $order->id) }}" method="POST">
@@ -214,7 +214,7 @@
 
             <div class="bg-[#181611] text-white p-6 rounded-2xl shadow-xl border border-gray-800 relative overflow-hidden">
                 <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-8xl text-white/5 rotate-12 pointer-events-none">receipt_long</span>
-                
+
                 <h3 class="text-base font-bold mb-5 uppercase tracking-widest text-[#f4c025]">Tóm tắt thanh toán</h3>
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between text-gray-400">
@@ -231,7 +231,7 @@
                         <span class="text-red-400">-{{ number_format($order->total_price - $order->total_amount, 0, ',', '.') }}₫</span>
                     </div>
                     @endif
-                    
+
                     <div class="pt-4 mt-2 border-t border-gray-800 flex justify-between items-end">
                         <div>
                             <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Tổng cộng (Đã VAT)</p>
@@ -267,12 +267,12 @@
                 window.Echo.channel('order-tracker')
                     .listen('.status-updated', (e) => {
                         console.log("🔥 CÓ BIẾN: ", e);
-                        
+
                         let fullText = (e.title + " " + e.message).toLowerCase();
 
                         // Kiểm tra đúng User và đúng Đơn hàng
                         if (e.targetUserId == currentUserId && fullText.includes(orderCode)) {
-                            
+
                             let newStep = 0;
                             let isCancelled = false;
                             let badgeHtml = '';
@@ -314,7 +314,7 @@
                                 cancelView.classList.remove('hidden');
                                 borderColor.classList.remove('bg-[#f4c025]');
                                 borderColor.classList.add('bg-red-500');
-                                document.getElementById('cancel-reason-text').innerText = "Lý do: " + e.message; 
+                                document.getElementById('cancel-reason-text').innerText = "Lý do: " + e.message;
                             } else if (newStep > 0) {
                                 normalView.classList.remove('hidden');
                                 cancelView.classList.add('hidden');

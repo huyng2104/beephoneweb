@@ -25,6 +25,8 @@ class OrderController extends Controller
             return redirect()->route('client.orders.index');
         }
 
+        $user = Auth::user();
+
         $orders = Order::with(['items', 'items.product'])
             ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
@@ -32,11 +34,14 @@ class OrderController extends Controller
 
         $reviewOrder = null;
         $reviewOrderId = $request->session()->get('review_order_id');
+
         if (is_numeric($reviewOrderId)) {
             $reviewOrder = Order::with(['items', 'items.product'])
                 ->where('user_id', Auth::id())
                 ->find((int) $reviewOrderId);
+        }
 
+        if ($reviewOrderId !== null) {
             $request->session()->forget('review_order_id');
         }
 
@@ -47,10 +52,10 @@ class OrderController extends Controller
     public function show($id)
     {
         $order = Order::with('items')->where('user_id', Auth::id())->findOrFail($id);
-
         return view('client.orders.show', compact('order'));
     }
 
+    // Khách hàng xác nhận đã nhận hàng
     public function confirmReceived($id)
     {
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
@@ -59,6 +64,7 @@ class OrderController extends Controller
 
             $order->status = Order::STATUS_RECEIVED;
             $order->payment_status = 'paid';
+            $order->paid_at = $order->paid_at ?? now();
             $order->save();
 
             // ==========================================
@@ -111,19 +117,19 @@ class OrderController extends Controller
             }
 
             return redirect()->back()
-                ->with('success', $msg)
+                ->with('success', $message)
                 ->with('review_order_id', $order->id);
         }
 
         return redirect()->back()->with('error', 'Trạng thái đơn hàng không hợp lệ.');
     }
 
+    // Khách hàng tự hủy đơn
     public function cancel($id)
     {
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
 
-        if ($order->status == Order::STATUS_PENDING) {
-
+        if ($order->status === Order::STATUS_PENDING) {
             $order->status = Order::STATUS_CANCELLED;
             $order->cancellation_reason = 'Khách hàng tự hủy đơn trên web';
             $order->cancelled_at = now();
@@ -154,6 +160,7 @@ class OrderController extends Controller
         return redirect()->back()->with('error', 'Đơn hàng này đang được xử lý, không thể hủy.');
     }
 
+    // Gửi yêu cầu hoàn hàng (Code của ông Vũ)
     public function requestReturn(Request $request, $id)
     {
         $validated = $request->validate([
@@ -198,6 +205,7 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Đã gửi yêu cầu hoàn hàng. Cửa hàng sẽ phản hồi sớm nhất.');
     }
 
+    // Xác nhận đã gửi hàng hoàn về shop
     public function markReturnShipped($id)
     {
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
