@@ -70,7 +70,6 @@
             sessionStorage.setItem('beephone_chat_state', 'closed');
         });
 
-        // XỬ LÝ GỬI TIN NHẮN (Đã tích hợp Lớp Giáp chống Spam)
         function sendMessage() {
             let message = $('#chat-input').val().trim();
             if (message === '') return;
@@ -126,6 +125,28 @@
                             </div>
                         </div>
                     `);
+
+                    // Thêm quick replies nếu cần
+                    if (message.toLowerCase().includes('khác') || message.toLowerCase().includes('không') || message.toLowerCase().includes('chưa']) {
+                        setTimeout(() => {
+                            $('#chat-box').append(`
+                                <div class="flex items-start gap-2">
+                                    <div class="w-8 h-8 rounded-full bg-[#f4c025] flex items-center justify-center shrink-0">
+                                        <span class="material-symbols-outlined text-[#181611] text-sm">smart_toy</span>
+                                    </div>
+                                    <div class="bg-white dark:bg-slate-700 p-3 rounded-2xl rounded-tl-none shadow-sm max-w-[80%]">
+                                        <p class="text-sm text-slate-600 dark:text-gray-300 mb-2">Anh/chị cần giúp gì khác không? Em có thể kết nối nhân viên hỗ trợ cho anh/chị ạ.</p>
+                                        <div class="flex gap-2">
+                                            <button class="bg-primary text-white px-3 py-2 rounded text-xs font-semibold hover:bg-primary-dark transition quick-reply-btn" data-message="Tôi muốn gặp nhân viên">Kết nối nhân viên</button>
+                                            <button class="bg-gray-300 text-gray-700 px-3 py-2 rounded text-xs font-semibold hover:bg-gray-400 transition quick-reply-btn" data-message="Không, cảm ơn">Không cần</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
+                            scrollToBottom();
+                        }, 500);
+                    }
+
                     scrollToBottom();
                     saveChatHistory(); 
 
@@ -133,12 +154,25 @@
                     $('#send-chat').prop('disabled', false).css('opacity', '1');
                     $('#chat-input').prop('disabled', false).attr('placeholder', 'Nhập câu hỏi...').focus();
                 },
-                error: function() {
+                error: function(xhr, status, error) {
                     $('#' + loadingId).remove();
-                    $('#chat-box').append('<div class="text-center text-xs text-red-500 mt-2">Lỗi kết nối. Vui lòng thử lại!</div>');
-                    scrollToBottom();
+                    
+                    // Lấy lỗi thật sự từ Laravel trả về
+                    let errorMsg = "Lỗi kết nối máy chủ!";
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    } else if (xhr.status === 419) {
+                        errorMsg = "Phiên làm việc hết hạn, vui lòng F5 tải lại trang!";
+                    }
 
-                    // 2. MỞ KHOÁ LẠI KHI LỖI
+                    // In cả lỗi màu đỏ ra Console để Dev dễ soi
+                    console.error("LỖI BACKEND TRẢ VỀ:", xhr.responseText);
+
+                    $('#chat-box').append(`<div class="text-center text-xs text-red-500 mt-2 font-bold">${errorMsg}</div>`);
+                    scrollToBottom();
+                    saveChatHistory();
+
+                    // MỞ KHOÁ LẠI KHI LỖI
                     $('#send-chat').prop('disabled', false).css('opacity', '1');
                     $('#chat-input').prop('disabled', false).attr('placeholder', 'Nhập câu hỏi...').focus();
                 }
@@ -150,6 +184,31 @@
             if(e.which == 13) sendMessage();
         });
 
+        // Handle quick reply buttons
+        $(document).on('click', '.quick-reply-btn', function() {
+            let message = $(this).data('message');
+            $('#chat-input').val(message);
+            sendMessage();
+        });
+
+        // Handle "Kết nối nhân viên" action
+        $(document).on('click', '.connect-staff-btn', function() {
+            alert('Đang kết nối bạn với nhân viên hỗ trợ... Vui lòng chờ!');
+            // TODO: Thêm logic kết nối với staff (có thể gửi request lưu vào DB, notify staff app, etc)
+            $('#chat-box').append(`
+                <div class="flex items-start gap-2">
+                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-white text-sm">person</span>
+                    </div>
+                    <div class="bg-green-50 dark:bg-green-900 p-3 rounded-2xl rounded-tl-none shadow-sm text-green-800 dark:text-white max-w-[80%]">
+                        Nhân viên hỗ trợ sẽ sớm trả lời anh/chị ạ. Anh/chị vui lòng chờ...
+                    </div>
+                </div>
+            `);
+            scrollToBottom();
+            saveChatHistory();
+        });
+
         function scrollToBottom() {
             let chatBox = document.getElementById("chat-box");
             if (chatBox) {
@@ -157,4 +216,5 @@
             }
         }
     });
+
 </script>

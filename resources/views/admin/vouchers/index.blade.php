@@ -1,6 +1,7 @@
 @extends('admin.layouts.app')
 @section('content')
     <!-- Header Section -->
+    @include('popup_notify.index')
     <header class="bg-white dark:bg-gray-900 border-b border-[#e6e3db] px-8 py-6">
         <div class="flex flex-wrap justify-between items-end gap-4">
             <div class="flex flex-col gap-1">
@@ -21,118 +22,111 @@
 
     <div class="p-8 flex flex-col gap-8">
         <!-- Stats & Charts Section -->
-        {{-- Success --}}
-        @if (session('success'))
-            <div class="flex items-start gap-3 p-4 rounded-lg bg-green-50 border border-green-200 text-green-700">
 
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mt-0.5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
 
-                <div>
-                    <p class="font-semibold">Thành công</p>
-                    <p class="text-sm">{{ session('success') }}</p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+                <div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db]">
+                    <p class="text-[#8a8060] text-sm font-medium">Tổng mã đang chạy</p>
+                    <p class="text-[#181611] dark:text-white text-3xl font-bold">{{ number_format($totalActive) }}</p>
+                    <div
+                        class="flex items-center gap-1 text-[#078812] text-xs font-bold bg-[#078812]/10 px-2 py-0.5 rounded w-fit">
+                        <span class="material-symbols-outlined text-sm">trending_up</span>
+                        <span>+0%</span>
+                    </div>
                 </div>
 
+                <div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db]">
+                    <p class="text-[#8a8060] text-sm font-medium">Lượt sử dụng (30 ngày)</p>
+                    <p class="text-[#181611] dark:text-white text-3xl font-bold">{{ number_format($totalUsage30Days) }}</p>
+                    <div
+                        class="flex items-center gap-1 text-[#078812] text-xs font-bold bg-[#078812]/10 px-2 py-0.5 rounded w-fit">
+                        <span class="material-symbols-outlined text-sm">trending_up</span>
+                        <span>+0%</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db]">
+                    <p class="text-[#8a8060] text-sm font-medium">Tiết kiệm cho khách</p>
+                    {{-- Đổi ra đơn vị Triệu (M) --}}
+                    <p class="text-[#181611] dark:text-white text-3xl font-bold">
+                        {{ number_format($totalSaved / 1000000, 1) }}M
+                    </p>
+                    <div
+                        class="flex items-center gap-1 text-[#e71408] text-xs font-bold bg-[#e71408]/10 px-2 py-0.5 rounded w-fit">
+                        <span class="material-symbols-outlined text-sm">trending_down</span>
+                        <span>-0%</span>
+                    </div>
+                </div>
             </div>
-        @endif
 
-
-        {{-- Error --}}
-        @if (session('error'))
-            <div class="flex items-start gap-3 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
-
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mt-0.5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-
-                <div>
-                    <p class="font-semibold">Lỗi</p>
-                    <p class="text-sm">{{ session('error') }}</p>
+            <div class="flex flex-col gap-4 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db]">
+                <div class="flex justify-between items-start">
+                    <p class="text-[#181611] dark:text-white text-sm font-bold">Lượt dùng theo ngày</p>
+                    <p class="text-[#8a8060] text-xs">7 ngày qua</p>
+                    <p class="text-[#8a8060] text-xs">Tối đa 10/cột</p>
                 </div>
 
+                <div class="flex items-end justify-between h-32 gap-2 px-1">
+                    @foreach ($chartData as $data)
+                        <div class="bg-primary/20 hover:bg-primary transition-colors w-full rounded-t cursor-pointer"
+                            style="height: {{ $data['height'] }}%;"
+                            title="{{ $data['day_full'] }}: {{ $data['count'] }} lượt dùng">
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="flex justify-between text-[10px] text-[#8a8060] font-bold">
+                    @foreach ($chartData as $data)
+                        <span>{{ Str::limit($data['day_short'], 2, '') }}</span>
+                    @endforeach
+                </div>
             </div>
-        @endif
-        {{-- <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Stat Cards -->
-                <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db]">
-                        <p class="text-[#8a8060] text-sm font-medium">Tổng mã đang chạy</p>
-                        <p class="text-[#181611] dark:text-white text-3xl font-bold">12</p>
-                        <div
-                            class="flex items-center gap-1 text-[#078812] text-xs font-bold bg-[#078812]/10 px-2 py-0.5 rounded w-fit">
-                            <span class="material-symbols-outlined text-sm">trending_up</span>
-                            <span>+5%</span>
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db]">
-                        <p class="text-[#8a8060] text-sm font-medium">Lượt sử dụng (30 ngày)</p>
-                        <p class="text-[#181611] dark:text-white text-3xl font-bold">1,250</p>
-                        <div
-                            class="flex items-center gap-1 text-[#078812] text-xs font-bold bg-[#078812]/10 px-2 py-0.5 rounded w-fit">
-                            <span class="material-symbols-outlined text-sm">trending_up</span>
-                            <span>+12%</span>
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db]">
-                        <p class="text-[#8a8060] text-sm font-medium">Tiết kiệm cho khách</p>
-                        <p class="text-[#181611] dark:text-white text-3xl font-bold">45.0M</p>
-                        <div
-                            class="flex items-center gap-1 text-[#e71408] text-xs font-bold bg-[#e71408]/10 px-2 py-0.5 rounded w-fit">
-                            <span class="material-symbols-outlined text-sm">trending_down</span>
-                            <span>-2%</span>
-                        </div>
-                    </div>
-                </div>
-                <!-- Small Bar Chart -->
-                <div class="flex flex-col gap-4 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db]">
-                    <div class="flex justify-between items-start">
-                        <p class="text-[#181611] dark:text-white text-sm font-bold">Lượt dùng theo ngày</p>
-                        <p class="text-[#8a8060] text-xs">7 ngày qua</p>
-                    </div>
-                    <div class="flex items-end justify-between h-32 gap-2 px-1">
-                        <div class="bg-primary/20 hover:bg-primary transition-colors w-full rounded-t" style="height: 40%;"
-                            title="Thứ 2"></div>
-                        <div class="bg-primary/20 hover:bg-primary transition-colors w-full rounded-t" style="height: 60%;"
-                            title="Thứ 3"></div>
-                        <div class="bg-primary/20 hover:bg-primary transition-colors w-full rounded-t" style="height: 30%;"
-                            title="Thứ 4"></div>
-                        <div class="bg-primary/20 hover:bg-primary transition-colors w-full rounded-t" style="height: 95%;"
-                            title="Thứ 5"></div>
-                        <div class="bg-primary/20 hover:bg-primary transition-colors w-full rounded-t" style="height: 20%;"
-                            title="Thứ 6"></div>
-                        <div class="bg-primary/20 hover:bg-primary transition-colors w-full rounded-t" style="height: 70%;"
-                            title="Thứ 7"></div>
-                        <div class="bg-primary/20 hover:bg-primary transition-colors w-full rounded-t" style="height: 85%;"
-                            title="Chủ nhật"></div>
-                    </div>
-                    <div class="flex justify-between text-[10px] text-[#8a8060] font-bold">
-                        <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
-                    </div>
-                </div>
-            </div> --}}
+        </div>
         <!-- Table Section -->
         <div class="bg-white dark:bg-gray-900 border border-[#e6e3db] rounded-xl overflow-hidden flex flex-col">
             <div class="p-6 border-b border-[#e6e3db] flex flex-wrap justify-between items-center gap-4">
                 <h3 class="text-lg font-bold text-[#181611] dark:text-white">Danh sách mã giảm giá</h3>
 
-                <div class="flex gap-2">
-                    <div class="relative">
+                <form action="{{ url()->current() }}" method="GET" class="flex flex-wrap items-center gap-2 mb-6">
+
+                    <div class="relative flex-grow max-w-xs">
                         <span
-                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8060] text-lg">search</span>
-                        <input
-                            class="pl-10 pr-4 py-2 bg-background-light dark:bg-gray-800 border-none rounded-lg text-sm w-64 focus:ring-2 focus:ring-primary"
-                            placeholder="Tìm mã..." type="text" />
+                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8060] text-lg pointer-events-none">
+                            search
+                        </span>
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-gray-800 border border-[#e6e3db] dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none transition-shadow"
+                            placeholder="Tìm mã voucher, tên..." />
                     </div>
 
-                    <button
-                        class="flex items-center gap-2 px-4 py-2 border border-[#e6e3db] rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                    <select name="status"
+                        class="px-4 py-2 border rounded-lg text-sm focus:ring-primary outline-none cursor-pointer">
+                        <option value="">Tất cả </option>
+                        <option value="paused" {{ request('status') == 'paused' ? 'selected' : '' }}>Tạm dừng</option>
+                        <option value="out_of_usage" {{ request('status') == 'out_of_usage' ? 'selected' : '' }}>Hết lượt
+                            dùng</option>
+                        <option value="expired" {{ request('status') == 'expired' ? 'selected' : '' }}>Đã hết hạn</option>
+                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Đang hoạt động
+                        </option>
+                    </select>
+                    @if (request()->anyFilled(['search', 'status']))
+                        <a href="{{ url()->current() }}"
+                            class="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                            <span class="material-symbols-outlined text-sm">close</span>
+                            <span>Xóa lọc</span>
+                        </a>
+                    @endif
+                    <button type="submit"
+                        class="flex items-center gap-2 px-4 py-2 bg-[#181611] text-white border border-[#181611] rounded-lg text-sm font-medium hover:bg-black transition-colors">
                         <span class="material-symbols-outlined text-sm">filter_list</span>
-                        <span>Bộ lọc</span>
+                        <span>Lọc</span>
                     </button>
-                </div>
+
+
+
+                </form>
             </div>
 
             <!-- Tabs -->
@@ -178,14 +172,25 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
+                                    {{-- 1. Hiển thị loại giảm giá --}}
                                     @if ($voucher->discount_type == 'fixed')
-                                        <span class="px-2 py-1 bg-purple-50 text-purple-600 text-xs font-bold rounded">Giảm
-                                            {{ number_format($voucher->discount_value, 0, ',', '.') }}đ
-                                        @else
-                                            <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded">Giảm
-                                                {{ $voucher->discount_value }}%</span>
+                                        <span class="px-2 py-1 bg-purple-50 text-purple-600 text-xs font-bold rounded">
+                                            Giảm {{ number_format($voucher->discount_value, 0, ',', '.') }}đ
+                                        </span> {{-- Đã bổ sung thẻ đóng span bị thiếu ở đây --}}
+                                    @else
+                                        <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded">
+                                            Giảm {{ $voucher->discount_value }}%
+                                        </span>
                                     @endif
-
+                                    <br>
+                                    {{-- 2. Hiển thị nhãn Quà tặng nếu cần đổi điểm --}}
+                                    @if ($voucher->points_required > 0)
+                                        {{-- Thêm class mt-2 và inline-block để nhãn rớt xuống dòng cho đẹp --}}
+                                        <span
+                                            class="inline-block mt-2 px-2 py-1 bg-orange-50 text-orange-600 text-xs font-bold rounded">
+                                            Đổi thưởng
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
@@ -231,9 +236,10 @@
                                         </a>
 
                                         <!-- Delete -->
-                                        <form action="{{ route('admin.vouchers.destroy', $voucher->id) }}" method="post">
+                                        <form action="{{ route('admin.vouchers.destroy', $voucher->id) }}"
+                                            method="post">
                                             @csrf
-                                             @method('DELETE')
+                                            @method('DELETE')
                                             <button onclick="return confirm('Bạn có chắc muốn xóa?')"
                                                 class="p-2 hover:bg-red-50 rounded-lg text-[#8a8060] hover:text-red-500 transition-colors"
                                                 title="Xóa">

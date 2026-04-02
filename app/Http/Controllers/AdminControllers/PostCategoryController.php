@@ -10,11 +10,33 @@ use Illuminate\Support\Str;
 class PostCategoryController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        $categories = PostCategory::latest()->get();
+        $query = PostCategory::query();
 
-        return view('admin.post-categories.index', compact('categories'));
+        // tìm kiếm theo tên danh mục
+        if ($request->keyword) {
+            $query->where('name', 'like', '%' . $request->keyword . '%');
+        }
+
+        $categories = $query->latest()->paginate(10);
+
+        // thống kê
+        $totalCategories = PostCategory::count();
+
+        $topCategory = PostCategory::withCount('posts')
+            ->orderByDesc('posts_count')
+            ->first();
+
+        $newCategoriesThisMonth = PostCategory::whereMonth('created_at', now()->month)
+            ->count();
+
+        return view('admin.post-categories.index', compact(
+            'categories',
+            'totalCategories',
+            'topCategory',
+            'newCategoriesThisMonth'
+        ));
     }
 
     public function create()
