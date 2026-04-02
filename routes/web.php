@@ -39,7 +39,7 @@ use App\Http\Controllers\Client\PostController as ClientPostController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
 use App\Models\User;
 use App\Http\Controllers\AdminControllers\CommentController as AdminCommentController;
-use App\Http\Controllers\AdminControllers\WithdrawalController;
+use App\Http\Controllers\AdminControllers\ReviewController as AdminReviewController;
 use App\Http\Controllers\CommentController;
 
 /*
@@ -71,8 +71,6 @@ Route::middleware('check.verified')->group(function () {
     Route::get('profile/wallet', [ProfileController::class, 'user_wallet'])->name('profile.wallet');
     Route::resource('profile', ProfileController::class);
     Route::post('prodile/password/update/{id}', [ProfileController::class, 'passwordUpdate'])->name('profile.password.update');
-    // Kích hoạt ví
-    Route::post('wallet/active/{id}', [ClientWalletController::class, 'active_wallet'])->name('wallet.active');
 
     // Lịch sử rút tiền
     Route::get('wallet/withdrawals/{id}', [ProfileController::class, 'history_withdrawal'])->name('wallet.withdrawals');
@@ -247,7 +245,11 @@ Route::middleware(['auth', 'verified', 'role'])->group(function () {
         // 5.1 Quản lý Comments (Admin)
         Route::get('comments', [AdminCommentController::class, 'index'])->name('comments.index');
         Route::post('comments/{comment}/reply', [AdminCommentController::class, 'reply'])->name('comments.reply');
+        Route::patch('comments/{comment}/toggle-hidden', [AdminCommentController::class, 'toggleHidden'])->name('comments.toggle_hidden');
         Route::delete('comments/{comment}', [AdminCommentController::class, 'destroy'])->name('comments.destroy');
+
+        // 5.2 Quản lý Đánh giá (Admin)
+        Route::get('reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
 
         // Link từ danh sách sản phẩm -> trang quản lý comments (lọc theo product nếu cần)
         // Xem comment theo từng sản phẩm (UI giống trang com/showcom, khác với trang quản lý comment dạng bảng)
@@ -328,4 +330,6 @@ Route::middleware(['auth', 'verified', 'role'])->group(function () {
 });
 // Public product routes and comment endpoints
 Route::get('/products/{product}', [ClientProductController::class, 'show'])->name('products.show');
-Route::post('/products/{product}/comments', [CommentController::class, 'store'])->name('products.comments.store');
+ Route::post('/products/{product}/comments', [CommentController::class, 'store'])->name('products.comments.store');
+// Allow deleting comments from client UI (admin/owner only, with confirm modal in UI)
+Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
