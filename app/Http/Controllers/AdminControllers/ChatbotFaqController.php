@@ -53,6 +53,7 @@ class ChatbotFaqController extends Controller
             'category' => $request->category,
             'question' => $request->question,
             'answer' => $request->answer,
+            'keywords' => $request->keywords,
             'sort_order' => $request->sort_order ?? 0,
             'is_active' => $request->has('is_active') ? true : false,
         ]);
@@ -92,6 +93,7 @@ class ChatbotFaqController extends Controller
             'category' => $request->category,
             'question' => $request->question,
             'answer' => $request->answer,
+            'keywords' => $request->keywords,
             'sort_order' => $request->sort_order ?? 0,
             'is_active' => $request->has('is_active') ? true : false,
         ]);

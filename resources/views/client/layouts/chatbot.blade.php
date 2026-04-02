@@ -188,7 +188,7 @@
                 success: function(response) {
                     $('#' + loadingId).remove();
 
-                    $('#chat-box').append(`
+                    let replyHtml = `
                         <div class="flex items-start gap-2">
                             <div class="w-8 h-8 rounded-full bg-[#f4c025] flex items-center justify-center shrink-0">
                                 <span class="material-symbols-outlined text-[#181611] text-sm">smart_toy</span>
@@ -197,18 +197,20 @@
                                 ${response.reply}
                             </div>
                         </div>
-                    `);
-                    scrollToBottom();
-                    saveChatHistory(); 
+                    `;
 
-                    // 2. MỞ KHOÁ LẠI CHO KHÁCH CHAT TIẾP
-                    $('#send-chat').prop('disabled', false).css('opacity', '1');
-                    $('#chat-input').prop('disabled', false).attr('placeholder', 'Nhập câu hỏi...').focus();
-                },
-                error: function() {
-                    $('#' + loadingId).remove();
-                    $('#chat-box').append('<div class="text-center text-xs text-red-500 mt-2">Lỗi kết nối. Vui lòng thử lại!</div>');
+                    // Add suggestions if available
+                    if (response.suggestions && response.suggestions.length > 0) {
+                        replyHtml += '<div class="flex flex-wrap gap-2 mt-2 ml-10">';
+                        response.suggestions.forEach(function(suggestion) {
+                            replyHtml += `<button class="suggestion-btn text-xs bg-gray-100 dark:bg-slate-600 text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full hover:bg-[#f4c025] hover:text-[#181611] transition-colors">${suggestion}</button>`;
+                        });
+                        replyHtml += '</div>';
+                    }
+
+                    $('#chat-box').append(replyHtml);
                     scrollToBottom();
+                    saveChatHistory();
 
                     // Enable send button
                     $('#send-chat').prop('disabled', false).css('opacity', '1');
@@ -250,6 +252,13 @@
                 e.preventDefault();
                 sendMessage();
             }
+        });
+
+        // Handle suggestion button clicks
+        $(document).on('click', '.suggestion-btn', function() {
+            const suggestion = $(this).text();
+            $('#chat-input').val(suggestion);
+            sendMessage();
         });
 
         // Quick reply buttons

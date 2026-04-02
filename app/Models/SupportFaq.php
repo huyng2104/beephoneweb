@@ -10,6 +10,7 @@ class SupportFaq extends Model
         'category',
         'question',
         'answer',
+        'keywords',
         'sort_order',
         'is_active'
     ];

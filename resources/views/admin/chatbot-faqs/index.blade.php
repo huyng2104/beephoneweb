@@ -41,7 +41,7 @@
                             <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{{ Str::limit($faq->keywords ?? '—', 40) }}</td>
                             <td class="px-6 py-4 text-sm">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
-                                    {{ $faq->priority }}
+                                    {{ $faq->sort_order }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-sm">
