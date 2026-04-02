@@ -6,22 +6,22 @@
         </div>
         <div>
             <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">Bee Phone</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Hệ thống quản trị</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Admin Panel</p>
         </div>
     </div>
 
     <nav class="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto custom-scrollbar">
-        {{-- Bảng điều khiển --}}
+        {{-- Dashboard --}}
         <a class="{{ request()->is('admin') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
             href="{{ url('admin') }}">
             <span class="material-symbols-outlined">dashboard</span>
-            <span>Bảng điều khiển</span>
+            <span>Dashboard</span>
         </a>
 
-        {{-- NHÓM SẢN PHẨM (DROPDOWN) --}}
+        {{-- PRODUCTS (DROPDOWN) --}}
         @php
 
-            // Kiểm tra xem user có đang ở bất kỳ route nào thuộc Sản phẩm không
+            // Check whether any product-related route is active
             $isProductGroupActive = request()->routeIs(
                 'admin.products.*',
                 'admin.attributes.*',
@@ -29,13 +29,6 @@
                 'admin.brands.*',
             );
 
-            // Kiểm tra xem user có đang ở bất kỳ route nào thuộc Sản phẩm không
-            $isProductGroupActive = request()->routeIs(
-                'admin.products.*',
-                'admin.attributes.*',
-                'admin.categories.*',
-                'admin.brands.*',
-            );
 
         @endphp
 
@@ -44,7 +37,7 @@
                 class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors {{ $isProductGroupActive ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }}">
                 <div class="flex items-center gap-3">
                     <span class="material-symbols-outlined">inventory_2</span>
-                    <span>Sản phẩm</span>
+                    <span>Products</span>
                 </div>
                 <span id="icon-products"
                     class="material-symbols-outlined text-[18px] transition-transform duration-300 {{ $isProductGroupActive ? 'rotate-180' : '' }}">
@@ -66,7 +59,7 @@
                         class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.products.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
                     </div>
 
-                    Danh sách SP
+                    Product List
                 </a>
 
                 <a href="{{ route('admin.attributes.index') }}"
@@ -80,7 +73,7 @@
                         class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.attributes.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
                     </div>
 
-                    Thuộc tính
+                    Attributes
                 </a>
 
                 <a href="{{ route('admin.categories.index') }}"
@@ -92,7 +85,7 @@
                     <div
                         class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.categories.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
                     </div>
-                    Danh mục
+                    Categories
                 </a>
 
                 <a href="{{ route('admin.brands.index') }}"
@@ -103,22 +96,22 @@
                     <div
                         class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.brands.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
                     </div>
-                    Thương hiệu
+                    Brands
                 </a>
             </div>
         </div>
 
-        {{-- Các Menu Khác --}}
+        {{-- Other --}}
         <a class="{{ request()->routeIs('admin.orders.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
             href="{{ route('admin.orders.index') }}">
             <span class="material-symbols-outlined">shopping_cart</span>
-            <span>Đơn hàng</span>
+            <span>Orders</span>
         </a>
 
         <a class="{{ request()->routeIs('admin.users.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
             href="{{ route('admin.users.index') }}">
             <span class="material-symbols-outlined">group</span>
-            <span>Người dùng</span>
+            <span>Users</span>
         </a>
 
         <a class="{{ request()->routeIs('admin.vouchers.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
@@ -126,31 +119,41 @@
             <span class="material-symbols-outlined">confirmation_number</span>
             <span>Voucher</span>
         </a>
+        <a class="{{ request()->routeIs('admin.comments.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            href="{{ route('admin.comments.index') }}">
+            <span class="material-symbols-outlined">comment</span>
+            <span>Comments</span>
+        </a>
+        <a class="{{ request()->routeIs('admin.reviews.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            href="{{ route('admin.reviews.index') }}">
+            <span class="material-symbols-outlined">rate_review</span>
+            <span>Reviews</span>
+        </a>
 
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             href="{{ route('admin.posts.index') }}">
             <span class="material-symbols-outlined">local_offer</span>
-            <span>Bài viết</span>
+            <span>Posts</span>
         </a>
 
         <a class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.wallets.*') ? 'bg-bee text-white shadow-lg shadow-bee/30' : 'text-slate-600 dark:text-slate-400 hover:bg-bee/10 hover:text-bee' }}"
             href="{{ route('admin.wallets.index') }}">
             <span class="material-symbols-outlined transition-transform group-hover:scale-110">
                 account_balance_wallet
-            </span>
-            <span class="font-medium">Quản lý ví</span>
+             </span>
+            <span class="font-medium">Wallets</span>
         </a>
         <a class="{{ request()->routeIs('admin.points.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
             href="{{ route('admin.points.index') }}">
             <span class="material-symbols-outlined">stars</span>
-            <span>Điểm thưởng</span>
+            <span>Reward Points</span>
         </a>
 
         <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
             <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium transition-colors"
                 href="#">
                 <span class="material-symbols-outlined">settings</span>
-                <span>Cài đặt</span>
+                <span>Settings</span>
             </a>
         </div>
     </nav>
@@ -164,24 +167,30 @@
     <div class="p-4 bg-slate-50 dark:bg-slate-900 m-4 rounded-xl border border-slate-100 dark:border-slate-800">
         <div class="flex items-center gap-3 w-full">
             @auth
-                {{-- 1. Ảnh Avatar --}}
+                {{-- 1. áº¢nh Avatar --}}
                 <a href="{{ route('admin.users.show', Auth::user()->id) }}">
                     <div class="w-10 h-10 rounded-full bg-slate-300 overflow-hidden shrink-0"
-                        data-alt="Avatar của {{ Auth::user()->name }}"
+                        data-alt="Avatar of {{ Auth::user()->name }}"
                         style="background-image: url('{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) }}'); background-size: cover; background-position: center;">
                     </div>
                 </a>
 
-                {{-- 2. Thông tin User --}}
+                {{-- 2. User info --}}
                 <div class="overflow-hidden flex-1">
                     <p class="text-sm font-semibold truncate text-slate-800 dark:text-white">{{ Auth::user()->name }}</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ Auth::user()->role->name_role }}</p>
+                    @php
+                        $roleLabel = Auth::user()->role?->name_role
+                            ?? Auth::user()->role?->name
+                            ?? Auth::user()->role_slug
+                            ?? 'admin';
+                    @endphp
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ $roleLabel }}</p>
                 </div>
 
-                {{-- 3. Nút Đăng xuất --}}
+                {{-- 3. Logout button --}}
                 <a href="{{ route('logout') }}"
                     class="ml-auto flex items-center justify-center w-8 h-8 rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
-                    title="Đăng xuất">
+                    title="Logout">
                     <span class="material-symbols-outlined" style="font-size: 20px;">logout</span>
                 </a>
             @endauth
@@ -189,31 +198,31 @@
     </div>
 </aside>
 
-{{-- SCRIPTS XỬ LÝ DROPDOWN --}}
+{{-- DROPDOWN SCRIPTS --}}
 <script>
     function toggleSidebarMenu(menuId, iconId) {
         const menu = document.getElementById(menuId);
         const icon = document.getElementById(iconId);
 
-        // Đóng/Mở menu bằng cách thay đổi class max-h
+        // Toggle menu by changing max-height classes
         if (menu.classList.contains('max-h-0')) {
-            // Mở menu
+            // Open menu
             menu.classList.remove('max-h-0', 'opacity-0');
             menu.classList.add('max-h-96', 'opacity-100', 'mt-1');
-            // Xoay icon
+            // Rotate icon
             icon.classList.add('rotate-180');
         } else {
-            // Đóng menu
+            // Close menu
             menu.classList.add('max-h-0', 'opacity-0');
             menu.classList.remove('max-h-96', 'opacity-100', 'mt-1');
-            // Trả icon về cũ
+            // Reset icon
             icon.classList.remove('rotate-180');
         }
     }
 </script>
 
 <style>
-    /* Style thu gọn thanh cuộn nếu menu dài quá */
+    /* Thin scrollbar for long menus */
     .custom-scrollbar::-webkit-scrollbar {
         width: 4px;
     }
@@ -230,5 +239,4 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
     }
-</style>
 </style>
