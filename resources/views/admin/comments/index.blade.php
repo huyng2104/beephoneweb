@@ -102,27 +102,42 @@
                                     {{ $comment->created_at->format('d/m/Y H:i') }}
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    @if($comment->product)
-                                        <a href="{{ route('products.show', $comment->product->id) }}#comment-{{ $comment->id }}" class="inline-flex items-center justify-center rounded-lg bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors border border-slate-200">
-                                            Xem lai
-                                        </a>
-                                    @else
-                                        <span class="inline-flex items-center justify-center rounded-lg bg-slate-50 px-3 py-2 text-xs font-bold text-slate-400 border border-slate-200 cursor-not-allowed">
-                                            Xem lai
-                                        </span>
-                                    @endif
-                                    <button type="button"
-                                        class="inline-flex items-center justify-center rounded-lg bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100 transition-colors border border-blue-200 ml-2"
-                                        data-reply-toggle="{{ $comment->id }}">
-                                        Reply
-                                    </button>
-                                    <form action="{{ route('admin.comments.destroy', $comment) }}" method="POST" class="inline ml-2" data-confirm-delete-comment>
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-primary px-3 py-2 text-xs font-bold text-slate-900 hover:brightness-105 transition-colors border border-primary/40">
-                                            Xoa
+                                    <div class="flex items-center justify-end gap-2 flex-nowrap">
+                                        @if($comment->product)
+                                            <a href="{{ route('products.show', $comment->product->id) }}#comment-{{ $comment->id }}"
+                                               class="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg bg-slate-50 px-3 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors border border-slate-200">
+                                                Xem lại
+                                            </a>
+                                        @else
+                                            <span class="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg bg-slate-50 px-3 text-xs font-bold text-slate-400 border border-slate-200 cursor-not-allowed">
+                                                Xem lại
+                                            </span>
+                                        @endif
+
+                                        <button type="button"
+                                            class="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg bg-blue-50 px-3 text-xs font-bold text-blue-700 hover:bg-blue-100 transition-colors border border-blue-200"
+                                            data-reply-toggle="{{ $comment->id }}">
+                                            Reply
                                         </button>
-                                    </form>
+
+                                        <form action="{{ route('admin.comments.toggle_hidden', $comment) }}" method="POST" class="inline-flex">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit"
+                                                class="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg bg-slate-900/5 px-3 text-xs font-bold text-slate-700 hover:bg-slate-900/10 transition-colors border border-slate-200">
+                                                {{ $comment->is_hidden ? 'Hiện' : 'Ẩn' }}
+                                            </button>
+                                        </form>
+
+                                        <form action="{{ route('admin.comments.destroy', $comment) }}" method="POST" class="inline-flex" data-confirm-delete-comment>
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg bg-primary px-3 text-xs font-bold text-slate-900 hover:brightness-105 transition-colors border border-primary/40">
+                                                Xóa
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             <tr id="reply-row-{{ $comment->id }}" class="hidden bg-slate-50/60">
