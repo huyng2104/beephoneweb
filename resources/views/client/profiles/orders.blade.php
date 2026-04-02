@@ -83,6 +83,7 @@
                                                 <form action="{{ route('products.comments.store', $product) }}" method="POST" enctype="multipart/form-data" class="mt-4 grid gap-3">
                                                     @csrf
                                                     <input type="hidden" name="redirect_to" value="/don-mua">
+                                                    <input type="hidden" name="order_id" value="{{ $reviewOrder->id }}">
 
                                                     <div class="grid gap-3 sm:grid-cols-2">
                                                         <div>
