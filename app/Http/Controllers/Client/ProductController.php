@@ -21,11 +21,16 @@ class ProductController extends Controller
         $comments = Comment::query()
             ->where('product_id', $product->id)
             ->whereNull('parent_id')
+            ->where('is_hidden', false)
             ->with([
                 'user.role',
+                'children' => fn ($q) => $q->where('is_hidden', false),
                 'children.user.role',
+                'children.children' => fn ($q) => $q->where('is_hidden', false),
                 'children.children.user.role',
+                'children.children.children' => fn ($q) => $q->where('is_hidden', false),
                 'children.children.children.user.role',
+                'children.children.children.children' => fn ($q) => $q->where('is_hidden', false),
                 'children.children.children.children.user.role',
             ])
             ->latest()
