@@ -10,7 +10,21 @@ use Illuminate\Support\Facades\Storage;
 class Comment extends Model
 {
     protected $fillable = [
-        'product_id', 'user_id', 'parent_id', 'rating', 'content', 'guest_name', 'guest_email', 'image_path'
+        'product_id',
+        'user_id',
+        'parent_id',
+        'rating',
+        'content',
+        'guest_name',
+        'guest_email',
+        'image_path',
+        'verified_purchase',
+        'is_hidden',
+    ];
+
+    protected $casts = [
+        'verified_purchase' => 'bool',
+        'is_hidden' => 'bool',
     ];
 
     public function product(): BelongsTo
@@ -46,5 +60,17 @@ class Comment extends Model
         }
 
         $this->delete();
+    }
+
+    public function setHiddenWithChildren(bool $hidden): void
+    {
+        $this->loadMissing('children');
+
+        foreach ($this->children as $child) {
+            $child->setHiddenWithChildren($hidden);
+        }
+
+        $this->is_hidden = $hidden;
+        $this->save();
     }
 }
