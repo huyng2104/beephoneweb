@@ -19,8 +19,12 @@ class WithdrawalRequest extends Model
         'transaction_id',
         'proof_image',
     ];
-    public function walletTransaction(){
+    public function walletTransaction()
+    {
         return $this->belongsTo(WalletTransaction::class);
     }
-
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id')->withTrashed();
+    }
 }

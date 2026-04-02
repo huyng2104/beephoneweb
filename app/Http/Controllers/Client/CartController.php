@@ -227,4 +227,17 @@ class CartController extends Controller
             'new_total' => number_format($totalPrice - $discountAmount, 0, ',', '.')
         ]);
     }
+
+    // Xử lý nút Thanh toán ở Giỏ hàng (Chỉ lưu các món đã tích chọn)
+    public function checkoutSelect(Request $request)
+    {
+        if (!$request->has('selected_items') || count($request->selected_items) == 0) {
+            return back()->with('error', 'Vui lòng chọn ít nhất 1 sản phẩm để thanh toán!');
+        }
+
+        // Lưu mảng ID các item được tích vào Session
+        session(['selected_cart_items' => $request->selected_items]);
+        
+        return redirect()->route('client.checkout.index');
+    }
 }
