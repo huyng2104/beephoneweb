@@ -24,11 +24,7 @@
                 <span class="material-symbols-outlined text-[#181611] text-sm">smart_toy</span>
             </div>
             <div class="bg-white dark:bg-slate-700 p-3 rounded-2xl rounded-tl-none shadow-sm text-slate-800 dark:text-white max-w-[80%]">
-<<<<<<< Updated upstream
-                Dạ em chào anh/chị! Em là trợ lý AI của BeePhone. Anh/chị đang cần tư vấn về sản phẩm hay hỗ trợ gì ạ?
-=======
                 Dạ em chào anh/chị! Em là trợ lý AI của BeePhone. Anh/chị đang cần hỗ trợ về sản phẩm hay dịch vụ nào ạ? Anh/chị có thể hỏi về bảo hành, kỹ thuật, đặt hàng hoặc bất cứ điều gì liên quan đến BeePhone nhé!
->>>>>>> Stashed changes
             </div>
         </div>
     </div>
@@ -202,7 +198,6 @@
                             </div>
                         </div>
                     `);
-<<<<<<< Updated upstream
                     scrollToBottom();
                     saveChatHistory(); 
 
@@ -213,14 +208,8 @@
                 error: function() {
                     $('#' + loadingId).remove();
                     $('#chat-box').append('<div class="text-center text-xs text-red-500 mt-2">Lỗi kết nối. Vui lòng thử lại!</div>');
-=======
-
->>>>>>> Stashed changes
                     scrollToBottom();
 
-<<<<<<< Updated upstream
-                    // 2. MỞ KHOÁ LẠI KHI LỖI
-=======
                     // Enable send button
                     $('#send-chat').prop('disabled', false).css('opacity', '1');
                     $('#chat-input').prop('disabled', false).attr('placeholder', 'Nhập câu hỏi...').focus();
@@ -244,26 +233,12 @@
                     saveChatHistory();
 
                     // Enable send button
->>>>>>> Stashed changes
                     $('#send-chat').prop('disabled', false).css('opacity', '1');
                     $('#chat-input').prop('disabled', false).attr('placeholder', 'Nhập câu hỏi...').focus();
                 }
             });
         }
 
-<<<<<<< Updated upstream
-        $('#send-chat').click(sendMessage);
-        $('#chat-input').keypress(function(e) {
-            if(e.which == 13) sendMessage();
-        });
-
-        function scrollToBottom() {
-            let chatBox = document.getElementById("chat-box");
-            if (chatBox) {
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }
-        }
-=======
         // Send on button click
         $('#send-chat').click(function() {
             sendMessage();
@@ -351,6 +326,5 @@
                 }
             });
         });
->>>>>>> Stashed changes
     });
 </script>

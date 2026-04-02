@@ -30,6 +30,7 @@ use App\Http\Controllers\AdminControllers\PostCategoryController;
 use App\Http\Controllers\AdminControllers\WalletController;
 use App\Http\Controllers\AdminControllers\SupportController;
 use App\Http\Controllers\AdminControllers\CustomerActivityController;
+use App\Http\Controllers\AdminControllers\ChatbotFaqController;
 
 use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\Client\ProfileController;
@@ -61,12 +62,10 @@ Route::middleware('check.verified')->group(function () {
     Route::post('/lien-he', [ContactController::class, 'submit'])->name('contact.submit');
     Route::get('/lien-he-v2', function() { return view('client.Contact & Support.index'); })->name('contact.v2');
 
-<<<<<<< Updated upstream
     // Chatbot API
     Route::get('/api/chatbot/categories', [ChatbotController::class, 'getCategories']);
     Route::get('/api/chatbot/questions/{category}', [ChatbotController::class, 'getQuestions']);
     Route::get('/api/search/suggestions', [ClientProductController::class, 'searchSuggestions'])->name('client.search.suggestions');
-=======
     // Terms of Service
     Route::get('/dieu-khoan-su-dung', function() { return view('client.terms'); })->name('terms');
 
@@ -78,7 +77,6 @@ Route::middleware('check.verified')->group(function () {
 
     // Cookie Policy
     Route::get('/chinh-sach-cookie', function() { return view('client.cookie-policy'); })->name('cookie-policy');
->>>>>>> Stashed changes
 
     // Chi tiết sản phẩm & Danh sách sản phẩm
     Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
@@ -282,9 +280,6 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::post('posts/toggle-status/{id}', [PostController::class, 'toggleStatus'])
             ->name('posts.toggleStatus');
 
-<<<<<<< Updated upstream
-        // 9. Quản lý Ví tiền
-=======
         // Quản lý yêu cầu hỗ trợ
         Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
         Route::get('/tickets/{id}', [TicketController::class, 'show'])->name('tickets.show');
@@ -298,8 +293,10 @@ Route::middleware(['auth', 'verified', 'role:admin,staff'])->group(function () {
         Route::delete('banners/{id}/force-delete', [BannerController::class, 'forceDelete'])->name('banners.force_delete');
         Route::resource('banners', BannerController::class);
 
+        // 11. Quản lý Chatbot FAQs
+        Route::resource('chatbot-faqs', ChatbotFaqController::class);
+
         // 10. Quản lý Ví tiền
->>>>>>> Stashed changes
         Route::get('/wallets', [WalletController::class, 'index'])->name('wallets.index');
         Route::post('/wallets/update', [WalletController::class, 'update'])->name('wallets.update');
         Route::get('/wallets/{id}/history', [WalletController::class, 'history'])->name('wallets.history');
