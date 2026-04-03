@@ -41,28 +41,46 @@
             </div>
 
             <!-- Actions -->
-            <div class="flex flex-wrap gap-4">
+            <div class="flex flex-col md:items-end gap-3">
 
                 @if ($user->wallet && $user->wallet->status === 'active')
+                    
+                    <!-- Nạp và Rút -->
+                    <div class="flex flex-wrap gap-4">
+                        <!-- Nạp -->
+                        <button type="button" onclick="openDepositModal()"
+                            class="bg-[#f4c025] text-black px-6 py-3 rounded-xl font-bold hover:bg-yellow-400 transition flex items-center gap-2 shadow-lg shadow-yellow-900/20">
 
-                    <!-- Nạp -->
-                    <button type="button" onclick="openDepositModal()"
-                        class="bg-[#f4c025] text-black px-6 py-3 rounded-xl font-bold hover:bg-yellow-400 transition flex items-center gap-2 shadow-lg shadow-yellow-900/20">
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                    clip-rule="evenodd" />
+                            </svg>
 
-                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                                clip-rule="evenodd" />
-                        </svg>
+                            Nạp tiền
+                        </button>
 
-                        Nạp tiền
-                    </button>
+                        <!-- Rút -->
+                        <button onclick="openWithdrawModal()"
+                            class="border border-gray-600 px-6 py-3 rounded-xl font-bold hover:bg-white/10 transition">
+                            Rút tiền
+                        </button>
+                    </div>
 
-                    <!-- Rút -->
-                    <button onclick="openWithdrawModal()"
-                        class="border border-gray-600 px-6 py-3 rounded-xl font-bold hover:bg-white/10 transition">
-                        Rút tiền
-                    </button>
+                    <!-- Quản lý mã PIN -->
+                    <div class="flex items-center gap-3">
+                        <button type="button" id="btnChangeWalletPassword"
+                            class="text-sm font-semibold text-[#f4c025] hover:text-yellow-400 hover:underline transition">
+                            Đổi mã PIN
+                        </button>
+                        
+                        <span class="text-gray-600 text-sm">|</span>
+
+                        <button type="button" id="btnForgotWalletPassword"
+                            class="text-sm font-semibold text-gray-400 hover:text-gray-200 hover:underline transition">
+                            Quên mã PIN?
+                        </button>
+                    </div>
 
                 @elseif ($user->wallet && $user->wallet->status !== 'active')
 
@@ -922,8 +940,160 @@
             </form>
         </div>
     </div>
+
+    {{-- Modal Quên Mật Khẩu Ví --}}
+    <div id="forgotWalletPasswordModal"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden transition-opacity duration-300">
+
+        <div class="bg-[#18181b] border border-white/10 rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
+
+            <button type="button"
+                class="close-forgot-wallet absolute top-4 right-4 text-gray-500 hover:text-red-500 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+
+            <h3 class="text-xl font-bold mb-1 text-white">Quên mã PIN ví?</h3>
+            <p class="text-sm text-gray-400 mb-6">Mã PIN mới sẽ được tự động tạo và gửi đến email của bạn để đảm bảo an toàn.</p>
+
+            <form action="{{ route('wallet.forgot-password') }}" method="POST">
+                @csrf
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Email liên kết với tài khoản</label>
+                        <input type="email" name="email" value="{{ $user->email }}" readonly
+                            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-gray-500 cursor-not-allowed">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button"
+                        class="close-forgot-wallet flex-1 py-2.5 rounded-xl border border-white/10 text-gray-300 font-medium hover:bg-white/10 transition-colors">
+                        Hủy bỏ
+                    </button>
+                    <button type="submit"
+                        class="flex-1 py-2.5 rounded-xl bg-[#f4c025] text-black font-bold hover:bg-yellow-400 transition-colors shadow-lg shadow-yellow-900/30">
+                        Gửi yêu cầu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Modal Đổi Mật Khẩu Ví --}}
+    <div id="changeWalletPasswordModal"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden transition-opacity duration-300">
+
+        <div class="bg-[#18181b] border border-white/10 rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
+
+            <button type="button"
+                class="close-change-wallet-pwd absolute top-4 right-4 text-gray-500 hover:text-red-500 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+
+            <h3 class="text-xl font-bold mb-1 text-white">Đổi mã PIN ví</h3>
+            <p class="text-sm text-gray-400 mb-6">Mã PIN ví là mật khẩu gồm 6 chữ số.</p>
+
+            <form action="{{ route('wallet.change-password') }}" method="POST">
+                @csrf
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Mã PIN hiện tại</label>
+                        <input type="password" name="old_wallet_pin" required placeholder="Nhập mã PIN hiện tại"
+                            class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 outline-none tracking-[0.5em] text-center font-bold focus:border-[#f4c025] focus:ring-1 focus:ring-[#f4c025]"
+                            maxlength="6" pattern="\d{6}">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Mã PIN mới</label>
+                        <input type="password" name="wallet_pin" required placeholder="Nhập mã PIN mới (6 số)"
+                            class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 outline-none tracking-[0.5em] text-center font-bold focus:border-[#f4c025] focus:ring-1 focus:ring-[#f4c025]"
+                            maxlength="6" pattern="\d{6}">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Xác nhận mã PIN mới</label>
+                        <input type="password" name="wallet_pin_confirmation" required placeholder="Nhập lại mã PIN mới"
+                            class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 outline-none tracking-[0.5em] text-center font-bold focus:border-[#f4c025] focus:ring-1 focus:ring-[#f4c025]"
+                            maxlength="6" pattern="\d{6}">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button"
+                        class="close-change-wallet-pwd flex-1 py-2.5 rounded-xl border border-white/10 text-gray-300 font-medium hover:bg-white/10 transition-colors">
+                        Hủy bỏ
+                    </button>
+                    <button type="submit"
+                        class="flex-1 py-2.5 rounded-xl bg-[#f4c025] text-black font-bold hover:bg-yellow-400 transition-colors shadow-lg shadow-yellow-900/30">
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 @push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Script xử lý Modal Quên Mật Khẩu Ví
+            const btnForgotWalletPassword = document.getElementById('btnForgotWalletPassword');
+            const forgotWalletPasswordModal = document.getElementById('forgotWalletPasswordModal');
+            const closeForgotWalletModals = document.querySelectorAll('.close-forgot-wallet');
+
+            if (btnForgotWalletPassword && forgotWalletPasswordModal) {
+                btnForgotWalletPassword.addEventListener('click', function() {
+                    forgotWalletPasswordModal.classList.remove('hidden');
+                });
+            }
+
+            if (closeForgotWalletModals) {
+                closeForgotWalletModals.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        forgotWalletPasswordModal.classList.add('hidden');
+                    });
+                });
+            }
+
+            if (forgotWalletPasswordModal) {
+                forgotWalletPasswordModal.addEventListener('click', function(e) {
+                    if (e.target === forgotWalletPasswordModal) {
+                        forgotWalletPasswordModal.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Script xử lý Modal Đổi Mật Khẩu Ví
+            const btnChangeWalletPassword = document.getElementById('btnChangeWalletPassword');
+            const changeWalletPasswordModal = document.getElementById('changeWalletPasswordModal');
+            const closeChangeWalletPwdModals = document.querySelectorAll('.close-change-wallet-pwd');
+
+            if (btnChangeWalletPassword && changeWalletPasswordModal) {
+                btnChangeWalletPassword.addEventListener('click', function() {
+                    changeWalletPasswordModal.classList.remove('hidden');
+                });
+            }
+
+            if (closeChangeWalletPwdModals) {
+                closeChangeWalletPwdModals.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        changeWalletPasswordModal.classList.add('hidden');
+                    });
+                });
+            }
+
+            if (changeWalletPasswordModal) {
+                changeWalletPasswordModal.addEventListener('click', function(e) {
+                    if (e.target === changeWalletPasswordModal) {
+                        changeWalletPasswordModal.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
     <script>
         function openTransactionModal(buttonElement) {
             // 1. Lấy dữ liệu từ cái nút vừa bấm

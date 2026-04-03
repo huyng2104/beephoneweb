@@ -13,13 +13,14 @@ Artisan::command('inspire', function () {
 Schedule::call(function () {
     $expiredTime = Carbon::now()->subMinutes(15);
 
-    DB::table('wallet_transactions')
-        ->where('type', 'deposit')
-        ->where('status', 'pending')
-        ->where('created_at', '<', $expiredTime)
+    DB::table('wallets')
+        ->where('status', 'locked')
+        ->where('locked_until', '<', $expiredTime)
         ->update([
-            'status'      => 'failed',
-            'description' => 'Hết thời gian thanh toán VNPAY',
+            'status' => 'active',
+            'pin_attempts'      => 0,
+            'locked_until' => null,
+            'lock_reason' => null,
             'updated_at'  => Carbon::now()
         ]);
 })->everyMinute();

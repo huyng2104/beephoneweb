@@ -95,6 +95,7 @@ class UserController extends Controller
      */
     public function create()
     {
+        Gate::authorize('customer.create');
         $roles = Role::select('id', 'name')->get();
         $permissions = Permission::all();
         return view('admin.users.create')->with([
@@ -108,6 +109,7 @@ class UserController extends Controller
      */
     public function store(StoreUserRequest $request)
     {
+        Gate::authorize('customer.create');
 
         $path_avatar = null;
 
@@ -163,8 +165,8 @@ class UserController extends Controller
         
         Gate::authorize('customer.view');
         $user = User::with(['orders' => function($query) {
-        $query->latest(); // 👈 Tương đương với orderBy('created_at', 'desc')
-    }])->findOrFail($id);
+            $query->latest()->take(5);
+        }])->findOrFail($id);
         $activities = Activity::with('subject')
             ->where('causer_type', 'App\Models\User')
             ->where('causer_id', $user->id)
@@ -173,6 +175,89 @@ class UserController extends Controller
         return view('admin.users.show')->with([
             'user' => $user,
             'activities' => $activities
+        ]);
+    }
+
+    public function activities(Request $request, string $id)
+    {
+        Gate::authorize('customer.view');
+        $user = User::findOrFail($id);
+        
+        $query = Activity::with('subject')
+            ->where('causer_type', 'App\Models\User')
+            ->where('causer_id', $user->id);
+
+        if ($request->filled('log_name')) {
+            $query->where('log_name', $request->log_name);
+        }
+
+        if ($request->filled('event_type')) {
+            $query->where('description', $request->event_type);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $sortOrder = $request->input('sort', 'desc');
+        if ($sortOrder === 'asc') {
+            $query->oldest();
+        } else {
+            $query->latest();
+        }
+
+        $activities = $query->paginate(15)->withQueryString();
+            
+        return view('admin.users.activities')->with([
+            'user' => $user,
+            'activities' => $activities
+        ]);
+    }
+
+    public function orders(Request $request, string $id)
+    {
+        Gate::authorize('customer.view');
+        $user = User::findOrFail($id);
+        
+        $query = $user->orders();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('return_status')) {
+            $query->where('return_status', $request->return_status);
+        }
+
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where('order_code', 'like', "%{$search}%");
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $sortOrder = $request->input('sort', 'desc');
+        if ($sortOrder === 'asc') {
+            $query->oldest();
+        } else {
+            $query->latest();
+        }
+
+        $orders = $query->paginate(15)->withQueryString();
+            
+        return view('admin.users.orders')->with([
+            'user' => $user,
+            'orders' => $orders
         ]);
     }
 
@@ -197,6 +282,7 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, string $id)
     {
+        Gate::authorize('customer.update');
         $user = User::findOrFail($id);
         $old_avatar = $user->avatar;
         $path_avatar = $user->avatar;
@@ -253,6 +339,7 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
+        Gate::authorize('customer.delete');
         $user = User::findOrFail($id);
         $user->delete();
         return back()->with('success', 'Đã xóa người dùng');
@@ -277,6 +364,7 @@ class UserController extends Controller
     }
     public function resetPw($id)
     {
+        Gate::authorize('customer.update');
         $user = User::findOrFail($id);
         $password = Str::random(8);
         $user->update([
@@ -289,6 +377,7 @@ class UserController extends Controller
     }
     public function restore($id)
     {
+        Gate::authorize('customer.delete');
         $user = User::withTrashed()->findOrFail($id);
 
         // ♻️ Khôi phục lại trạng thái bình thường (deleted_at về NULL)

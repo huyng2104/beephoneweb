@@ -9,11 +9,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Gate;
 
 class CommentController extends Controller
 {
     public function index(Request $request): View
     {
+        Gate::authorize('comment.view');
         $query = Comment::with(['user.role', 'product', 'parent'])->latest();
 
         if ($request->filled('product_id')) {
@@ -39,6 +41,7 @@ class CommentController extends Controller
 
     public function destroy(Request $request, Comment $comment): RedirectResponse|JsonResponse
     {
+        Gate::authorize('comment.delete');
         $comment->deleteWithChildren();
 
         if ($request->expectsJson()) {
@@ -58,6 +61,7 @@ class CommentController extends Controller
 
     public function reply(Request $request, Comment $comment): RedirectResponse
     {
+        Gate::authorize('comment.reply');
         $validated = $request->validate([
             'content' => ['required', 'string', 'max:2000'],
         ], [

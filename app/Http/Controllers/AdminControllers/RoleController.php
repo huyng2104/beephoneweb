@@ -9,6 +9,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 
 class RoleController extends Controller
 {
@@ -17,6 +18,7 @@ class RoleController extends Controller
      */
     public function index()
     {
+        Gate::authorize('roles.view');
         $roles = Role::whereNotIn('name', ['user', 'admin'])
             ->orderBy('id', 'desc')
             ->paginate(5);
@@ -30,6 +32,7 @@ class RoleController extends Controller
      */
     public function create()
     {
+        Gate::authorize('roles.create');
         $permissions = Permission::all()->groupBy(function ($item) {
             return explode('.', $item->slug)[0]; // Trả về 'product', 'customer', v.v.
         });
@@ -45,6 +48,7 @@ class RoleController extends Controller
      */
     public function store(StoreRoleRequest $request)
     {
+        Gate::authorize('roles.create');
         $data = [
             'name' => $request->name,
             'description' => $request->description
@@ -70,6 +74,7 @@ class RoleController extends Controller
      */
     public function show($id)
     {
+        Gate::authorize('roles.view');
         $role = Role::findOrFail($id);
 
         // Gom nhóm Permission để làm khung hiển thị
@@ -88,6 +93,7 @@ class RoleController extends Controller
      */
     public function edit(string $id)
     {
+        Gate::authorize('roles.update');
         $role = Role::findOrFail($id);
 
         $permissions = Permission::all()->groupBy(function ($item) {
@@ -105,6 +111,7 @@ class RoleController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        Gate::authorize('roles.update');
         $role = Role::findOrFail($id);
         $data = $request->validate([
             'name'        => 'required|string|max:50|unique:roles,name,' . $role->id,
@@ -130,6 +137,7 @@ class RoleController extends Controller
      */
     public function destroy(string $id)
     {
+        Gate::authorize('roles.delete');
         $role = Role::findOrFail($id);
         if ($role->users->isNotEmpty()) {
             return back()->with([
@@ -142,6 +150,7 @@ class RoleController extends Controller
 
     public function listMembers(Request $request)
     {
+        Gate::authorize('member.view');
         // Giả định quan hệ trong Model User của bạn tên là 'role'
         $totalUsers = User::whereHas('role', function ($q) {
             $q->where('name', '!=', 'user');

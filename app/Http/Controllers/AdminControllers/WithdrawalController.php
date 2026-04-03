@@ -9,11 +9,13 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\WalletTransaction;
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 
 class WithdrawalController extends Controller
 {
     public function index(Request $request)
     {
+        Gate::authorize('withdrawal.view');
         // 1. Lấy dữ liệu thống kê (Grid 4 cột trên cùng)
         $totalPendingAmount = WithdrawalRequest::where('status', 'pending')->sum('amount');
         $pendingCount = WithdrawalRequest::where('status', 'pending')->count();
@@ -70,6 +72,7 @@ class WithdrawalController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('withdrawal.view');
         // Lấy chi tiết đơn rút kèm thông tin user và ví của họ để đối chiếu số dư
         $withdrawal = WithdrawalRequest::with(['user.wallet'])->findOrFail($id);
         return view('admin.withdrawals.show', compact('withdrawal'));
@@ -79,6 +82,7 @@ class WithdrawalController extends Controller
      */
     public function approve(Request $request, $id)
     {
+        Gate::authorize('withdrawal.approve');
         $withdrawal = WithdrawalRequest::findOrFail($id);
 
         // Chặn nếu đơn đã được xử lý
@@ -140,6 +144,7 @@ class WithdrawalController extends Controller
      */
     public function reject(Request $request, $id)
     {
+        Gate::authorize('withdrawal.reject');
         $withdrawal = WithdrawalRequest::with('user.wallet')->findOrFail($id);
 
         if ($withdrawal->status !== 'pending') {
@@ -209,6 +214,7 @@ class WithdrawalController extends Controller
     }
     public function history(Request $request, $id)
     {
+        Gate::authorize('withdrawal.view');
         $user = User::findOrFail($id);
 
         // Xây dựng query cơ bản cho user này

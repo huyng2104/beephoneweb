@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 class BannerController extends Controller
 {
     /**
@@ -13,6 +14,7 @@ class BannerController extends Controller
      */
     public function index()
     {
+        Gate::authorize('banner.view');
         $banners = Banner::orderBy('sort_order', 'asc')->get();
         return view('admin.banners.index', compact('banners'));
     }
@@ -22,6 +24,7 @@ class BannerController extends Controller
      */
     public function create()
     {
+        Gate::authorize('banner.create');
         return view('admin.banners.create');
     }
 
@@ -30,6 +33,7 @@ class BannerController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('banner.create');
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'type' => 'required',
@@ -61,6 +65,7 @@ class BannerController extends Controller
      */
     public function show(Banner $banner)
     {
+        Gate::authorize('banner.view');
         //
     }
 
@@ -69,6 +74,7 @@ class BannerController extends Controller
      */
     public function edit(Banner $banner)
     {
+        Gate::authorize('banner.update');
         return view('admin.banners.edit', compact('banner'));
     }
 
@@ -77,6 +83,7 @@ class BannerController extends Controller
      */
     public function update(Request $request, Banner $banner)
     {
+        Gate::authorize('banner.update');
         $request->validate([
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'type' => 'required',
@@ -116,6 +123,7 @@ class BannerController extends Controller
      */
     public function destroy(Banner $banner)
     {
+        Gate::authorize('banner.delete');
         $banner->delete();
         return redirect()->route('admin.banners.index')->with('success', 'Đã chuyển banner vào thùng rác!');
     }
@@ -125,6 +133,7 @@ class BannerController extends Controller
      */
     public function trash()
     {
+        Gate::authorize('banner.delete');
         $banners = Banner::onlyTrashed()->orderBy('deleted_at', 'desc')->get();
         return view('admin.banners.trash', compact('banners'));
     }
@@ -134,6 +143,7 @@ class BannerController extends Controller
      */
     public function restore($id)
     {
+        Gate::authorize('banner.delete');
         $banner = Banner::onlyTrashed()->findOrFail($id);
         $banner->restore();
         return redirect()->route('admin.banners.trash')->with('success', 'Khôi phục banner thành công!');
@@ -144,6 +154,7 @@ class BannerController extends Controller
      */
     public function forceDelete($id)
     {
+        Gate::authorize('banner.delete');
         $banner = Banner::onlyTrashed()->findOrFail($id);
         if ($banner->image_url) {
             $path = public_path(str_replace(asset(''), '', $banner->image_url));

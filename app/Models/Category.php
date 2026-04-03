@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Category extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity;
 
     protected $fillable = [
         'name',
@@ -40,5 +42,13 @@ class Category extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->useLogName('category')
+            ->logOnlyDirty();
     }
 }

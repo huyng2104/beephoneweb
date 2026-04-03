@@ -433,4 +433,85 @@ class WalletController extends Controller
             'success' => 'Đã gỡ tài khoản'
         ]);
     }
+
+    public function forgotPassword(Request $request)
+    {
+        $user = Auth::user();
+
+        // Validate that user submitted their own email
+        if ($request->email !== $user->email) {
+            return back()->with('error', 'Email không hợp lệ.');
+        }
+
+        $wallet = $user->wallet;
+
+        if (!$wallet) {
+            return back()->with('error', 'Bạn chưa kích hoạt ví.');
+        }
+
+        // Tạo mã PIN 6 số ngẫu nhiên
+        $newPin = str_pad(mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        try {
+            DB::transaction(function () use ($wallet, $newPin) {
+                $updateData = [
+                    'wallet_pin' => $newPin,
+                    'pin_attempts' => 0,
+                ];
+
+                // Nếu ví đang bị khóa do nhập sai PIN nhiều lần thì mở khóa
+                if ($wallet->lock_reason === 'Nhập sai mã PIN quá 5 lần.') {
+                    $updateData['status'] = 'active';
+                    $updateData['lock_reason'] = null;
+                    $updateData['locked_until'] = null;
+                }
+
+                $wallet->update($updateData);
+            });
+
+            // Gửi mail cho khách
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\WalletForgotPasswordMail($newPin));
+
+            return back()->with('success', 'Mật khẩu ví mới đã được gửi vào email của bạn. Vui lòng kiểm tra hộp thư.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
+    }
+
+    public function changePassword(Request $request)
+    {
+        $user = Auth::user();
+        $wallet = $user->wallet;
+
+        if (!$wallet) {
+            return back()->with('error', 'Bạn chưa kích hoạt ví.');
+        }
+
+        $request->validate([
+            'old_wallet_pin' => 'required|numeric|digits:6',
+            'wallet_pin' => 'required|numeric|digits:6|confirmed',
+        ], [
+            'old_wallet_pin.required' => 'Vui lòng nhập mã PIN hiện tại.',
+            'old_wallet_pin.numeric' => 'Mã PIN ví chỉ được phép chứa các chữ số.',
+            'old_wallet_pin.digits' => 'Mã PIN ví phải bao gồm chính xác 6 chữ số.',
+            'wallet_pin.required' => 'Vui lòng nhập mã PIN mới.',
+            'wallet_pin.numeric' => 'Mã PIN mới chỉ được phép chứa các chữ số.',
+            'wallet_pin.digits' => 'Mã PIN mới phải bao gồm chính xác 6 chữ số.',
+            'wallet_pin.confirmed' => 'Mã PIN xác nhận không trùng khớp.',
+        ]);
+
+        if (!Hash::check($request->old_wallet_pin, $wallet->wallet_pin)) {
+            return back()->with('error', 'Mã PIN hiện tại không chính xác.');
+        }
+
+        try {
+            $wallet->update([
+                'wallet_pin' => $request->wallet_pin,
+            ]);
+
+            return back()->with('success', 'Đổi mã PIN ví thành công!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
+    }
 }

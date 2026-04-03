@@ -3,64 +3,18 @@
 @section('title', 'Bee Phone - Đặt hàng thành công')
 
 @section('content')
-<style>
-    /* Hiệu ứng xoay tròn và bung tỏa cho Icon */
-    @keyframes success-check {
-        0% { transform: scale(0) rotate(-180deg); opacity: 0; }
-        60% { transform: scale(1.2) rotate(20deg); opacity: 1; }
-        100% { transform: scale(1) rotate(0deg); }
-    }
-
-    /* Hiệu ứng trồi lên cho phần chữ */
-    @keyframes fade-up {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-
-    .animate-success-icon {
-        animation: success-check 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    }
-
-    .animate-text-content {
-        opacity: 0;
-        animation: fade-up 0.6s ease-out 0.5s forwards;
-    }
-
-    /* Hiệu ứng lấp lánh chạy qua nút */
-    .btn-shine {
-        position: relative;
-        overflow: hidden;
-    }
-    .btn-shine::after {
-        content: "";
-        position: absolute;
-        top: -50%;
-        left: -60%;
-        width: 20%;
-        height: 200%;
-        background: rgba(255, 255, 255, 0.4);
-        transform: rotate(30deg);
-        transition: 0s;
-    }
-    .btn-shine:hover::after {
-        left: 120%;
-        transition: 0.6s;
-    }
-</style>
-
-<main class="min-h-[80vh] flex items-start justify-center p-6 py-10 bg-gray-50/50 dark:bg-black">
-    <div class="w-full max-w-4xl space-y-6">
-        <div class="bg-white dark:bg-[#1a1a1a] p-10 rounded-[2.5rem] shadow-2xl text-center border border-gray-100 dark:border-white/5 relative overflow-hidden">
+<main class="max-w-[800px] mx-auto py-12 px-6 min-h-[80vh]">
+    <div class="bg-white dark:bg-black/20 rounded-xl shadow-sm border border-[#e6e3db] dark:border-white/10 overflow-hidden animate-[fade-in-up_0.6s_ease-out]">
         
         <div class="bg-primary p-8 text-center relative overflow-hidden">
             <div class="absolute -top-10 -left-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
             <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
 
-            <div class="bg-white w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 relative z-10 shadow-lg animate-[bounce_1s_ease-in-out_infinite]">
-                <span class="material-symbols-outlined text-green-500 text-3xl font-bold">check_circle</span>
+            <div class="bg-white w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 relative z-10 shadow-[0_0_30px_rgba(255,255,255,0.5)] animate-bounce-in">
+                <span class="material-symbols-outlined text-green-500 text-4xl font-bold">check_circle</span>
             </div>
-            <h1 class="text-2xl font-bold text-[#181611] relative z-10 uppercase tracking-tight">Đặt hàng thành công!</h1>
-            <p class="text-[#181611]/80 mt-1 font-medium relative z-10">Cảm ơn bạn đã tin tưởng Bee Phone</p>
+            <h1 class="text-2xl font-black text-[#181611] relative z-10 uppercase tracking-tight ai-sparkle-text">Đặt hàng thành công!</h1>
+            <p class="text-[#181611]/80 mt-1 font-bold relative z-10">Cảm ơn bạn đã tin tưởng Bee Phone</p>
         </div>
         
         <div class="p-8">
@@ -101,7 +55,7 @@
                     </div>
                     <div class="flex justify-between text-sm">
                         <span class="text-[#8a8060] dark:text-gray-400">Phí vận chuyển:</span>
-                        <span class="text-[#181611] dark:text-white font-medium">Miễn phí</span>
+                        <span class="text-green-600 font-bold">Miễn phí</span>
                     </div>
                     
                     @if($order->total_price > $order->total_amount)
@@ -136,9 +90,9 @@
                     Về trang chủ
                 </a>
                 @if(Auth::check())
-                <a href="{{ route('client.orders.index') }}" class="bg-[#181611] dark:bg-primary text-white dark:text-[#181611] font-bold py-3 px-8 rounded-xl hover:opacity-90 transition-colors shadow-lg">
-    Theo dõi đơn hàng
-</a>
+                <a href="{{ route('client.orders.show', $order->id) }}" class="bg-[#181611] dark:bg-primary text-white dark:text-[#181611] font-bold py-3 px-8 rounded-xl hover:opacity-90 transition-colors shadow-lg">
+                    Theo dõi đơn hàng
+                </a>
                 @endif
             </div>
         </div>
@@ -242,4 +196,85 @@
         @endif
     </div>
 </main>
+
+<style>
+    @keyframes fade-in-up {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Chữ phát sáng */
+    .ai-sparkle-text {
+        background: linear-gradient(90deg, #181611 0%, #6b6b6b 50%, #181611 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 200% auto;
+        animation: shine 3s linear infinite;
+    }
+    .dark .ai-sparkle-text {
+        background: linear-gradient(90deg, #ffffff 0%, #f4c025 50%, #ffffff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 200% auto;
+    }
+    @keyframes shine {
+        to { background-position: 200% center; }
+    }
+
+    /* Hiệu ứng nảy mạnh */
+    .animate-bounce-in {
+        animation: bounceIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes bounceIn {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.3); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+</style>
 @endsection
+
+{{-- ĐẨY SCRIPT PHÁO GIẤY VÀ ÂM THANH XUỐNG CUỐI LAYOUT --}}
+@push('js')
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. CHƠI ÂM THANH "TING" THÀNH CÔNG
+        const audio = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3');
+        audio.volume = 0.5; // Giảm âm lượng 50%
+        audio.play().catch(function(error) {
+            console.log("Trình duyệt có thể chặn Autoplay âm thanh lần đầu!");
+        });
+
+        // 2. BẮN PHÁO GIẤY TỪ 2 BÊN MÀN HÌNH
+        var duration = 3.5 * 1000; 
+        var animationEnd = Date.now() + duration;
+        // Tone màu Vàng Bee Phone + Trắng + Đen
+        var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999, colors: ['#f4c025', '#ffffff', '#181611'] };
+
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        var interval = setInterval(function() {
+            var timeLeft = animationEnd - Date.now();
+
+            if (timeLeft <= 0) {
+                return clearInterval(interval);
+            }
+
+            var particleCount = 50 * (timeLeft / duration);
+            // Bắn góc trái
+            confetti(Object.assign({}, defaults, { 
+                particleCount,
+                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+            }));
+            // Bắn góc phải
+            confetti(Object.assign({}, defaults, { 
+                particleCount,
+                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+            }));
+        }, 250);
+    });
+</script>
+@endpush

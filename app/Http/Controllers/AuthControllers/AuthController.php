@@ -52,7 +52,9 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
-        if (Auth::attempt($data)) {
+        $remember = $request->boolean('remember');
+
+        if (Auth::attempt($data, $remember)) {
             $request->session()->regenerate();
             activity('auth')
                 ->causedBy($user) // Xác định người vừa đăng nhập

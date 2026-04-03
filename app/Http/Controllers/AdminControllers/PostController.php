@@ -8,11 +8,13 @@ use App\Models\PostCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Gate;
 
 class PostController extends Controller
 {
     public function index(Request $request)
     {
+        Gate::authorize('posts.view');
         $query = Post::with(['category', 'user']);
 
         // tìm kiếm
@@ -50,6 +52,7 @@ class PostController extends Controller
 
     public function create()
     {
+        Gate::authorize('posts.create');
         $categories = PostCategory::all();
 
         return view('admin.posts.create', compact('categories'));
@@ -57,7 +60,7 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
-
+        Gate::authorize('posts.create');
         $request->validate([
             'title' => 'required',
             'thumbnail' => 'required|image',
@@ -93,6 +96,7 @@ class PostController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('posts.update');
         $post = Post::findOrFail($id);
 
         $categories = PostCategory::all();
@@ -102,6 +106,7 @@ class PostController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('posts.update');
         $post = \App\Models\Post::findOrFail($id);
 
         $thumbnail = $post->thumbnail;
@@ -138,6 +143,7 @@ class PostController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('posts.delete');
         $post = Post::findOrFail($id);
 
         $post->delete();
@@ -149,6 +155,7 @@ class PostController extends Controller
 
     public function trash()
     {
+        Gate::authorize('posts.delete');
         $posts = Post::onlyTrashed()->paginate(10);
 
         return view('admin.posts.trash', compact('posts'));
@@ -156,6 +163,7 @@ class PostController extends Controller
 
     public function restore($id)
     {
+        Gate::authorize('posts.delete');
         $post = Post::onlyTrashed()->findOrFail($id);
 
         $post->restore();
@@ -165,6 +173,7 @@ class PostController extends Controller
 
     public function forceDelete($id)
     {
+        Gate::authorize('posts.delete');
         $post = Post::onlyTrashed()->findOrFail($id);
 
         $post->forceDelete();
@@ -174,6 +183,7 @@ class PostController extends Controller
 
     public function upload(Request $request)
     {
+        Gate::authorize('posts.create');
         if ($request->hasFile('upload')) {
 
             $file = $request->file('upload');
@@ -201,6 +211,7 @@ class PostController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('posts.view');
         $post = Post::findOrFail($id);
 
         return view('admin.posts.detail', compact('post'));
@@ -208,6 +219,7 @@ class PostController extends Controller
 
     public function toggleStatus($id)
     {
+        Gate::authorize('posts.update');
         $post = Post::findOrFail($id);
         $post->status = !$post->status;
         $post->save();

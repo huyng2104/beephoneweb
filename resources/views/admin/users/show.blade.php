@@ -219,9 +219,15 @@
 
                     <div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-primary/10 shadow-sm">
                         <div class="p-8">
-                            <h3 class="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100 mb-6">
-                                <span class="w-1.5 h-6 bg-primary rounded-full"></span> Lịch sử đặt hàng
-                            </h3>
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100 mb-0">
+                                    <span class="w-1.5 h-6 bg-primary rounded-full"></span> Lịch sử đặt hàng
+                                </h3>
+                                <a href="{{ route('admin.users.orders', $user->id) }}" class="text-primary hover:underline text-xs font-bold flex items-center gap-1">
+                                    Xem tất cả
+                                    <span class="material-symbols-outlined text-sm">chevron_right</span>
+                                </a>
+                            </div>
 
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-slate-100 dark:divide-slate-800 text-sm">
@@ -309,18 +315,57 @@
             <div class="bg-white dark:bg-slate-900 rounded-xl p-6 mb-8 border border-primary/10 shadow-sm">
     <div class="flex-1">
         <div class="flex items-center justify-between mb-4">
-            <p class="text-sm font-bold text-slate-900 dark:text-slate-100">Lịch sử hoạt động của người dùng</p>
-            <span class="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-1 rounded-md dark:bg-blue-900/30 dark:text-blue-400">
-                Tổng: {{ $activities->total() }} bản ghi
-            </span>
+            <div class="flex items-center gap-3">
+                <p class="text-sm font-bold text-slate-900 dark:text-slate-100">Lịch sử hoạt động của người dùng</p>
+                <span class="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-1 rounded-md dark:bg-blue-900/30 dark:text-blue-400">
+                    Tổng: {{ $activities->total() }} bản ghi
+                </span>
+            </div>
+            
+            <a href="{{ route('admin.users.activities', $user->id) }}" class="text-primary hover:underline text-xs font-bold flex items-center gap-1">
+                Xem tất cả
+                <span class="material-symbols-outlined text-sm">chevron_right</span>
+            </a>
         </div>
-
         @if($activities->isEmpty())
             <div class="text-center py-8 text-slate-500">
                 <span class="material-symbols-outlined text-4xl mb-2 opacity-50">history</span>
                 <p>Người dùng này chưa có hoạt động nào.</p>
             </div>
         @else
+            @php
+                if (!isset($formatLogValue)) {
+                    $formatLogValue = function($value) {
+                        if (is_array($value) || is_object($value)) return '[Dữ liệu]';
+                        if (is_bool($value)) return $value ? 'Bật (True)' : 'Tắt (False)';
+                        if (is_null($value) || $value === '') return '[Trống]';
+                        $str = strip_tags(trim((string)$value));
+                        return mb_strlen($str) > 40 ? mb_substr($str, 0, 40) . '...' : $str;
+                    };
+
+                    $translateField = function($field) {
+                        $map = [
+                            'name' => 'Tên',
+                            'title' => 'Tiêu đề',
+                            'price' => 'Giá',
+                            'regular_price' => 'Giá gốc',
+                            'sale_price' => 'Giá KM',
+                            'status' => 'Trạng thái',
+                            'description' => 'Mô tả',
+                            'content' => 'Nội dung',
+                            'quantity' => 'Số lượng',
+                            'email' => 'Email',
+                            'phone' => 'SĐT',
+                            'address' => 'Địa chỉ',
+                            'role_id' => 'Vai trò',
+                            'category_id' => 'Danh mục',
+                            'brand_id' => 'Nhãn hiệu',
+                            'is_active' => 'Trạng thái Kích hoạt',
+                        ];
+                        return $map[$field] ?? strtoupper($field);
+                    };
+                }
+            @endphp
             <div class="space-y-6">
                 @foreach ($activities as $activity)
                     @php
@@ -351,7 +396,47 @@
                                 break;
                             case 'post category':
                                 $badge_class = 'bg-pink-100 text-pink-700 dark:bg-pink-800 dark:text-pink-300';
-                                $log_name_display = 'Danh mục BV';
+                                $log_name_display = 'DANH MỤC BV';
+                                break;
+                            case 'post':
+                                $badge_class = 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400';
+                                $log_name_display = 'BÀI VIẾT';
+                                break;
+                            case 'role':
+                                $badge_class = 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400';
+                                $log_name_display = 'VAI TRÒ';
+                                break;
+                            case 'brand':
+                                $badge_class = 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+                                $log_name_display = 'THƯƠNG HIỆU';
+                                break;
+                            case 'category':
+                                $badge_class = 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400';
+                                $log_name_display = 'DANH MỤC SP';
+                                break;
+                            case 'wallet':
+                                $badge_class = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+                                $log_name_display = 'VÍ TIỀN';
+                                break;
+                            case 'withdrawal request':
+                                $badge_class = 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400';
+                                $log_name_display = 'YÊU CẦU RÚT TIỀN';
+                                break;
+                            case 'point':
+                                $badge_class = 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+                                $log_name_display = 'ĐIỂM THƯỞNG';
+                                break;
+                            case 'attribute':
+                                $badge_class = 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-400';
+                                $log_name_display = 'THUỘC TÍNH';
+                                break;
+                            case 'attribute value':
+                                $badge_class = 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400';
+                                $log_name_display = 'GIÁ TRỊ THUỘC TÍNH';
+                                break;
+                            case 'banner':
+                                $badge_class = 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+                                $log_name_display = 'ẢNH BÌA';
                                 break;
                             default:
                                 $badge_class = 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
@@ -380,14 +465,26 @@
                         $new_attributes = $activity->properties['attributes'] ?? [];
                         $old_attributes = $activity->properties['old'] ?? [];
 
-                        $subject_display =
-                            $activity->subject?->name ??
-                            $activity->subject?->code ??
-                            $activity->subject?->order_code ??
-                            ($new_attributes['name'] ??
-                            ($new_attributes['code'] ??
-                            ($old_attributes['name'] ??
-                            ($old_attributes['code'] ?? null))));
+                        $subject_display = null;
+
+                        if ($activity->log_name === 'wallet') {
+                            $subject_display = $activity->subject?->user?->name ?? 'Ví người dùng';
+                        } else {
+                            $subject_display =
+                                $activity->subject?->name ??
+                                $activity->subject?->title ??
+                                $activity->subject?->account_name ??
+                                $activity->subject?->code ??
+                                $activity->subject?->order_code ??
+                                ($new_attributes['name'] ??
+                                ($new_attributes['title'] ??
+                                ($new_attributes['account_name'] ??
+                                ($new_attributes['code'] ??
+                                ($old_attributes['name'] ??
+                                ($old_attributes['title'] ??
+                                ($old_attributes['account_name'] ??
+                                ($old_attributes['code'] ?? null))))))));
+                        }
 
                         // 4. Lọc dữ liệu thay đổi / bị xóa
                         $changed_fields = [];
@@ -420,25 +517,24 @@
                         <div class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
                             <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-700">
                                 <div class="flex items-center gap-2">
-                                    {{-- Huy hiệu chức năng --}}
-                                    <span class="px-2.5 py-0.5 text-xs font-bold rounded-full {{ $badge_class }}">
-                                        {{ $log_name_display }}
-                                    </span>
-
-                                    <span class="text-sm text-slate-600 dark:text-slate-300">
-                                        {{-- Mô tả hành động --}}
-                                        <span class="{{ $activity->description === 'deleted' ? 'text-red-600 dark:text-red-400' : '' }}">
+                                    <span class="text-sm text-slate-600 dark:text-slate-300 flex items-center flex-wrap gap-1.5">
+                                        <strong class="text-slate-900 dark:text-white">{{ $user->name }}</strong>
+                                        
+                                        <span class="{{ $activity->description === 'deleted' ? 'text-red-600 dark:text-red-400 font-medium' : '' }}">
                                             {{ $action_text }}
                                         </span>
+                                        
+                                        <span class="px-2 py-0.5 text-[11px] font-bold rounded-md uppercase tracking-wide {{ $badge_class }}">
+                                            {{ $log_name_display }}
+                                        </span>
 
-                                        {{-- Tên đối tượng tác động --}}
                                         @if($subject_display)
-                                            <strong class="text-slate-900 dark:text-white ml-1">
+                                            <strong class="text-slate-900 dark:text-white">
                                                 {{ $subject_display }}
                                             </strong>
                                         @elseif($activity->subject_id)
-                                            <strong class="text-slate-900 dark:text-white ml-1">
-                                                ID: {{ $activity->subject_id }}
+                                            <strong class="text-slate-900 dark:text-white">
+                                                #{{ $activity->subject_id }}
                                             </strong>
                                         @endif
                                     </span>
@@ -472,15 +568,15 @@
                                         @foreach ($changed_fields as $field => $data)
                                             <div class="p-2 border border-slate-100 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 flex flex-col justify-center text-xs">
                                                 <div class="font-bold text-slate-700 dark:text-slate-300 mb-1 truncate">
-                                                    📋 {{ strtoupper($field) }}
+                                                    📋 {{ $translateField($field) }}
                                                 </div>
                                                 <div class="flex items-center gap-2 flex-wrap">
-                                                    <span class="line-through decoration-red-400 text-slate-400 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded truncate max-w-[150px]">
-                                                        {{ is_array($data['old']) ? 'Mảng dữ liệu' : ($data['old'] ?: 'Trống') }}
+                                                    <span class="line-through decoration-red-400 text-slate-400 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded truncate max-w-[150px]" title="{{ is_string($data['old']) ? strip_tags((string)$data['old']) : '' }}">
+                                                        {{ $formatLogValue($data['old']) }}
                                                     </span>
                                                     <span class="text-slate-400">➔</span>
-                                                    <span class="text-green-700 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded truncate max-w-[150px]">
-                                                        {{ is_array($data['new']) ? 'Mảng dữ liệu' : ($data['new'] ?: 'Trống') }}
+                                                    <span class="text-green-700 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded truncate max-w-[150px]" title="{{ is_string($data['new']) ? strip_tags((string)$data['new']) : '' }}">
+                                                        {{ $formatLogValue($data['new']) }}
                                                     </span>
                                                 </div>
                                             </div>
@@ -497,11 +593,11 @@
                                         @foreach ($deleted_fields as $field => $value)
                                             <div class="p-2 border border-red-100 dark:border-red-900/30 rounded-lg bg-red-50 dark:bg-red-900/10 flex flex-col justify-center text-xs">
                                                 <div class="font-bold text-slate-700 dark:text-slate-300 mb-1 truncate">
-                                                    🗑️ {{ strtoupper($field) }}
+                                                    🗑️ {{ $translateField($field) }}
                                                 </div>
                                                 <div class="flex items-center">
-                                                    <span class="line-through decoration-red-400 text-slate-500 px-1 py-0.5 rounded truncate max-w-full">
-                                                        {{ is_array($value) ? 'Mảng dữ liệu' : ($value ?: 'Trống') }}
+                                                    <span class="line-through decoration-red-400 text-slate-500 px-1 py-0.5 rounded truncate max-w-full" title="{{ is_string($value) ? strip_tags((string)$value) : '' }}">
+                                                        {{ $formatLogValue($value) }}
                                                     </span>
                                                 </div>
                                             </div>
