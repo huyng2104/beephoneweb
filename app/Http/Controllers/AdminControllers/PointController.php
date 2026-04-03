@@ -8,12 +8,14 @@ use App\Models\PointSetting;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Voucher; // 🚀 GỌI THÊM THẰNG NÀY ĐỂ XỬ LÝ QUÀ TẶNG
+use Illuminate\Support\Facades\Gate;
 
 class PointController extends Controller
 {
     // Hiển thị giao diện Quản lý điểm
     public function index()
     {
+        Gate::authorize('point.view');
         // 1. Lấy cấu hình điểm hiện tại
         $setting = PointSetting::firstOrCreate(
             ['id' => 1],
@@ -60,6 +62,7 @@ class PointController extends Controller
     // Xử lý lưu cấu hình điểm
     public function updateSettings(Request $request)
     {
+        Gate::authorize('point.update');
         $request->validate([
             'earn_rate' => 'required|numeric|min:1000',
             'redeem_rate' => 'required|numeric|min:1',

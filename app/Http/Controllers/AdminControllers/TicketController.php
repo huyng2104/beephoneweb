@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Ticket;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Gate;
 
 class TicketController extends Controller
 {
@@ -33,6 +34,7 @@ class TicketController extends Controller
 
     public function index(Request $request)
 {
+    Gate::authorize('support.view');
     $query = Ticket::query();
 
     if ($request->keyword) {
@@ -59,6 +61,7 @@ class TicketController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('support.view');
         $ticket = Ticket::findOrFail($id);
 
         return view('admin.tickets.show', compact('ticket'));
@@ -66,6 +69,7 @@ class TicketController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        Gate::authorize('support.update');
         $ticket = Ticket::findOrFail($id);
 
         $ticket->update([

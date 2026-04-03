@@ -28,6 +28,7 @@ use App\Http\Controllers\AdminControllers\TicketController;
 use App\Http\Controllers\AdminControllers\PostController;
 use App\Http\Controllers\AdminControllers\PostCategoryController;
 use App\Http\Controllers\AdminControllers\RoleController;
+use App\Http\Controllers\AdminControllers\PermissionController;
 use App\Http\Controllers\AdminControllers\WalletController;
 use App\Http\Controllers\Client\PointController as ClientPointController;
 use App\Http\Controllers\Client\PaymentController;
@@ -190,7 +191,7 @@ Route::post('/email/verification-notification', function (Request $request) {
 // ==========================================
 // HỆ THỐNG CLIENT (Public & User)
 // ==========================================
-Route::middleware('check.verified')->group(function () {
+Route::middleware(['check.verified', 'check.banned'])->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
 
@@ -266,7 +267,7 @@ Route::middleware('check.verified')->group(function () {
 // ==========================================
 // HỆ THỐNG ADMIN
 // ==========================================
-Route::middleware(['auth', 'verified', 'role'])->group(function () {
+Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/', function () {
@@ -285,6 +286,8 @@ Route::middleware(['auth', 'verified', 'role'])->group(function () {
         })->name('notifications.index');
         // Users
         Route::resource('users', UserController::class);
+        Route::get('users/{id}/activities', [UserController::class, 'activities'])->name('users.activities');
+        Route::get('users/{id}/orders', [UserController::class, 'orders'])->name('users.orders');
         Route::post('user/{id}/block', [UserController::class, 'block'])->name('user.block');
         Route::post('user/{id}/unblock', [UserController::class, 'unBlock'])->name('user.unblock');
         Route::post('user/{id}/reset', [UserController::class, 'resetPw'])->name('resetPw');
@@ -408,6 +411,7 @@ Route::middleware(['auth', 'verified', 'role'])->group(function () {
 
         // Roles & Members
         Route::resource('role', RoleController::class);
+        Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
         Route::get('member', [RoleController::class, 'listMembers'])->name('member');
     });
 });

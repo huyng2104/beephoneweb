@@ -14,9 +14,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [
+            \App\Http\Middleware\CheckBannedUser::class,
+        ]);
+
         $middleware->alias([
             'role' => CheckRole::class,
-            'check.verified' => CheckVerifiedIfAuthenticated::class
+            'check.verified' => CheckVerifiedIfAuthenticated::class,
+            'check.banned' => \App\Http\Middleware\CheckBannedUser::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

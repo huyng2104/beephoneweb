@@ -10,6 +10,7 @@ use App\Models\WalletTransaction;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\WithdrawalRequest;
+use Illuminate\Support\Facades\Gate;
 
 class WalletController extends Controller
 {
@@ -18,6 +19,7 @@ class WalletController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('wallet.view');
         $totalBalance = Wallet::sum('balance');
         $totalDeposit = WalletTransaction::where('type', 'deposit') // Giả sử có trường phân biệt loại giao dịch
             ->where('status', 'completed') // Chỉ tính các đơn nạp thành công
@@ -112,7 +114,7 @@ class WalletController extends Controller
 
     public function transactions(Request $request, $id)
     {
-
+        Gate::authorize('wallet.view');
         $wallet = Wallet::with('user')->findOrFail($id);
 
         // Khởi tạo query giao dịch của ví này
@@ -151,6 +153,7 @@ class WalletController extends Controller
     }
     public function lock(Request $request, $id)
     {
+        Gate::authorize('wallet.update');
         try {
             $wallet = Wallet::with('user')->findOrFail($id);
             if ($wallet->status === 'locked') {
@@ -166,6 +169,7 @@ class WalletController extends Controller
     }
     public function unlock($id)
     {
+        Gate::authorize('wallet.update');
         try {
             $wallet = Wallet::with('user')->findOrFail($id);
             if ($wallet->status === 'active') {
