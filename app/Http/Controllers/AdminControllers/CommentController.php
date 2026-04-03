@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Gate;
@@ -38,12 +39,24 @@ class CommentController extends Controller
         ));
     }
 
-    public function destroy(Comment $comment): RedirectResponse
+    public function destroy(Request $request, Comment $comment): RedirectResponse|JsonResponse
     {
         Gate::authorize('comment.delete');
         $comment->deleteWithChildren();
 
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
         return back()->with('success', 'Da xoa comment thanh cong.');
+    }
+
+    public function toggleHidden(Comment $comment): RedirectResponse
+    {
+        $hidden = !$comment->is_hidden;
+        $comment->setHiddenWithChildren($hidden);
+
+        return back()->with('success', $hidden ? 'Da an comment.' : 'Da hien comment.');
     }
 
     public function reply(Request $request, Comment $comment): RedirectResponse
@@ -64,6 +77,8 @@ class CommentController extends Controller
             'guest_name' => null,
             'guest_email' => null,
             'image_path' => null,
+            'verified_purchase' => false,
+            'is_hidden' => false,
         ]);
 
         return back()->with('success', 'Đã trả lời comment.');

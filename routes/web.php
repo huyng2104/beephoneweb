@@ -42,7 +42,7 @@ use App\Http\Controllers\Client\PostController as ClientPostController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
 use App\Models\User;
 use App\Http\Controllers\AdminControllers\CommentController as AdminCommentController;
-use App\Http\Controllers\AdminControllers\WithdrawalController;
+use App\Http\Controllers\AdminControllers\ReviewController as AdminReviewController;
 use App\Http\Controllers\CommentController;
 
 /*
@@ -58,6 +58,13 @@ use App\Http\Controllers\CommentController;
 Route::middleware('check.verified')->group(function () {
     // Trang chủ
     Route::get('/', [HomeController::class, 'index'])->name('home');
+
+    //contact
+    Route::get('/lien-he', [App\Http\Controllers\Client\ContactController::class, 'index'])->name('contact');
+    Route::post('/lien-he', [App\Http\Controllers\Client\ContactController::class, 'submit'])->name('contact.submit');
+    
+    // So sánh: view file Contact & Support (tạm thời)
+    Route::get('/lien-he-v2', function() { return view('client.Contact & Support.index'); })->name('contact.v2');
 
     // Chi tiết sản phẩm & Danh sách sản phẩm
     Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
@@ -340,7 +347,11 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
         // 5.1 Quản lý Comments (Admin)
         Route::get('comments', [AdminCommentController::class, 'index'])->name('comments.index');
         Route::post('comments/{comment}/reply', [AdminCommentController::class, 'reply'])->name('comments.reply');
+        Route::patch('comments/{comment}/toggle-hidden', [AdminCommentController::class, 'toggleHidden'])->name('comments.toggle_hidden');
         Route::delete('comments/{comment}', [AdminCommentController::class, 'destroy'])->name('comments.destroy');
+
+        // 5.2 Quản lý Đánh giá (Admin)
+        Route::get('reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
 
         // Link từ danh sách sản phẩm -> trang quản lý comments (lọc theo product nếu cần)
         // Xem comment theo từng sản phẩm (UI giống trang com/showcom, khác với trang quản lý comment dạng bảng)
@@ -403,6 +414,11 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
         Route::post('/wallet/{id}/lock', [WalletController::class, 'lock'])->name('wallet.lock');
         Route::post('/wallet/{id}/unlock', [WalletController::class, 'unlock'])->name('wallet.unlock');
 
+        // 10. Quản lý Chatbot FAQ
+        Route::resource('chatbot-faqs', \App\Http\Controllers\AdminControllers\ChatbotFaqController::class);
+
+        // Giao diện xem sao kê Ví Tổng
+        Route::get('/system-wallet', [WalletController::class, 'systemWallet'])->name('system_wallet');
 
 
         // Points
@@ -417,4 +433,6 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
 });
 // Public product routes and comment endpoints
 Route::get('/products/{product}', [ClientProductController::class, 'show'])->name('products.show');
-Route::post('/products/{product}/comments', [CommentController::class, 'store'])->name('products.comments.store');
+ Route::post('/products/{product}/comments', [CommentController::class, 'store'])->name('products.comments.store');
+// Allow deleting comments from client UI (admin/owner only, with confirm modal in UI)
+Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');

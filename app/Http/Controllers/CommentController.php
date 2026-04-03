@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -22,6 +24,7 @@ class CommentController extends Controller
             'guest_name' => ['nullable', 'string', 'max:255'],
             'guest_email' => ['nullable', 'email', 'max:255'],
             'image' => ['nullable', 'image', 'max:5120'], // 5MB
+            'order_id' => ['nullable', 'integer', 'exists:orders,id'],
         ]);
 
         $user = $request->user();
@@ -39,6 +42,22 @@ class CommentController extends Controller
             $imagePath = $request->file('image')->store('comments', 'public');
         }
 
+        $verifiedPurchase = false;
+        $orderId = $validated['order_id'] ?? null;
+        $orderIdInt = is_numeric($orderId) ? (int) $orderId : null;
+        if ($orderIdInt && $user && empty($validated['parent_id'])) {
+            $order = Order::query()
+                ->with('items')
+                ->where('id', $orderIdInt)
+                ->where('user_id', $user->id)
+                ->where('status', Order::STATUS_RECEIVED)
+                ->first();
+
+            if ($order) {
+                $verifiedPurchase = $order->items->contains(fn ($item) => (int) $item->product_id === (int) $product->id);
+            }
+        }
+
         Comment::create([
             'product_id' => $product->id,
             'user_id' => $user?->id,
@@ -48,6 +67,8 @@ class CommentController extends Controller
             'guest_name' => $user ? null : $request->input('guest_name'),
             'guest_email' => $user ? null : $request->input('guest_email'),
             'image_path' => $imagePath,
+            'verified_purchase' => $verifiedPurchase,
+            'is_hidden' => false,
         ]);
 
         $redirectTo = $request->input('redirect_to');
@@ -68,5 +89,31 @@ class CommentController extends Controller
         }
 
         return back()->with('success', 'Da gui comment thanh cong.')->withFragment('comments');
+    }
+
+    public function destroy(Request $request, Comment $comment): RedirectResponse|JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            abort(403);
+        }
+
+        $roleNameRaw = $user->role?->name ?? $user->role_slug ?? null;
+        $roleName = is_string($roleNameRaw) ? strtolower(trim($roleNameRaw)) : null;
+        $isAdmin = in_array($roleName, ['admin', 'staff'], true);
+        $isOwner = $comment->user_id !== null && (int) $comment->user_id === (int) $user->id;
+
+        if (!app()->environment('local') && !$isAdmin && !$isOwner) {
+            abort(403);
+        }
+
+        $comment->deleteWithChildren();
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return back()->with('success', 'Da xoa comment thanh cong.');
     }
 }

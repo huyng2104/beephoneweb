@@ -12,6 +12,19 @@ class ChatbotController extends Controller
     {
         $request->validate(['message' => 'required|string']);
 
+        $userMessage = $request->message;
+
+        // ==========================================
+        // 1. KIỂM TRA FAQ TRƯỚC (CÁCH 1)
+        // ==========================================
+        $faq = $this->searchFaq($userMessage);
+        if ($faq) {
+            return response()->json(['reply' => $faq->answer, 'type' => 'faq']);
+        }
+
+        // ==========================================
+        // 2. NẾU KHÔNG MATCH FAQ, GỌI GEMINI
+        // ==========================================
         // Lấy tất cả Key trong .env vào 1 mảng
         $keys = [
             env('GEMINI_API_KEY_1'),
@@ -23,7 +36,6 @@ class ChatbotController extends Controller
         
         // Random bốc đại 1 key ra để xài -> Tránh bị quá tải 1 key
         $apiKey = $validKeys[array_rand($validKeys)];
-        $userMessage = $request->message;
 
         // ==========================================
         // 1. CẨM NANG CHÍNH SÁCH CỬA HÀNG BEEPHONE
@@ -107,5 +119,37 @@ Câu hỏi của khách: " . $userMessage;
         } catch (\Exception $e) {
             return response()->json(['reply' => 'Hệ thống AI đang bảo trì: ' . $e->getMessage()]);
         }
+    }
+
+    // ==========================================
+    // HELPER: TÌM KIẾM FAQ MATCH KEYWORD
+    // ==========================================
+    private function searchFaq($userMessage)
+    {
+        $messageLower = strtolower($userMessage);
+
+        // Lấy tất cả FAQ active
+        $faqs = ChatbotFaq::where('is_active', true)
+                          ->orderBy('priority', 'desc')
+                          ->get();
+
+        foreach ($faqs as $faq) {
+            // Check trong question
+            if (stripos($faq->question, $userMessage) !== false) {
+                return $faq;
+            }
+
+            // Check trong keywords
+            if (!empty($faq->keywords)) {
+                $keywords = array_map('trim', explode(',', $faq->keywords));
+                foreach ($keywords as $keyword) {
+                    if (stripos($messageLower, strtolower($keyword)) !== false) {
+                        return $faq;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }
