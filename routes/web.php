@@ -39,6 +39,7 @@ use App\Http\Controllers\Client\CheckoutController;
 use App\Http\Controllers\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Client\ChatbotController;
 use App\Http\Controllers\Client\PostController as ClientPostController;
+use App\Http\Controllers\Client\ClientTicketController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
 use App\Models\User;
 use App\Http\Controllers\AdminControllers\CommentController as AdminCommentController;
@@ -247,6 +248,8 @@ Route::middleware(['check.verified', 'check.banned'])->group(function () {
     Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
     Route::get('/bai-viet/{slug}', [ClientPostController::class, 'show'])->name('client.posts.show');
     Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])->name('chatbot.chat');
+    Route::get('/ho-tro', [ClientTicketController::class, 'create'])->name('client.tickets.index');
+    Route::post('/ho-tro', [ClientTicketController::class, 'store'])->name('client.tickets.store');
 
     // Điểm thưởng Bee Point
     Route::get('/bee-point', [ClientPointController::class, 'index'])->name('client.points.index');

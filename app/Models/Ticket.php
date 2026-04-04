@@ -10,9 +10,9 @@ class Ticket extends Model
         'ticket_code',
         'customer_name',
         'customer_email',
+        'customer_phone',
         'title',
         'description',
-        'priority',
         'status',
         'admin_id'
     ];
