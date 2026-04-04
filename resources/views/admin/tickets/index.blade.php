@@ -236,9 +236,6 @@
                                     </th>
                                     <th
                                         class="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-widest text-center">
-                                        Ưu tiên</th>
-                                    <th
-                                        class="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-widest text-center">
                                         Trạng thái</th>
                                     <th class="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-widest">Ngày
                                         tạo</th>
@@ -266,17 +263,6 @@
                                             <p class="text-sm font-bold text-zinc-900">{{ $ticket->title }}</p>
                                             <p class="text-[11px] text-zinc-500 truncate max-w-[200px]">
                                                 {{ Str::limit($ticket->description, 50) }}</p>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            @if ($ticket->priority == 'high')
-                                                <span class="px-2 py-1 bg-red-100 text-red-600 rounded text-xs">Cao</span>
-                                            @elseif($ticket->priority == 'medium')
-                                                <span class="px-2 py-1 bg-yellow-100 text-yellow-600 rounded text-xs">Trung
-                                                    bình</span>
-                                            @else
-                                                <span
-                                                    class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">Thấp</span>
-                                            @endif
                                         </td>
                                         <td class="px-6 py-4 text-center">
                                             @if ($ticket->status == 'new')

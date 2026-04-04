@@ -19,10 +19,10 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
 
-            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
             $table->enum('status', ['new', 'processing', 'waiting', 'done'])->default('new');
 
             $table->unsignedBigInteger('admin_id')->nullable();
+            $table->integer('customer_phone');
 
             $table->timestamps();
         });

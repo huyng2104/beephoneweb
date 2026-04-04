@@ -19,10 +19,12 @@
                 href="{{ route('client.products.index', ['category' => 'dien-thoai']) }}">Điện thoại</a>
             <a class="text-sm font-medium hover:text-primary transition-colors"
                 href="{{ route('client.products.index', ['category' => 'am-thanh']) }}">Âm thanh</a>
-            <a class="text-sm font-medium hover:text-primary transition-colors"
-                href="{{ route('vouchers') }}">Khuyến mãi</a>
+            <a class="text-sm font-medium hover:text-primary transition-colors" href="{{ route('vouchers') }}">Khuyến
+                mãi</a>
             <a class="text-sm font-medium hover:text-primary transition-colors"
                 href="{{ route('client.posts.index') }}">Tin tức & Bài viết</a>
+            <a class="text-sm font-medium hover:text-primary transition-colors"
+                href="{{ route('client.tickets.index') }}">Hỗ trợ</a>
         </nav>
 
         <div class="flex flex-1 justify-end items-center gap-4 max-w-xl">
@@ -41,20 +43,27 @@
 
                 @auth
                     <div class="relative group mr-1" id="client-notification-wrapper">
-                        <button id="client-bell-btn" class="flex items-center justify-center rounded-lg h-10 w-10 bg-[#f5f3f0] dark:bg-white/5 hover:bg-primary transition-colors focus:outline-none relative">
-                            <span class="material-symbols-outlined text-[#181611] dark:text-white group-hover:text-black">notifications</span>
-                            <span id="client-bell-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none hidden">0</span>
+                        <button id="client-bell-btn"
+                            class="flex items-center justify-center rounded-lg h-10 w-10 bg-[#f5f3f0] dark:bg-white/5 hover:bg-primary transition-colors focus:outline-none relative">
+                            <span
+                                class="material-symbols-outlined text-[#181611] dark:text-white group-hover:text-black">notifications</span>
+                            <span id="client-bell-count"
+                                class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none hidden">0</span>
                         </button>
 
-                        <div id="client-bell-dropdown" class="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-[#221e10] border border-gray-100 dark:border-white/10 rounded-xl shadow-lg hidden overflow-hidden transform transition-all origin-top-right z-50">
-                            <div class="p-3 border-b border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 font-bold text-[#181611] dark:text-white flex items-center justify-between">
+                        <div id="client-bell-dropdown"
+                            class="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-[#221e10] border border-gray-100 dark:border-white/10 rounded-xl shadow-lg hidden overflow-hidden transform transition-all origin-top-right z-50">
+                            <div
+                                class="p-3 border-b border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 font-bold text-[#181611] dark:text-white flex items-center justify-between">
                                 <span>Thông báo của bạn</span>
                             </div>
                             <div id="client-bell-list" class="max-h-80 overflow-y-auto no-scrollbar">
                                 <div class="p-8 text-center text-sm text-gray-400">Đang tải...</div>
                             </div>
-                            <div class="p-2 text-center border-t border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5">
-                                <a href="{{ route('client.notifications.index') }}" class="text-xs font-semibold text-primary hover:underline">Xem tất cả</a>
+                            <div
+                                class="p-2 text-center border-t border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5">
+                                <a href="{{ route('client.notifications.index') }}"
+                                    class="text-xs font-semibold text-primary hover:underline">Xem tất cả</a>
                             </div>
                         </div>
                     </div>
@@ -86,7 +95,9 @@
 
                                 @php
                                     $authRoleValue = Auth::user()->role ?? null;
-                                    $authRoleName = is_object($authRoleValue) ? $authRoleValue->name : (string) ($authRoleValue ?? '');
+                                    $authRoleName = is_object($authRoleValue)
+                                        ? $authRoleValue->name
+                                        : (string) ($authRoleValue ?? '');
                                 @endphp
                                 <div class="p-2 space-y-1">
                                     @if ($authRoleName === 'admin' || $authRoleName === 'staff')
