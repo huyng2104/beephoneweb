@@ -50,12 +50,14 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="col-span-1 md:col-span-2">
                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Họ và tên người nhận <span class="text-red-500">*</span></label>
-                        <input type="text" name="customer_name" value="{{ old('customer_name', Auth::user()->name ?? '') }}" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-4 focus:ring-2 focus:ring-primary text-[#181611] dark:text-white" required placeholder="Nhập họ và tên">
+                        <input type="text" id="customer_name" name="customer_name" value="{{ old('customer_name', Auth::user()->name ?? '') }}" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-4 focus:ring-2 focus:ring-primary text-[#181611] dark:text-white" placeholder="Nhập họ và tên">
+                        <p id="err_customer_name" class="text-red-500 text-sm mt-1 hidden">Vui lòng nhập họ và tên</p>
                     </div>
                     
                     <div>
                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Số điện thoại <span class="text-red-500">*</span></label>
-                        <input type="text" name="customer_phone" value="{{ old('customer_phone', Auth::user()->phone ?? '') }}" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-4 focus:ring-2 focus:ring-primary text-[#181611] dark:text-white" required placeholder="Ví dụ: 0987654321">
+                        <input type="text" id="customer_phone" name="customer_phone" value="{{ old('customer_phone', Auth::user()->phone ?? '') }}" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-4 focus:ring-2 focus:ring-primary text-[#181611] dark:text-white" placeholder="Ví dụ: 0987654321">
+                        <p id="err_customer_phone" class="text-red-500 text-sm mt-1 hidden">Vui lòng nhập số điện thoại</p>
                     </div>
                     
                     <div>
@@ -63,14 +65,88 @@
                         <input type="email" name="customer_email" value="{{ old('customer_email', Auth::user()->email ?? '') }}" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-4 focus:ring-2 focus:ring-primary text-[#181611] dark:text-white" placeholder="Để nhận thông báo đơn hàng">
                     </div>
 
+                    {{-- ĐỊA CHỈ GIAO HÀNG (4 ô + API) --}}
                     <div class="col-span-1 md:col-span-2">
-                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Địa chỉ giao hàng chi tiết <span class="text-red-500">*</span></label>
-                        <input type="text" name="shipping_address" value="{{ old('shipping_address', Auth::user()->address ?? '') }}" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-4 focus:ring-2 focus:ring-primary text-[#181611] dark:text-white" required placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố">
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Địa chỉ giao hàng <span class="text-red-500">*</span></label>
+
+                        {{-- NÚT DÙNG ĐỊA CHỈ MẶC ĐỊNH (chỉ hiện khi user đã có địa chỉ) --}}
+                        @if(Auth::check() && Auth::user()->address)
+                        <div id="default-address-bar" class="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl px-4 py-3 mb-4">
+                            <span class="material-symbols-outlined text-blue-500">home</span>
+                            <div class="flex-grow min-w-0">
+                                <p class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-0.5">Địa chỉ mặc định</p>
+                                <p id="default-address-text" class="text-sm text-gray-700 dark:text-gray-200 truncate font-medium">{{ Auth::user()->address }}</p>
+                            </div>
+                            <button type="button" id="use-default-btn" onclick="useDefaultAddress()" class="shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
+                                Dùng ngay
+                            </button>
+                        </div>
+
+                        <div id="address-or-divider" class="flex items-center gap-3 mb-4">
+                            <div class="flex-1 h-px bg-gray-200 dark:bg-white/10"></div>
+                            <span class="text-xs text-gray-400 font-medium">hoặc nhập địa chỉ khác</span>
+                            <div class="flex-1 h-px bg-gray-200 dark:bg-white/10"></div>
+                        </div>
+                        @endif
+
+                        {{-- INPUT ẨN ĐỂ SUBMIT --}}
+                        <input type="hidden" name="shipping_address" id="shipping_address_hidden" value="{{ old('shipping_address') }}">
+
+                        {{-- 4 Ô NHẬP ĐỊA CHỈ --}}
+                        <div id="address-fields" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            
+
+                            {{-- Ô 2: Tỉnh/Thành phố --}}
+                            <div class="md:col-span-2 md:col-span-1">
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">Tỉnh / Thành phố <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <select id="addr_province" onchange="loadDistricts(this.value)" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-3.5 pr-10 focus:ring-2 focus:ring-primary text-[#181611] dark:text-white text-sm appearance-none cursor-pointer transition-all">
+                                        <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                    </select>
+                                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">expand_more</span>
+                                </div>
+                            </div>
+
+                            {{-- Ô 3: Quận/Huyện --}}
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">Quận / Huyện <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <select id="addr_district" onchange="loadWards(this.value)" disabled class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-3.5 pr-10 focus:ring-2 focus:ring-primary text-[#181611] dark:text-white text-sm appearance-none cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <option value="">-- Chọn Quận/Huyện --</option>
+                                    </select>
+                                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">expand_more</span>
+                                </div>
+                            </div>
+
+                            {{-- Ô 4: Phường/Xã --}}
+                            <div class="mb-4" >
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">Phường / Xã <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <select id="addr_ward" onchange="buildFullAddress()" disabled class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-3.5 pr-10 focus:ring-2 focus:ring-primary text-[#181611] dark:text-white text-sm appearance-none cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <option value="">-- Chọn Phường/Xã --</option>
+                                    </select>
+                                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">expand_more</span>
+                                </div>
+                            </div> 
+                        </div>
+                        {{-- Ô 1: Số nhà, tên đường --}}
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">Số nhà, tên đường <span class="text-red-500">*</span></label>
+                                <input type="text" id="addr_street" placeholder="Ví dụ: 123 Nguyễn Trãi" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-3.5 focus:ring-2 focus:ring-primary text-[#181611] dark:text-white text-sm transition-all" oninput="buildFullAddress()">
+                            </div>
+                        {{-- PREVIEW ĐỊA CHỈ ĐÃ GHÉP --}}
+                        <div id="address-preview" class="hidden mt-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl px-4 py-2.5">
+                            <p class="text-xs font-bold text-green-600 dark:text-green-400 mb-0.5 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">check_circle</span> Địa chỉ giao hàng
+                            </p>
+                            <p id="address-preview-text" class="text-sm text-gray-700 dark:text-gray-200 font-medium"></p>
+                        </div>
+                        <p id="err_shipping_address" class="text-red-500 text-sm mt-2 hidden">Vui lòng cung cấp đầy đủ thông tin địa chỉ giao hàng</p>
                     </div>
 
                     <div class="col-span-1 md:col-span-2">
                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Ghi chú cho cửa hàng</label>
-                        <textarea name="note" rows="3" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-4 focus:ring-2 focus:ring-primary text-[#181611] dark:text-white" placeholder="Ghi chú thêm về thời gian giao hàng, chỉ đường..."></textarea>
+                        <textarea name="note" rows="3" maxlength="1000" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-4 focus:ring-2 focus:ring-primary text-[#181611] dark:text-white" placeholder="Ghi chú thêm về thời gian giao hàng, chỉ đường... (tối đa 1000 ký tự)"></textarea>
                     </div>
                 </div>
             </div>
@@ -112,23 +188,56 @@
                         </div>
                     </label>
 
-                    <label class="border-2 border-gray-200 hover:border-primary bg-white dark:bg-black/20 rounded-xl p-4 flex items-center gap-4 cursor-pointer transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                        <input type="radio" name="payment_method" value="wallet" class="w-5 h-5 text-primary focus:ring-primary">
-                        <span class="material-symbols-outlined text-4xl text-primary">account_balance_wallet</span>
-                        <div>
-                            <p class="font-bold text-[#181611] dark:text-white">Ví Bee Pay</p>
-                            <p class="text-sm text-gray-500">Thanh toán siêu tốc không cần qua ngân hàng.</p>
+                    @php
+                        $wallet = Auth::check() ? \App\Models\Wallet::where('user_id', Auth::id())->first() : null;
+                        $balance = $wallet ? $wallet->balance : 0;
+                        
+                        // Tự động mở khóa nếu đã qua thời gian khóa 15p
+                        if ($wallet && $wallet->locked_until && $wallet->locked_until <= now()) {
+                            $wallet->update(['status' => 'active', 'locked_until' => null, 'pin_attempts' => 0]);
+                        }
+                        
+                        $isWalletLocked = $wallet && ($wallet->status !== 'active' || ($wallet->locked_until && $wallet->locked_until > now()));
+                    @endphp
+
+                    @if($isWalletLocked)
+                        <label class="border-2 border-red-200 bg-red-50/50 dark:bg-red-900/10 rounded-xl p-4 flex items-center gap-4 cursor-not-allowed opacity-75">
+                            <input type="radio" disabled class="w-5 h-5 text-gray-400 cursor-not-allowed">
+                            <span class="material-symbols-outlined text-4xl text-gray-400">account_balance_wallet</span>
+                            <div>
+                                <p class="font-bold text-gray-500 line-through">Ví Bee Pay</p>
+                                <p class="text-sm font-bold text-red-500 mt-1 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">lock</span>
+                                    Ví Bee Pay của bạn đang bị khóa!
+                                </p>
+                            </div>
+                        </label>
+                    @else
+                        <label class="border-2 border-gray-200 hover:border-primary bg-white dark:bg-black/20 rounded-xl p-4 flex items-center gap-4 cursor-pointer transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex-wrap">
+                            <div class="flex items-center gap-4 w-full">
+                                <input type="radio" name="payment_method" value="wallet" id="payment_wallet" class="w-5 h-5 text-primary focus:ring-primary payment-radio">
+                                <span class="material-symbols-outlined text-4xl text-primary">account_balance_wallet</span>
+                                <div>
+                                    <p class="font-bold text-[#181611] dark:text-white">Ví Bee Pay</p>
+                                    <p class="text-sm text-gray-500">Thanh toán siêu tốc không cần qua ngân hàng.</p>
+                                    @if(Auth::check())
+                                        <p class="text-xs font-bold text-green-600 mt-1">Số dư: {{ number_format($balance, 0, ',', '.') }}₫</p>
+                                    @else
+                                        <p class="text-xs font-bold text-red-500 mt-1">Vui lòng đăng nhập để sử dụng</p>
+                                    @endif
+                                </div>
+                            </div>
+                            
+                            {{-- Field nhập mã PIN ví (chỉ gồm 6 số), ẩn mặc định --}}
                             @if(Auth::check())
-                                @php
-                                    $wallet = \App\Models\Wallet::where('user_id', Auth::id())->first();
-                                    $balance = $wallet ? $wallet->balance : 0;
-                                @endphp
-                                <p class="text-xs font-bold text-green-600 mt-1">Số dư: {{ number_format($balance, 0, ',', '.') }}₫</p>
-                            @else
-                                <p class="text-xs font-bold text-red-500 mt-1">Vui lòng đăng nhập để sử dụng</p>
+                            <div id="wallet_password_section" class="w-full mt-2 hidden border-t border-gray-100 dark:border-white/10 pt-3 pl-[3.25rem]">
+                                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Mã PIN giao dịch <span class="text-red-500">*</span></label>
+                                <input type="password" id="wallet_pin" name="wallet_pin" placeholder="Nhập mã PIN 6 số của bạn" class="w-50 bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-primary text-sm text-[#181611] dark:text-white text-center" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);">
+                                <p id="err_wallet_pin" class="text-red-500 text-sm mt-1 hidden">Vui lòng nhập mã PIN hợp lệ gồm 6 chữ số</p>
+                            </div>
                             @endif
-                        </div>
-                    </label>
+                        </label>
+                    @endif
                 </div>
             </div>
         </div>
@@ -138,6 +247,7 @@
                 <h2 class="text-xl font-bold mb-6 tracking-tight text-[#181611] dark:text-white">Đơn hàng của bạn</h2>
                 
                 <div class="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    @php $hasVoucherInOrder = false; @endphp
                     @foreach($cart->items as $item)
                         @php
                             $price = $item->product->sale_price > 0 ? $item->product->sale_price : $item->product->price;
@@ -146,12 +256,25 @@
                                 $price = $item->variant->sale_price > 0 ? $item->variant->sale_price : $item->variant->price;
                                 $variantName = $item->variant->attributeValues->pluck('value')->implode(' - ');
                             }
+                            
+                            // Xác định sản phẩm voucher (dựa trên tên sản phẩm)
+                            $isVoucherProd = Str::contains(Str::lower($item->product->name), ['voucher', 'thẻ quà tặng']);
+                            if($isVoucherProd) $hasVoucherInOrder = true;
+
+                            // Lấy ảnh thumbnail
+                            $img = ($item->variant && $item->variant->thumbnail) ? $item->variant->thumbnail : $item->product->thumbnail;
+                            $imgUrl = Str::startsWith($img, ['http://', 'https://']) ? $img : asset('storage/' . $img);
                         @endphp
                         <div class="flex justify-between gap-4 border-b border-gray-100 dark:border-white/5 pb-4 last:border-0 last:pb-0">
-                            <div>
-                                <p class="font-bold text-sm text-[#181611] dark:text-white line-clamp-2">{{ $item->product->name }}</p>
-                                @if($variantName) <p class="text-[11px] text-gray-500 mt-1 uppercase">{{ $variantName }}</p> @endif
-                                <p class="text-xs text-gray-500 mt-1">SL: <span class="font-bold text-[#181611] dark:text-white">{{ $item->quantity }}</span></p>
+                            <div class="flex gap-3">
+                                <div class="w-12 h-12 bg-gray-50 dark:bg-black/20 rounded-lg overflow-hidden flex-shrink-0 p-1">
+                                    <img src="{{ $imgUrl }}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal" alt="{{ $item->product->name }}">
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <p class="font-bold text-sm text-[#181611] dark:text-white line-clamp-2">{{ $item->product->name }}</p>
+                                    @if($variantName) <p class="text-[11px] text-gray-500 mt-1 uppercase">{{ $variantName }}</p> @endif
+                                    <p class="text-xs text-gray-500 mt-1">SL: <span class="font-bold text-[#181611] dark:text-white">{{ $item->quantity }}</span></p>
+                                </div>
                             </div>
                             <span class="font-bold text-red-500 shrink-0">{{ number_format($price * $item->quantity, 0, ',', '.') }}₫</span>
                         </div>
@@ -172,6 +295,7 @@
                         if(Auth::check()){
                             $savedVouchers = Auth::user()->userVouchers()
                                 ->where('status', 1)
+                                ->wherePivotNull('order_id') // Laravel's helper or wherePivot('order_id', null)
                                 ->where(function($q) {
                                     $q->whereNull('end_date')->orWhere('end_date', '>=', \Carbon\Carbon::now());
                                 })
@@ -180,44 +304,38 @@
                     @endphp
 
                     <div class="flex gap-2">
-                        @if($savedVouchers->count() > 0)
-                            {{-- HIỂN THỊ DROPDOWN NẾU CÓ MÃ TRONG VÍ --}}
-                            <select id="display_voucher_code" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-primary focus:border-primary text-gray-900 cursor-pointer shadow-sm">
-                                <option value="">-- Bấm để chọn mã giảm giá trong ví --</option>
-                                @foreach($savedVouchers as $v)
-                                    @php
-                                        $isEligible = $totalPrice >= $v->min_order_value;
-                                        $discountText = $v->discount_type == 'percent' ? $v->discount_value.'%' : number_format($v->discount_value, 0, ',', '.').'₫';
-                                        $minOrderText = $v->min_order_value > 0 ? ' (Đơn từ '.number_format($v->min_order_value, 0, ',', '.').'₫)' : '';
-                                        $isSelected = session()->has('voucher') && session('voucher')['code'] == $v->code;
-                                    @endphp
-                                    <option value="{{ $v->code }}" {{ !$isEligible ? 'disabled' : '' }} {{ $isSelected ? 'selected' : '' }}>
-                                        Mã {{ $v->code }}: Giảm {{ $discountText }}{{ $minOrderText }} {{ !$isEligible ? ' - ❌ CHƯA ĐỦ ĐIỀU KIỆN' : '' }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        @if(Auth::check())
+                            @if($savedVouchers->count() > 0)
+                                {{-- HIỂN THỊ DROPDOWN NẾU CÓ MÃ TRONG VÍ --}}
+                                <select id="display_voucher_code" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-primary focus:border-primary text-gray-900 cursor-pointer shadow-sm">
+                                    <option value="">-- Bấm để chọn mã giảm giá trong ví --</option>
+                                    @foreach($savedVouchers as $v)
+                                        @php
+                                            $isEligible = $totalPrice >= $v->min_order_value;
+                                            $discountText = $v->discount_type == 'percent' ? $v->discount_value.'%' : number_format($v->discount_value, 0, ',', '.').'₫';
+                                            $minOrderText = $v->min_order_value > 0 ? ' (Đơn từ '.number_format($v->min_order_value, 0, ',', '.').'₫)' : '';
+                                            $isSelected = session()->has('voucher') && session('voucher')['code'] == $v->code;
+                                        @endphp
+                                        <option value="{{ $v->code }}" {{ !$isEligible ? 'disabled' : '' }} {{ $isSelected ? 'selected' : '' }}>
+                                            Mã {{ $v->code }}: Giảm {{ $discountText }}{{ $minOrderText }} {{ !$isEligible ? ' - ❌ CHƯA ĐỦ ĐIỀU KIỆN' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <button type="button" onclick="submitVoucher()" class="bg-[#181611] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors whitespace-nowrap shadow-md">
+                                    Áp dụng
+                                </button>
+                            @else
+                                <div class="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-500 italic shadow-sm flex items-center">
+                                    <span class="material-symbols-outlined text-sm mr-1">info</span> Ví Voucher của bạn đang trống
+                                </div>
+                            @endif
                         @else
-                            {{-- HIỂN THỊ Ô NHẬP TAY NẾU CHƯA LƯU MÃ NÀO --}}
-                            <input type="text" id="display_voucher_code" placeholder="Nhập mã giảm giá..." 
-                                value="{{ session()->has('voucher') ? session('voucher')['code'] : '' }}" 
-                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm focus:ring-primary focus:border-primary text-gray-900 uppercase shadow-sm">
-                        @endif
-                        
-                        <button type="button" onclick="submitVoucher()" class="bg-[#181611] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors whitespace-nowrap shadow-md">
-                            Áp dụng
-                        </button>
-                    </div>
-                    
-                    {{-- CHO PHÉP NHẬP TAY NẾU KHÁCH CÓ MÃ BÍ MẬT MÀ KHÔNG CẦN LƯU VÀO VÍ --}}
-                    @if($savedVouchers->count() > 0)
-                        <div class="mt-3 bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center justify-between gap-2">
-                            <span class="text-xs text-gray-500 font-medium">Hoặc nhập mã thủ công:</span>
-                            <div class="flex gap-2">
-                                <input type="text" id="manual_voucher_code" placeholder="Nhập mã..." class="bg-white border border-gray-200 rounded-md px-3 py-1 text-xs focus:ring-primary text-gray-900 uppercase w-28 shadow-sm">
-                                <button type="button" onclick="submitManualVoucher()" class="text-white bg-slate-400 hover:bg-primary hover:text-black font-bold px-3 py-1 rounded-md text-xs transition-colors">Dùng mã</button>
+                            <div class="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-500 italic shadow-sm flex items-center justify-between">
+                                <span class="flex items-center"><span class="material-symbols-outlined text-sm mr-1">lock</span> Đăng nhập để dùng Voucher</span>
+                                <a href="{{ route('login') }}" class="text-primary font-bold hover:underline">Đăng nhập</a>
                             </div>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
 
                 <div class="space-y-4 mb-8 border-t border-gray-100 dark:border-white/10 pt-6">
@@ -364,5 +482,251 @@
             });
         });
     }
+
+    // ==========================================
+    // ĐỊA CHỈ - API PROVINCES
+    // ==========================================
+    const API_BASE = 'https://provinces.open-api.vn/api';
+    let usingDefault = false;
+
+    // Load danh sách tỉnh/thành khi trang load
+    async function loadProvinces() {
+        try {
+            const res = await fetch(`${API_BASE}/p/`);
+            const data = await res.json();
+            const select = document.getElementById('addr_province');
+            data.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.code;
+                opt.textContent = p.name;
+                select.appendChild(opt);
+            });
+        } catch(e) {
+            console.error('Không load được danh sách tỉnh:', e);
+        }
+    }
+
+    // Load quận/huyện theo mã tỉnh
+    async function loadDistricts(provinceCode) {
+        const districtSelect = document.getElementById('addr_district');
+        const wardSelect = document.getElementById('addr_ward');
+
+        // Reset dropdowns con
+        districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+        wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+        wardSelect.disabled = true;
+
+        if (!provinceCode) {
+            districtSelect.disabled = true;
+            buildFullAddress();
+            return;
+        }
+
+        districtSelect.disabled = true;
+        districtSelect.innerHTML = '<option value="">Đang tải...</option>';
+
+        try {
+            const res = await fetch(`${API_BASE}/p/${provinceCode}?depth=2`);
+            const data = await res.json();
+            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            data.districts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.code;
+                opt.textContent = d.name;
+                districtSelect.appendChild(opt);
+            });
+            districtSelect.disabled = false;
+        } catch(e) {
+            districtSelect.innerHTML = '<option value="">-- Lỗi tải dữ liệu --</option>';
+            console.error(e);
+        }
+        buildFullAddress();
+    }
+
+    // Load phường/xã theo mã quận/huyện
+    async function loadWards(districtCode) {
+        const wardSelect = document.getElementById('addr_ward');
+        wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+        wardSelect.disabled = true;
+
+        if (!districtCode) { buildFullAddress(); return; }
+
+        wardSelect.innerHTML = '<option value="">Đang tải...</option>';
+
+        try {
+            const res = await fetch(`${API_BASE}/d/${districtCode}?depth=2`);
+            const data = await res.json();
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            data.wards.forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w.code;
+                opt.textContent = w.name;
+                wardSelect.appendChild(opt);
+            });
+            wardSelect.disabled = false;
+        } catch(e) {
+            wardSelect.innerHTML = '<option value="">-- Lỗi tải dữ liệu --</option>';
+            console.error(e);
+        }
+        buildFullAddress();
+    }
+
+    // Ghép địa chỉ đầy đủ từ 4 ô
+    function buildFullAddress() {
+        if (usingDefault) return; // Đang dùng địa chỉ mặc định, không ghi đè
+
+        const street   = document.getElementById('addr_street')?.value.trim() || '';
+        const provSel  = document.getElementById('addr_province');
+        const distSel  = document.getElementById('addr_district');
+        const wardSel  = document.getElementById('addr_ward');
+
+        const province = provSel?.options[provSel.selectedIndex]?.text || '';
+        const district = distSel?.options[distSel.selectedIndex]?.text || '';
+        const ward     = wardSel?.options[wardSel.selectedIndex]?.text || '';
+
+        const parts = [street, ward, district, province].filter(p => p && !p.startsWith('--') && !p.includes('Đang tải'));
+        const full = parts.join(', ');
+
+        document.getElementById('shipping_address_hidden').value = full;
+
+        const preview = document.getElementById('address-preview');
+        const previewText = document.getElementById('address-preview-text');
+        if (full) {
+            previewText.textContent = full;
+            preview.classList.remove('hidden');
+        } else {
+            preview.classList.add('hidden');
+        }
+    }
+
+    // Nút "Dùng ngay" - dùng địa chỉ mặc định từ profile
+    function useDefaultAddress() {
+        const defaultAddr = document.getElementById('default-address-text')?.textContent.trim();
+        if (!defaultAddr) return;
+
+        usingDefault = true;
+        document.getElementById('shipping_address_hidden').value = defaultAddr;
+
+        // Ẩn form địa chỉ + divider, hiện preview
+        const fields = document.getElementById('address-fields');
+        const divider = document.getElementById('address-or-divider');
+        if (fields) fields.classList.add('hidden');
+        if (divider) divider.classList.add('hidden');
+
+        // Hiện preview
+        const preview = document.getElementById('address-preview');
+        document.getElementById('address-preview-text').textContent = defaultAddr;
+        preview.classList.remove('hidden');
+
+        // Đổi nút thành "Thay đổi"
+        const btn = document.getElementById('use-default-btn');
+        if (btn) {
+            btn.textContent = 'Thay đổi';
+            btn.onclick = cancelDefaultAddress;
+            btn.classList.replace('bg-blue-500', 'bg-gray-400');
+            btn.classList.replace('hover:bg-blue-600', 'hover:bg-gray-500');
+        }
+    }
+
+    // Huỷ dùng địa chỉ mặc định → hiện lại form chọn
+    function cancelDefaultAddress() {
+        usingDefault = false;
+        document.getElementById('shipping_address_hidden').value = '';
+
+        const fields = document.getElementById('address-fields');
+        const divider = document.getElementById('address-or-divider');
+        if (fields) fields.classList.remove('hidden');
+        if (divider) divider.classList.remove('hidden');
+
+        document.getElementById('address-preview').classList.add('hidden');
+
+        const btn = document.getElementById('use-default-btn');
+        if (btn) {
+            btn.textContent = 'Dùng ngay';
+            btn.onclick = useDefaultAddress;
+            btn.classList.replace('bg-gray-400', 'bg-blue-500');
+            btn.classList.replace('hover:bg-gray-500', 'hover:bg-blue-600');
+        }
+
+        buildFullAddress();
+    }
+
+    // Validate địa chỉ trước khi submit form
+    document.querySelector('form[action="{{ route('client.checkout.process') }}"]')
+        ?.addEventListener('submit', function(e) {
+            let isValid = true;
+
+            const nameInput = document.getElementById('customer_name');
+            const errName = document.getElementById('err_customer_name');
+            if (!nameInput.value.trim()) {
+                errName.classList.remove('hidden');
+                isValid = false;
+            } else {
+                errName.classList.add('hidden');
+            }
+
+            const phoneInput = document.getElementById('customer_phone');
+            const errPhone = document.getElementById('err_customer_phone');
+            if (!phoneInput.value.trim()) {
+                errPhone.classList.remove('hidden');
+                isValid = false;
+            } else {
+                errPhone.classList.add('hidden');
+            }
+
+            const addr = document.getElementById('shipping_address_hidden').value.trim();
+            const errAddress = document.getElementById('err_shipping_address');
+            if (!addr) {
+                if (errAddress) errAddress.classList.remove('hidden');
+                isValid = false;
+            } else {
+                if (errAddress) errAddress.classList.add('hidden');
+            }
+
+            // wallet_pin validation if wallet is selected
+            const paymentWallet = document.getElementById('payment_wallet');
+            if (paymentWallet && paymentWallet.checked) {
+                const pinInput = document.getElementById('wallet_pin');
+                const errPin = document.getElementById('err_wallet_pin');
+                if (!pinInput || !pinInput.value.trim() || pinInput.value.trim().length !== 6) {
+                    if (errPin) errPin.classList.remove('hidden');
+                    isValid = false;
+                } else {
+                    if (errPin) errPin.classList.add('hidden');
+                }
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                // Remove Swal so we just show inline errors naturally:
+                // Swal.fire({ ... });
+            }
+        });
+
+    // Khởi động - load tỉnh thành khi DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function() {
+        loadProvinces();
+
+        // Toggle hiển thị input nhập mật khẩu ví
+        const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
+        const walletPasswordSection = document.getElementById('wallet_password_section');
+
+        function toggleWalletPassword() {
+            if (!walletPasswordSection) return;
+            const walletRadio = document.getElementById('payment_wallet');
+            if (walletRadio && walletRadio.checked) {
+                walletPasswordSection.classList.remove('hidden');
+            } else {
+                walletPasswordSection.classList.add('hidden');
+            }
+        }
+
+        paymentRadios.forEach(radio => {
+            radio.addEventListener('change', toggleWalletPassword);
+        });
+
+        // Chạy lần đầu nếu lỡ Wallet bị checked default
+        toggleWalletPassword();
+    });
 </script>
 @endsection

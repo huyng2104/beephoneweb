@@ -107,13 +107,17 @@
                             $prodImg = $product->thumbnail ?? '';
                             $prodUrl = Str::startsWith($prodImg, ['http://', 'https://']) ? $prodImg : ($prodImg ? asset('storage/' . $prodImg) : 'https://placehold.co/400x400/f8f9fa/1a1a1a?text=BeePhone');
                             
-                            $finalPrice = $product->price;
-                            $finalSalePrice = $product->sale_price;
+                            $finalPrice = $product->price ?? 0;
+                            $finalSalePrice = $product->sale_price ?? 0;
                             $isVariable = false;
 
                             $specsList = is_array($product->specifications) ? $product->specifications : (json_decode($product->specifications, true) ?? []);
 
-                            if($product->type == 'variable' && $product->variants && $product->variants->count() > 0) {
+                            if($product->type == 'simple' && $product->variants && $product->variants->count() > 0) {
+                                $firstVar = $product->variants->first();
+                                $finalPrice = $firstVar->price;
+                                $finalSalePrice = $firstVar->sale_price;
+                            } elseif($product->type == 'variable' && $product->variants && $product->variants->count() > 0) {
                                 $isVariable = true;
                                 $minVariant = $product->variants->sortBy(function($v) {
                                     return ($v->sale_price > 0 && $v->sale_price < $v->price) ? $v->sale_price : $v->price;
@@ -189,8 +193,11 @@
                                                 <span class="material-symbols-outlined">tune</span>
                                             </a>
                                         @else
+                                            @php
+                                                $simpleVarId = $product->variants->first()->id ?? '';
+                                            @endphp
                                             <button class="btn-add-cart-quick bg-[#f5f3f0] dark:bg-white/10 text-[#181611] dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-colors shrink-0" 
-                                                    data-product-id="{{ $product->id }}" title="Thêm vào giỏ">
+                                                    data-product-id="{{ $product->id }}" data-variant-id="{{ $simpleVarId }}" title="Thêm vào giỏ">
                                                 <span class="material-symbols-outlined">add_shopping_cart</span>
                                             </button>
                                         @endif
@@ -266,6 +273,7 @@
                 e.preventDefault();
                 
                 const productId = this.getAttribute('data-product-id');
+                const variantId = this.getAttribute('data-variant-id') || '';
                 const originalHtml = this.innerHTML;
                 
                 this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>';
@@ -279,7 +287,7 @@
                     },
                     body: JSON.stringify({
                         product_id: productId,
-                        variant_id: '', // Bỏ trống vì đây là SP thường
+                        variant_id: variantId,
                         quantity: 1
                     })
                 })

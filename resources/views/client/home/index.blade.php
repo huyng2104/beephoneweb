@@ -76,8 +76,48 @@
         @endif
 
         {{-- ========================================== --}}
-        {{-- COMBO HOÀN HẢO --}}
+        {{-- KHU VỰC DANH MỤC NỔI BẬT --}}
         {{-- ========================================== --}}
+        @if($categories->count() > 0)
+        <section class="px-4 md:px-10 lg:px-20 mt-12">
+            <div class="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-4 md:gap-6">
+                @foreach($categories as $category)
+                <a href="{{ route('client.products.index', ['category' => $category->slug]) }}" 
+                   class="group flex flex-col items-center">
+                    <div class="aspect-square w-full max-w-[100px] rounded-2xl bg-white dark:bg-white/5 border-2 border-transparent group-hover:border-primary group-hover:shadow-xl transition-all duration-300 flex items-center justify-center overflow-hidden p-3 mb-3">
+                        <img src="{{ $category->thumbnail ? asset('storage/' . $category->thumbnail) : 'https://placehold.co/100/f8f9fa/1a1a1a?text=' . substr($category->name, 0, 1) }}" 
+                             alt="{{ $category->name }}" 
+                             class="w-full h-full object-contain group-hover:scale-110 transition-transform">
+                    </div>
+                    <span class="text-xs font-bold text-center group-hover:text-primary transition-colors line-clamp-1">{{ $category->name }}</span>
+                </a>
+                @endforeach
+            </div>
+        </section>
+        @endif
+
+        {{-- ========================================== --}}
+        {{-- SẢN PHẨM NỔI BẬT --}}
+        {{-- ========================================== --}}
+        @if($featuredProducts->count() > 0)
+        <section class="px-4 md:px-10 lg:px-20 mt-20">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-red-500 animate-pulse">star</span>
+                    <h2 class="text-3xl font-bold uppercase tracking-tight">Sản phẩm nổi bật</h2>
+                </div>
+                <a class="text-primary font-bold flex items-center gap-1 hover:underline" href="{{ route('client.products.index', ['featured' => 1]) }}">Tất cả
+                    <span class="material-symbols-outlined">chevron_right</span></a>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                @foreach($featuredProducts as $product)
+                    @include('client.home.partials.product-card', ['product' => $product, 'badge' => 'HOT'])
+                @endforeach
+            </div>
+        </section>
+        @endif
+
         <section class="px-4 md:px-10 lg:px-20 mt-20">
             <div class="flex items-center gap-3 mb-8">
                 <span class="material-symbols-outlined text-primary">auto_awesome</span>
@@ -145,72 +185,12 @@
                     <span class="material-symbols-outlined">chevron_right</span></a>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                
-                @foreach($newProducts->take(8) as $product)
-                    @php
-                        $prodImg = $product->thumbnail ?? '';
-                        $prodUrl = Str::startsWith($prodImg, ['http://', 'https://']) ? $prodImg : ($prodImg ? asset('storage/' . $prodImg) : 'https://placehold.co/400x400/f8f9fa/1a1a1a?text=BeePhone');
-                        
-                        // Logic tìm giá chuẩn cho biến thể
-                        $finalPrice = $product->price;
-                        $finalSalePrice = $product->sale_price;
-                        $isVariable = false;
-
-                        if($product->type == 'variable' && $product->variants && $product->variants->count() > 0) {
-                            $isVariable = true;
-                            $minVariant = $product->variants->sortBy(function($v) {
-                                return ($v->sale_price > 0 && $v->sale_price < $v->price) ? $v->sale_price : $v->price;
-                            })->first();
-
-                            $finalPrice = $minVariant->price;
-                            $finalSalePrice = $minVariant->sale_price;
-                        }
-                        
-                        $hasSale = $finalSalePrice > 0 && $finalSalePrice < $finalPrice;
-                        $discountPercent = $hasSale ? round((($finalPrice - $finalSalePrice) / $finalPrice) * 100) : 0;
-                        $displayPrice = $hasSale ? $finalSalePrice : $finalPrice;
-                    @endphp
-
-                    <div class="bg-white dark:bg-white/5 p-4 rounded-xl border border-transparent hover:border-primary transition-all group flex flex-col">
-                        <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" class="relative rounded-lg overflow-hidden aspect-square bg-gray-100 mb-4 block">
-                            <div class="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-500"
-                                style="background-image: url('{{ $prodUrl }}');">
-                            </div>
-                            <span class="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded uppercase shadow-sm">MỚI</span>
-                            @if($hasSale)
-                                <span class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded uppercase shadow-sm">-{{ $discountPercent }}%</span>
-                            @endif
-                        </a>
-                        
-                        <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}">
-                            <h3 class="font-bold text-lg mb-4 line-clamp-1 hover:text-primary transition-colors" title="{{ $product->name }}">{{ $product->name }}</h3>
-                        </a>
-                        
-                        <div class="flex items-end justify-between mt-auto">
-                            <div class="flex flex-col">
-                                @if($isVariable) 
-                                    <span class="text-[10px] text-gray-400 font-bold leading-none mb-1 uppercase tracking-wider">Giá từ</span> 
-                                @endif
-                                <span class="text-xl font-bold text-red-500">{{ number_format($displayPrice, 0, ',', '.') }}₫</span>
-                            </div>
-                            
-                            @if($isVariable)
-                                <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" 
-                                   class="bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-colors shrink-0 shadow-sm" title="Chọn phiên bản">
-                                    <span class="material-symbols-outlined">tune</span>
-                                </a>
-                            @else
-                                <button class="btn-add-cart-quick bg-black dark:bg-primary text-white dark:text-black w-10 h-10 rounded-lg flex items-center justify-center hover:scale-105 transition-transform shrink-0 shadow-md" 
-                                        data-product-id="{{ $product->id }}" title="Thêm vào giỏ">
-                                    <span class="material-symbols-outlined">add_shopping_cart</span>
-                                </button>
-                            @endif
-                        </div>
-                    </div>
+                @foreach($newProducts as $product)
+                    @include('client.home.partials.product-card', ['product' => $product, 'badge' => 'MỚI'])
                 @endforeach
-
             </div>
         </section>
+
 
         {{-- ========================================== --}}
         {{-- ƯU ĐÃI CỰC HOT --}}
@@ -328,7 +308,48 @@
                 </div>
             </div>
         </section>
+        {{-- ========================================== --}}
+        {{-- THƯƠNG HIỆU ĐỒNG HÀNH --}}
+        {{-- ========================================== --}}
+        @if($brands->count() > 0)
+        <section class="px-4 md:px-10 lg:px-20 mt-20">
+            <div class="bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-100 dark:border-white/10">
+                <div class="flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+                    @foreach($brands as $brand)
+                        <img src="{{ $brand->logo ? asset('storage/' . $brand->logo) : 'https://placehold.co/120x60?text=' . $brand->name }}" 
+                             alt="{{ $brand->name }}" class="h-8 md:h-12 object-contain">
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+
+        {{-- ========================================== --}}
+        {{-- TIN TỨC CẬP NHẬT --}}
+        {{-- ========================================== --}}
+        @if($news->count() > 0)
+        <section class="px-4 md:px-10 lg:px-20 mt-20 pb-20">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold">Tin tức công nghệ</h2>
+                <a class="text-primary font-bold flex items-center gap-1 hover:underline" href="{{ route('client.posts.index') }}">Xem tin mới
+                    <span class="material-symbols-outlined">chevron_right</span></a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                @foreach($news as $post)
+                <a href="{{ route('client.posts.show', $post->slug) }}" class="group">
+                    <div class="aspect-video rounded-xl overflow-hidden mb-4">
+                        <img src="{{ $post->thumbnail ? asset('storage/' . $post->thumbnail) : 'https://placehold.co/600x400' }}" 
+                             alt="{{ $post->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                    <p class="text-xs text-primary font-bold uppercase mb-2">{{ $post->category->name ?? 'Tin tức' }}</p>
+                    <h3 class="font-bold text-xl line-clamp-2 group-hover:text-primary transition-colors">{{ $post->title }}</h3>
+                </a>
+                @endforeach
+            </div>
+        </section>
+        @endif
     </main>
+
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
@@ -365,6 +386,7 @@
                     e.preventDefault();
                     
                     const productId = this.getAttribute('data-product-id');
+                    const variantId = this.getAttribute('data-variant-id') || '';
                     const originalHtml = this.innerHTML;
                     
                     this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>';
@@ -378,7 +400,7 @@
                         },
                         body: JSON.stringify({
                             product_id: productId,
-                            variant_id: '',
+                            variant_id: variantId,
                             quantity: 1
                         })
                     })
