@@ -167,17 +167,87 @@
                 @foreach($order->items as $item)
                     @php
                         $imageUrl = Str::startsWith($item->thumbnail, ['http://', 'https://']) ? $item->thumbnail : asset('storage/' . $item->thumbnail);
+                        $baseName = $item->product_name;
+                        $variantInfo = '';
+                        if (preg_match('/^(.*?)\s*\((.*?)\)$/', $item->product_name, $matches)) {
+                            $baseName = trim($matches[1]);
+                            $variantInfo = trim($matches[2]);
+                        }
                     @endphp
-                    <div class="p-4 flex flex-col sm:flex-row gap-6 items-center hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors">
+                    <div class="p-4 flex flex-col sm:flex-row gap-6 items-start hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors border-b border-gray-100 dark:border-white/5 last:border-0">
                         <div class="w-24 h-24 bg-gray-50 dark:bg-black/20 rounded-xl p-2 border border-gray-100 dark:border-white/5 flex-shrink-0">
-                            <img src="{{ $imageUrl }}" alt="{{ $item->product_name }}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal">
+                            <img src="{{ $imageUrl }}" alt="{{ $baseName }}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal">
                         </div>
-                        <div class="flex-grow text-center sm:text-left">
-                            <h3 class="text-lg font-bold text-[#181611] dark:text-white">{{ $item->product_name }}</h3>
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-2 bg-gray-100 dark:bg-white/10 w-fit sm:mx-0 mx-auto px-2 py-1 rounded-md">Số lượng: 0{{ $item->quantity }}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-lg font-bold text-red-500">{{ number_format($item->unit_price, 0, ',', '.') }}₫</p>
+                        <div class="flex-grow w-full text-left">
+                            <div class="flex justify-between items-start gap-4 flex-col sm:flex-row">
+                                <div>
+                                    <h3 class="text-base font-bold text-[#181611] dark:text-white">{{ $baseName }}</h3>
+                                    @if($variantInfo)
+                                        <p class="text-xs text-gray-500 mt-1">Phân loại: {{ $variantInfo }}</p>
+                                    @endif
+                                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mt-2 bg-gray-100 dark:bg-white/10 w-fit px-2 py-1 rounded-md">Số lượng: x{{ $item->quantity }}</p>
+                                </div>
+                                <div class="text-right flex flex-col justify-end items-end gap-2">
+                                    <p class="text-lg font-bold text-red-500">{{ number_format($item->unit_price, 0, ',', '.') }}₫</p>
+                                    @if(in_array($order->status, [\App\Models\Order::STATUS_DELIVERED, \App\Models\Order::STATUS_RECEIVED]) && $item->product)
+                                        @php $prodParam = $item->product->slug ?: $item->product->id; @endphp
+                                        <a href="{{ route('client.product.detail', ['id' => $prodParam]) }}" class="px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 font-bold rounded-lg hover:bg-blue-600 hover:text-white transition-colors text-xs whitespace-nowrap">
+                                            Mua lại
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- Giao diện Hoàn trả cho riêng sản phẩm này --}}
+                            <div class="mt-4 pt-4 border-t border-dashed border-gray-200 dark:border-white/10">
+                                @if ($item->canRequestReturn())
+                                    <form action="{{ route('client.orders.return', $item->id) }}" method="POST" enctype="multipart/form-data" class="w-full rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                        @csrf
+                                        @method('PATCH')
+                                        <label class="mb-2 block text-sm font-semibold text-amber-900">Yêu cầu đổi / trả cho sản phẩm này</label>
+                                        <textarea name="return_note" rows="2" class="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-800" placeholder="Nhập lý do đổi trả..." required></textarea>
+                                        <div class="mt-3">
+                                            <input type="file" name="return_image" accept=".jpg,.jpeg,.png,.webp" class="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-800" required>
+                                        </div>
+                                        <div class="mt-3 flex justify-end">
+                                            <button type="submit" class="rounded-lg bg-amber-500 px-5 py-2 text-sm font-semibold text-black transition hover:bg-amber-400">Gửi yêu cầu hoản trả</button>
+                                        </div>
+                                    </form>
+                                @elseif ($item->return_status !== \App\Models\OrderItem::RETURN_NONE)
+                                    <div class="space-y-2">
+                                        @if ($item->return_status === \App\Models\OrderItem::RETURN_REQUESTED)
+                                            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">Sản phẩm này đang chờ duyệt trả hàng.</div>
+                                        @elseif ($item->return_status === \App\Models\OrderItem::RETURN_APPROVED)
+                                            <form action="{{ route('client.orders.return.shipped', $item->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">Xác nhận tôi đã gửi hàng hoàn trả</button>
+                                            </form>
+                                        @else
+                                            @php
+                                                $rtClasses = [
+                                                    \App\Models\OrderItem::RETURN_REJECTED => 'text-red-700 bg-red-100 border-red-200',
+                                                    \App\Models\OrderItem::RETURN_CUSTOMER_SHIPPED => 'text-indigo-700 bg-indigo-100 border-indigo-200',
+                                                    \App\Models\OrderItem::RETURN_RECEIVED => 'text-cyan-700 bg-cyan-100 border-cyan-200',
+                                                    \App\Models\OrderItem::RETURN_REFUNDED => 'text-green-700 bg-green-100 border-green-200',
+                                                ];
+                                                $rtClass = $rtClasses[$item->return_status] ?? 'text-gray-700 bg-gray-100';
+                                            @endphp
+                                            <div class="rounded-xl border px-4 py-2 text-sm font-semibold {{ $rtClass }}">
+                                                Trạng thái hoàn trả: {{ \App\Models\OrderItem::returnStatusLabels()[$item->return_status] ?? $item->return_status }}
+                                            </div>
+                                        @endif
+
+                                        {{-- Hiển thị lý do và phản hồi admin nếu có --}}
+                                        @if($item->return_admin_note)
+                                            <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 mt-2">
+                                                <span class="font-semibold">Phản hồi của shop:</span>
+                                                {{ $item->return_admin_note }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @endforeach
@@ -188,11 +258,24 @@
 
             <div class="flex flex-col gap-4">
                 @if($order->status == \App\Models\Order::STATUS_PENDING)
-                    <form action="{{ route('client.orders.cancel', $order->id) }}" method="POST">
+                    <form action="{{ route('client.orders.cancel', $order->id) }}" method="POST" class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/10">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="w-full bg-red-50 dark:bg-red-500/10 text-red-600 border border-red-200 dark:border-red-500/20 font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-red-500 hover:text-white transition-colors" onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')">
-                            <span class="material-symbols-outlined">cancel</span> Hủy đơn hàng
+                        <div class="mb-4">
+                            <label class="block text-sm font-bold text-[#181611] dark:text-gray-300 mb-2">Vui lòng chọn lý do hủy đơn</label>
+                            <select name="cancellation_reason" required class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-[#181611] focus:outline-none focus:ring-2 focus:ring-[#f4c025]/50 focus:border-[#f4c025] dark:border-white/10 dark:bg-[#1a1a1a] dark:text-white transition-all shadow-sm">
+                                <option value="">--- Chọn lý do hủy ---</option>
+                                <option value="Thay đổi ý định">Thay đổi ý định (Không muốn mua nữa)</option>
+                                <option value="Tìm thấy giá rẻ hơn ở nơi khác">TÌm thấy shop khác bán rẻ hơn</option>
+                                <option value="Đổi địa chỉ/sđt nhận hàng">Muốn thay đổi địa chỉ hoặc SĐT nhận hàng</option>
+                                <option value="Đặt nhầm sản phẩm/số lượng">Đặt nhầm sản phẩm hoặc sai số lượng</option>
+                                <option value="Lý do khác">Lý do khác</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-red-50 dark:bg-red-500/10 text-red-600 border border-red-200 dark:border-red-500/20 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-red-500 hover:text-white transition-all active:scale-95 relative overflow-hidden group" onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này? Thao tác này KHÔNG THỂ hoàn tác.')">
+                            <div class="absolute inset-0 bg-red-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
+                            <span class="material-symbols-outlined relative z-10">cancel</span>
+                            <span class="relative z-10">Hủy đơn hàng</span>
                         </button>
                     </form>
                 @endif

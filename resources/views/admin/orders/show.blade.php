@@ -98,66 +98,6 @@
                 </div>
             </div>
 
-            @if ($order->cancellation_reason || $order->return_note || $order->return_image || $order->return_admin_note)
-            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6 space-y-4">
-                <h2 class="text-lg font-bold text-slate-900 dark:text-white">Yêu cầu hoàn hàng</h2>
-
-                @if ($order->cancellation_reason)
-                <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p class="text-sm text-red-700 font-semibold">Lý do hủy: {{ $order->cancellation_reason }}</p>
-                </div>
-                @endif
-
-                @if ($order->return_note)
-                <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <p class="text-sm text-amber-700 font-semibold">Lý do khách yêu cầu hoàn: {{ $order->return_note }}</p>
-                </div>
-                @endif
-
-                @if ($order->return_image && $returnImageUrl)
-                <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <p class="text-sm text-amber-700 font-semibold mb-3">Ảnh khách gửi kèm</p>
-                    <a href="{{ $returnImageUrl }}" target="_blank" rel="noopener" class="inline-block">
-                        <img src="{{ $returnImageUrl }}" alt="Ảnh hoàn hàng {{ $order->order_code }}" class="h-28 w-28 rounded-lg border border-amber-200 object-cover">
-                    </a>
-                </div>
-                @endif
-
-                @if ($order->return_admin_note)
-                <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p class="text-sm text-blue-700 font-semibold">Phản hồi admin: {{ $order->return_admin_note }}</p>
-                </div>
-                @endif
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                        <p class="text-slate-500">Khách gửi yêu cầu</p>
-                        <p class="font-semibold text-slate-900 dark:text-white">{{ optional($order->return_requested_at)->format('d/m/Y H:i') ?: 'Chưa có' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-slate-500">Admin duyệt</p>
-                        <p class="font-semibold text-slate-900 dark:text-white">{{ optional($order->return_approved_at)->format('d/m/Y H:i') ?: 'Chưa có' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-slate-500">Admin từ chối</p>
-                        <p class="font-semibold text-slate-900 dark:text-white">{{ optional($order->return_rejected_at)->format('d/m/Y H:i') ?: 'Chưa có' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-slate-500">Khách gửi hàng hoàn</p>
-                        <p class="font-semibold text-slate-900 dark:text-white">{{ optional($order->return_shipped_at)->format('d/m/Y H:i') ?: 'Chưa có' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-slate-500">Admin nhận hàng hoàn</p>
-                        <p class="font-semibold text-slate-900 dark:text-white">{{ optional($order->return_received_at)->format('d/m/Y H:i') ?: 'Chưa có' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-slate-500">Hoàn tiền vào ví</p>
-                        <p class="font-semibold text-slate-900 dark:text-white">{{ optional($order->return_refunded_at)->format('d/m/Y H:i') ?: 'Chưa có' }}</p>
-                    </div>
-                </div>
-            </div>
-            @endif
-
             <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6 space-y-4">
                 <div class="flex items-center justify-between gap-3">
                     <h2 class="text-lg font-bold text-slate-900 dark:text-white">Sản phẩm đã mua</h2>
@@ -176,19 +116,18 @@
                                 <th class="px-4 py-3 text-right font-semibold">Thành tiền</th>
                             </tr>
                         </thead>
+                        @foreach ($order->items as $item)
+                        @php
+                            $product = $item->product;
+                            $productName = $product ? $product->name : $item->product_name;
+                            $productThumbnail = $product ? $product->thumbnail : $item->thumbnail;
+                            $productSku = $product ? $product->sku : $item->product_sku;
+                        @endphp
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                            @foreach ($order->items as $item)
-                            @php
-                                $product = $item->product;
-                                $productName = $product ? $product->name : $item->product_name;
-                                $productThumbnail = $product ? $product->thumbnail : $item->thumbnail;
-                                $productSku = $product ? $product->sku : $item->product_sku;
-                            @endphp
-
                             <tr>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-3 min-w-[220px]">
-                                        <div class="size-10 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center">
+                                        <div class="size-10 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-700">
                                             @if ($item->thumbnail)
                                                 <img src="{{ $item->thumbnail }}" alt="{{ $item->product_name }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
                                                 <span class="material-symbols-outlined text-slate-400 text-[18px] hidden">inventory_2</span>
@@ -213,8 +152,136 @@
                                 <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $item->quantity }}</td>
                                 <td class="px-4 py-3 text-right font-semibold text-slate-900 dark:text-white">{{ number_format($item->line_total) }} ₫</td>
                             </tr>
-                            @endforeach
+                            
+                            {{-- Giao diện thao tác Hoàn Trả cho riêng từng Item --}}
+                            @if ($item->return_status !== \App\Models\OrderItem::RETURN_NONE)
+                            <tr class="bg-amber-50/30 dark:bg-amber-900/10">
+                                <td colspan="5" class="px-4 py-4">
+                                    <div class="flex flex-col xl:flex-row gap-6 items-start w-full">
+                                        <div class="flex-1 space-y-3">
+                                            <div class="flex items-center gap-2">
+                                                <span class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-500 border border-amber-200 dark:border-amber-800/50">
+                                                    Yêu cầu hoàn trả
+                                                </span>
+                                                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                                    Trạng thái: <span class="text-primary">{{ \App\Models\OrderItem::returnStatusLabels()[$item->return_status] ?? $item->return_status }}</span>
+                                                </span>
+                                            </div>
+                                            
+                                            <div class="bg-white dark:bg-slate-800/50 rounded-lg p-3 border border-slate-200 dark:border-slate-700 flex gap-4 items-start">
+                                                @if($item->return_image)
+                                                    @php
+                                                        $rImgUrl = \Illuminate\Support\Str::startsWith($item->return_image, ['http://', 'https://', 'uploads/'])
+                                                            ? asset($item->return_image)
+                                                            : asset('storage/' . $item->return_image);
+                                                    @endphp
+                                                    <a href="{{ $rImgUrl }}" target="_blank" rel="noopener" class="shrink-0 block mt-1 hover:opacity-80 transition-opacity">
+                                                        <img src="{{ $rImgUrl }}" alt="Ảnh bằng chứng" class="w-16 h-16 rounded border border-slate-200 dark:border-slate-600 object-cover">
+                                                    </a>
+                                                @else
+                                                    <div class="w-16 h-16 shrink-0 rounded border border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-slate-400 bg-slate-50 dark:bg-slate-800">
+                                                        <span class="material-symbols-outlined text-[20px]">no_photography</span>
+                                                        <span class="text-[9px] mt-1">Không có ảnh</span>
+                                                    </div>
+                                                @endif
+                                                <div class="flex-1 min-w-0">
+                                                    <h4 class="text-xs font-semibold text-slate-500 uppercase">Lý do khách hàng</h4>
+                                                    <p class="text-sm text-slate-900 dark:text-white mt-1 italic whitespace-pre-wrap break-words leading-relaxed">"{{ $item->return_note }}"</p>
+                                                    <div class="mt-2 text-xs text-slate-500 flex items-center gap-1">
+                                                        <span class="material-symbols-outlined text-[14px]">schedule</span>
+                                                        Ngày yêu cầu: {{ optional($item->return_requested_at)->format('d/m/Y H:i') }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            @if($item->return_admin_note)
+                                                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800/30">
+                                                    <h4 class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase">Phản hồi của Shop</h4>
+                                                    <p class="text-sm text-blue-900 dark:text-blue-100 mt-1">{{ $item->return_admin_note }}</p>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        
+                                        <div class="w-full xl:w-72 xl:shrink-0 bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
+                                            <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                                                <span class="material-symbols-outlined text-[18px]">verified_user</span> Xử lý yêu cầu
+                                            </h4>
+                                            
+                                            @if ($item->canApproveReturn())
+                                                <form action="{{ route('admin.orders.return.approve', $item->id) }}" method="POST" class="mb-3">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <textarea name="return_admin_note" rows="2" class="w-full text-sm rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white placeholder-slate-400 mb-2 focus:ring-primary focus:border-primary transition-shadow" placeholder="Ghi chú duyệt (mặc định trống)..."></textarea>
+                                                    <button type="submit" class="w-full px-3 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20 flex items-center justify-center gap-1">
+                                                        <span class="material-symbols-outlined text-[16px]">how_to_reg</span> Duyệt yêu cầu
+                                                    </button>
+                                                </form>
+                                                
+                                                <form action="{{ route('admin.orders.return.reject', $item->id) }}" method="POST" class="pt-3 border-t border-slate-100 dark:border-slate-700" onsubmit="return confirm('Bạn có chắc chắn muốn TỪ CHỐI hoàn sản phẩm này?');">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <textarea name="return_admin_note" rows="2" class="w-full text-sm rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white placeholder-slate-400 mb-2 focus:ring-red-500 focus:border-red-500 transition-shadow" placeholder="Lý do từ chối (bắt buộc)..." required></textarea>
+                                                    <button type="submit" class="w-full px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg font-semibold text-sm hover:bg-red-50 transition-colors flex items-center justify-center gap-1">
+                                                        <span class="material-symbols-outlined text-[16px]">cancel</span> Từ chối hoàn
+                                                    </button>
+                                                </form>
+                                            @elseif ($item->return_status === \App\Models\OrderItem::RETURN_APPROVED)
+                                                <div class="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                                    <span class="material-symbols-outlined shrink-0 text-[18px]">local_shipping</span> 
+                                                    <span>Đã duyệt. Đang chờ khách gửi hàng về kho.</span>
+                                                </div>
+                                            @elseif ($item->canMarkReturnReceived())
+                                                <form action="{{ route('admin.orders.return.received', $item->id) }}" method="POST">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <div class="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-800/30 mb-3 text-sm text-indigo-700 dark:text-indigo-300">
+                                                        Khách đã gửi hàng hoàn qua DV vận chuyển.
+                                                    </div>
+                                                    <textarea name="return_admin_note" rows="2" class="w-full text-sm rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white placeholder-slate-400 mb-2 focus:ring-cyan-500 focus:border-cyan-500 transition-shadow" placeholder="Tình trạng SP sau khi nhận..."></textarea>
+                                                    <button type="submit" class="w-full px-3 py-2 bg-cyan-600 text-white rounded-lg font-semibold text-sm hover:bg-cyan-700 transition-colors shadow-sm shadow-cyan-500/20 flex items-center justify-center gap-1">
+                                                        <span class="material-symbols-outlined text-[16px]">inventory_2</span> Xác nhận đã thu hồi hàng
+                                                    </button>
+                                                </form>
+                                            @elseif ($item->canRefundReturn())
+                                                @php $itemRefundAmount = $item->calculateRefundAmount(); @endphp
+                                                <form action="{{ route('admin.orders.return.refund', $item->id) }}" method="POST" onsubmit="return confirm('Bạn xác nhận sẽ hoàn số tiền này vào Ví người dùng? Hành động này không thể hoàn tác!');">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <div class="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-100 dark:border-emerald-800/30 mb-3 text-sm">
+                                                        <p class="text-emerald-800 dark:text-emerald-300">Đã nhận hàng thành công. Vui lòng hoàn tiền cho khách.</p>
+                                                        <div class="flex justify-between items-end mt-2 pt-2 border-t border-emerald-200/50 dark:border-emerald-800/50">
+                                                            <span class="text-xs uppercase text-emerald-600 dark:text-emerald-400 font-bold">Số tiền hoàn (trừ Voucher)</span>
+                                                            <span class="text-lg font-bold text-emerald-700 dark:text-emerald-300">{{ number_format($itemRefundAmount) }} ₫</span>
+                                                        </div>
+                                                    </div>
+                                                    <button type="submit" class="w-full px-3 py-2 bg-emerald-600 text-white rounded-lg font-semibold text-sm hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-500/20 flex items-center justify-center gap-1">
+                                                        <span class="material-symbols-outlined text-[16px]">account_balance_wallet</span> Hoàn tiền vào Ví Bee Pay
+                                                    </button>
+                                                </form>
+                                            @elseif ($item->return_status === \App\Models\OrderItem::RETURN_REJECTED)
+                                                <div class="text-sm text-red-600 dark:text-red-400 flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                                    <span class="material-symbols-outlined shrink-0 text-[18px]">block</span> 
+                                                    <span>Yêu cầu hoàn sản phẩm này đã bị từ chối.</span>
+                                                </div>
+                                            @elseif ($item->return_status === \App\Models\OrderItem::RETURN_REFUNDED)
+                                                <div class="text-sm text-emerald-700 dark:text-emerald-300 flex items-start gap-2 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-100 dark:border-emerald-800/30">
+                                                    <span class="material-symbols-outlined shrink-0 text-[18px] text-emerald-500">check_circle</span> 
+                                                    <div>
+                                                        <p class="font-bold">Đã hoàn tất quá trình hoàn trả.</p>
+                                                        <p class="text-xs mt-1 text-emerald-600 dark:text-emerald-400 flex justify-between">
+                                                            <span>Thực nhận ví:</span>
+                                                            <span class="font-bold">{{ number_format($item->refund_amount) }} ₫</span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endif
                         </tbody>
+                        @endforeach
                     </table>
                 </div>
                 @else
@@ -331,56 +398,7 @@
                 <button type="submit" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg font-semibold text-sm hover:bg-red-600">Hủy đơn</button>
             </form>
 
-            <div class="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-4">
-                <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">Xử lý hoàn hàng</label>
-                @if ($order->canApproveReturn())
-                <form action="{{ route('admin.orders.return.approve', $order) }}" method="POST" class="space-y-3">
-                    @csrf
-                    @method('PATCH')
-                    <textarea name="return_admin_note" rows="3" class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="Ghi chú duyệt yêu cầu (nếu có)...">{{ $order->return_admin_note }}</textarea>
-                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700">Duyệt yêu cầu hoàn hàng</button>
-                </form>
-
-                <form action="{{ route('admin.orders.return.reject', $order) }}" method="POST" class="space-y-3">
-                    @csrf
-                    @method('PATCH')
-                    <textarea name="return_admin_note" rows="3" class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="Nhập lý do từ chối..." required></textarea>
-                    <button type="submit" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg font-semibold text-sm hover:bg-red-600">Từ chối yêu cầu</button>
-                </form>
-                @elseif ($order->return_status === \App\Models\Order::RETURN_APPROVED)
-                <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-                    Đã duyệt yêu cầu. Chờ khách gửi hàng lại.
-                </div>
-                @elseif ($order->return_status === \App\Models\Order::RETURN_CUSTOMER_SHIPPED)
-                <form action="{{ route('admin.orders.return.received', $order) }}" method="POST" class="space-y-3">
-                    @csrf
-                    @method('PATCH')
-                    <textarea name="return_admin_note" rows="3" class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="Ghi chú kiểm tra hàng hoàn (nếu có)...">{{ $order->return_admin_note }}</textarea>
-                    <button type="submit" class="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg font-semibold text-sm hover:bg-cyan-700">Xác nhận đã nhận hàng hoàn</button>
-                </form>
-                @elseif ($order->canRefundReturn())
-                <form action="{{ route('admin.orders.return.refund', $order) }}" method="POST" class="space-y-3">
-                    @csrf
-                    @method('PATCH')
-                    <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                        Sau khi bấm nút bên dưới, hệ thống sẽ hoàn {{ number_format($order->total_amount) }} ₫ vào ví Bee Pay của khách hàng.
-                    </div>
-                    <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700">Hoàn tiền vào ví</button>
-                </form>
-                @elseif ($order->return_status === \App\Models\Order::RETURN_REJECTED)
-                <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    Yêu cầu hoàn hàng đã bị từ chối.
-                </div>
-                @elseif ($order->return_status === \App\Models\Order::RETURN_REFUNDED)
-                <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                    Đơn hàng đã hoàn tiền xong vào ví Bee Pay.
-                </div>
-                @else
-                <div class="rounded-lg border border-dashed border-slate-200 px-4 py-3 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                    Chức năng này chỉ mở khi khách hàng đã gửi yêu cầu hoàn hàng.
-                </div>
-                @endif
-            </div>
+            {{-- Đã loại bỏ khối xử lý yêu cầu hoàn hàng cho tổng đơn --}}
         </div>
     </div>
 </div>

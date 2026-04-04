@@ -198,12 +198,12 @@ class VoucherController extends Controller
             'max_discount' => $request->max_discount,
             'min_order_value' => $request->min_order_value,
             'usage_limit' => $request->usage_limit,
-            // 'usage_limit_per_user' => $request->usage_limit_per_user,
+            'usage_limit_per_user' => 1,
             'description' => $request->description,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'status' => $request->has('status') ? 1 : 0,
-            'points_required' => $request->points_required,
+            'points_required' => $request->points_required ?? 0,
         ];
         $brandIds = $request->brands;
         $categoryIds = $request->categories;

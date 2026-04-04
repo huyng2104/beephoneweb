@@ -27,10 +27,31 @@ class OrderController extends Controller
 
         $user = Auth::user();
 
-        $orders = Order::with(['items', 'items.product'])
-            ->where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $statusParam = $request->query('status', 'all');
+
+        $query = Order::with(['items', 'items.product'])
+            ->where('user_id', Auth::id());
+
+        // Áp dụng bộ lọc Tab
+        if ($statusParam === 'pending_payment') {
+            $query->where('payment_status', 'pending')
+                  ->whereIn('payment_method', ['vnpay', 'vnp'])
+                  ->where('status', '!=', 'cancelled');
+        } elseif ($statusParam === 'processing') {
+            $query->whereIn('status', ['pending', 'packing', 'shipping'])
+                  ->whereNot(function ($q) {
+                      $q->where('payment_status', 'pending')
+                        ->whereIn('payment_method', ['vnpay', 'vnp']);
+                  });
+        } elseif ($statusParam === 'completed') {
+            $query->whereIn('status', ['delivered', 'received']);
+        } elseif ($statusParam === 'cancelled') {
+            $query->where('status', 'cancelled');
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->appends(['status' => $statusParam]);
 
         $reviewOrder = null;
         $reviewOrderId = $request->session()->get('review_order_id');
@@ -45,7 +66,7 @@ class OrderController extends Controller
             $request->session()->forget('review_order_id');
         }
 
-        return view('client.profiles.orders', compact('orders', 'reviewOrder'));
+        return view('client.profiles.orders', compact('orders', 'reviewOrder', 'statusParam'));
     }
 
     // Hiển thị chi tiết 1 đơn hàng (Trang TechNoir)
@@ -125,54 +146,115 @@ class OrderController extends Controller
     }
 
     // Khách hàng tự hủy đơn
-    public function cancel($id)
+    public function cancel(Request $request, $id)
     {
-        $order = Order::where('user_id', Auth::id())->findOrFail($id);
+        $request->validate([
+            'cancellation_reason' => 'required|string|max:255'
+        ]);
+
+        $order = Order::with('items')->where('user_id', Auth::id())->findOrFail($id);
 
         if ($order->status === Order::STATUS_PENDING) {
-            $order->status = Order::STATUS_CANCELLED;
-            $order->cancellation_reason = 'Khách hàng tự hủy đơn trên web';
-            $order->cancelled_at = now();
-            $order->save();
-
-            // ==========================================
-            // BẮN THÔNG BÁO CHO TẤT CẢ ADMIN
-            // ==========================================
+            
+            \Illuminate\Support\Facades\DB::beginTransaction();
             try {
-                $admins = \App\Models\User::whereHas('role', function($q) { $q->where('name', 'admin'); })->get();
-                if ($admins->count() > 0) {
-                    $adminTitle = "Khách vừa hủy đơn!";
-                    $adminMsg = "Đơn #" . $order->order_code . " vừa bị khách hàng tự hủy trên web.";
-                    $adminUrl = route('admin.orders.show', $order->id);
+                $order->status = Order::STATUS_CANCELLED;
+                $order->cancellation_reason = $request->cancellation_reason;
+                $order->cancelled_at = now();
+                $order->save();
 
-                    foreach ($admins as $ad) {
-                        $ad->notify(new SystemNotification($adminTitle, $adminMsg, $adminUrl));
-                        broadcast(new StatusUpdated($ad->id, $adminTitle, $adminMsg, $adminUrl));
+                // 1. HOÀN VOUCHER (nếu có sử dụng)
+                $userVoucher = \Illuminate\Support\Facades\DB::table('user_vouchers')
+                    ->where('order_id', $order->id)
+                    ->first();
+                    
+                if ($userVoucher) {
+                    \App\Models\Voucher::where('id', $userVoucher->voucher_id)->decrement('used_count');
+                    \Illuminate\Support\Facades\DB::table('user_vouchers')->where('order_id', $order->id)->delete();
+                }
+
+                // 2. HOÀN SỐ LƯỢNG SẢN PHẨM / BIẾN THỂ VÀO KHO
+                foreach ($order->items as $item) {
+                    $variant = \App\Models\ProductVariant::where('sku', $item->product_sku)->first();
+                    if ($variant) {
+                        $variant->increment('stock', $item->quantity);
+                    } else {
+                        $product = \App\Models\Product::where('sku', $item->product_sku)->first();
+                        if ($product) {
+                            $product->increment('stock', $item->quantity);
+                        }
                     }
                 }
-            } catch (\Exception $e) {
-                \Log::error('Lỗi báo Admin hủy đơn: ' . $e->getMessage());
-            }
 
-            return redirect()->back()->with('success', 'Đã hủy đơn hàng thành công!');
+                // 3. HOÀN TIỀN VÀO VÍ NẾU THANH TOÁN BẰNG VÍ HOẶC VNPAY
+                if (in_array($order->payment_method, ['wallet', 'vnpay', 'vnp']) && $order->payment_status === 'paid') {
+                    $wallet = \App\Models\Wallet::where('user_id', $order->user_id)->first();
+                    if ($wallet) {
+                        $balanceBefore = $wallet->balance;
+                        $wallet->increment('balance', $order->total_amount);
+
+                        \App\Models\WalletTransaction::create([
+                            'wallet_id' => $wallet->id,
+                            'type' => 'refund',
+                            'amount' => $order->total_amount,
+                            'balance_before' => $balanceBefore,
+                            'balance_after' => $wallet->balance,
+                            'description' => 'Hoàn tiền ví do hủy đơn: ' . $order->order_code,
+                            'reference_type' => 'App\Models\Order',
+                            'reference_id' => $order->id,
+                            'status' => 'completed',
+                        ]);
+                    }
+                }
+
+                // ==========================================
+                // BẮN THÔNG BÁO CHO TẤT CẢ ADMIN
+                // ==========================================
+                try {
+                    $admins = \App\Models\User::whereHas('role', function($q) { $q->where('name', 'admin'); })->get();
+                    if ($admins->count() > 0) {
+                        $adminTitle = "Khách vừa hủy đơn!";
+                        $adminMsg = "Đơn #" . $order->order_code . " vừa bị khách hàng tự hủy. Lý do: " . $request->cancellation_reason;
+                        $adminUrl = route('admin.orders.show', $order->id);
+
+                        foreach ($admins as $ad) {
+                            $ad->notify(new SystemNotification($adminTitle, $adminMsg, $adminUrl));
+                            broadcast(new StatusUpdated($ad->id, $adminTitle, $adminMsg, $adminUrl));
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Lỗi báo Admin hủy đơn: ' . $e->getMessage());
+                }
+
+                \Illuminate\Support\Facades\DB::commit();
+                return redirect()->back()->with('success', 'Đã hủy đơn hàng thành công và hoàn lại tiền, voucher, kho hàng!');
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\DB::rollBack();
+                return redirect()->back()->with('error', 'Có lỗi xảy ra khi hủy đơn: ' . $e->getMessage());
+            }
         }
 
         return redirect()->back()->with('error', 'Đơn hàng này đang được xử lý, không thể hủy.');
     }
 
-    // Gửi yêu cầu hoàn hàng (Code của ông Vũ)
-    public function requestReturn(Request $request, $id)
+    // Gửi yêu cầu hoàn hàng (Cho từng Order Item)
+    public function requestReturn(Request $request, $itemId)
     {
         $validated = $request->validate([
             'return_note' => ['required', 'string', 'max:1000'],
             'return_image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
-        $order = Order::where('user_id', Auth::id())->findOrFail($id);
+        $orderItem = \App\Models\OrderItem::with('order')->findOrFail($itemId);
 
-        if (! $order->canRequestReturn()) {
+        // Đảm bảo đơn hàng này thuộc về user hiện tại
+        if (!$orderItem->order || $orderItem->order->user_id !== Auth::id()) {
+            abort(403, 'Bạn không có quyền thao tác trên sản phẩm này.');
+        }
+
+        if (! $orderItem->canRequestReturn()) {
             throw ValidationException::withMessages([
-                'return_note' => 'Đơn hàng này chưa đủ điều kiện hoàn hàng hoặc đã gửi yêu cầu trước đó.',
+                'return_note' => 'Sản phẩm này chưa đủ điều kiện hoàn hàng hoặc đã gửi yêu cầu trước đó.',
             ]);
         }
 
@@ -181,8 +263,8 @@ class OrderController extends Controller
         $returnImageFile->move(public_path('uploads/returns'), $returnImageName);
         $returnImagePath = 'uploads/returns/' . $returnImageName;
 
-        $order->update([
-            'return_status' => Order::RETURN_REQUESTED,
+        $orderItem->update([
+            'return_status' => \App\Models\OrderItem::RETURN_REQUESTED,
             'return_note' => $validated['return_note'],
             'return_image' => $returnImagePath,
             'return_requested_at' => now(),
@@ -196,38 +278,61 @@ class OrderController extends Controller
         ]);
 
         OrderStatusHistory::create([
-            'order_id' => $order->id,
+            'order_id' => $orderItem->order_id,
             'user_id' => Auth::id(),
-            'status' => '(Hoàn hàng) ' . Order::RETURN_REQUESTED,
-            'note' => 'Khách hàng gửi yêu cầu hoàn hàng: ' . $validated['return_note'],
+            'status' => '(Hoàn hàng SP) ' . \App\Models\OrderItem::RETURN_REQUESTED,
+            'note' => 'Khách hàng gửi yêu cầu hoàn sản phẩm "' . $orderItem->product_name . '": ' . $validated['return_note'],
         ]);
 
-        return redirect()->back()->with('success', 'Đã gửi yêu cầu hoàn hàng. Cửa hàng sẽ phản hồi sớm nhất.');
+        // ==========================================
+        // Bắt thông báo cho Admin
+        // ==========================================
+        try {
+            $admins = \App\Models\User::whereHas('role', function($q) { $q->where('name', 'admin'); })->get();
+            if ($admins->count() > 0) {
+                $adminTitle = "Khách yêu cầu hoàn sản phẩm!";
+                $adminMsg = "Đơn (#" . $orderItem->order->order_code . ") có 1 sản phẩm yêu cầu hoàn hàng: " . htmlspecialchars($orderItem->product_name);
+                $adminUrl = route('admin.orders.show', $orderItem->order_id);
+
+                foreach ($admins as $ad) {
+                    $ad->notify(new SystemNotification($adminTitle, $adminMsg, $adminUrl));
+                    broadcast(new StatusUpdated($ad->id, $adminTitle, $adminMsg, $adminUrl));
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Lỗi báo Admin có yêu cầu hoàn: ' . $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', 'Đã gửi yêu cầu hoàn hàng cho sản phẩm này. Cửa hàng sẽ phản hồi sớm nhất.');
     }
 
-    // Xác nhận đã gửi hàng hoàn về shop
-    public function markReturnShipped($id)
+    // Xác nhận đã gửi hàng hoàn về shop (Cho từng Item)
+    public function markReturnShipped($itemId)
     {
-        $order = Order::where('user_id', Auth::id())->findOrFail($id);
+        $orderItem = \App\Models\OrderItem::with('order')->findOrFail($itemId);
 
-        if (! $order->canCustomerShipReturn()) {
+        if (!$orderItem->order || $orderItem->order->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (! $orderItem->canCustomerShipReturn()) {
             throw ValidationException::withMessages([
-                'order' => 'Đơn hàng này chưa ở bước gửi hàng hoàn về cửa hàng.',
+                'order' => 'Sản phẩm này chưa ở bước gửi hàng hoàn về cửa hàng.',
             ]);
         }
 
-        $order->update([
-            'return_status' => Order::RETURN_CUSTOMER_SHIPPED,
+        $orderItem->update([
+            'return_status' => \App\Models\OrderItem::RETURN_CUSTOMER_SHIPPED,
             'return_shipped_at' => now(),
         ]);
 
         OrderStatusHistory::create([
-            'order_id' => $order->id,
+            'order_id' => $orderItem->order_id,
             'user_id' => Auth::id(),
-            'status' => '(Hoàn hàng) ' . Order::RETURN_CUSTOMER_SHIPPED,
-            'note' => 'Khách hàng xác nhận đã gửi hàng hoàn về cửa hàng.',
+            'status' => '(Hoàn hàng SP) ' . \App\Models\OrderItem::RETURN_CUSTOMER_SHIPPED,
+            'note' => 'Khách hàng xác nhận đã gửi sản phẩm "' . $orderItem->product_name . '" hoàn về cửa hàng.',
         ]);
 
-        return redirect()->back()->with('success', 'Đã cập nhật trạng thái: bạn đã gửi hàng hoàn về cửa hàng.');
+        return redirect()->back()->with('success', 'Đã cập nhật trạng thái: Bạn đã gửi hàng hoàn về cửa hàng.');
     }
 }

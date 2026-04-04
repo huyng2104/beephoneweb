@@ -110,7 +110,9 @@ class User extends Authenticatable  implements MustVerifyEmail
 
     public function userVouchers()
     {
-        return $this->belongsToMany(Voucher::class, 'user_vouchers')->wherePivot('order_id');
+        return $this->belongsToMany(Voucher::class, 'user_vouchers')
+            ->withPivot('order_id', 'used_at', 'id') // lấy ID để dễ xử lý nếu cần
+            ->withTimestamps();
     }
     // 2. Cột ảo tính Tổng điểm hiện tại của User
     public function getTotalPointsAttribute()

@@ -1,251 +1,365 @@
 @extends('admin.layouts.app')
 
 @section('content')
-<div class="bg-slate-50 text-slate-900 font-display min-h-screen p-4 sm:p-8">
-    <div class="max-w-[1200px] mx-auto w-full">
+<div class="bg-slate-50 text-slate-900 font-display min-h-screen">
+    <div class="max-w-[1400px] mx-auto w-full p-4 sm:p-8 space-y-8">
         
-        <div class="flex flex-col flex-1 w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="flex flex-wrap justify-between items-center gap-4 p-6 border-b border-slate-100">
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('admin.products.index') }}" class="text-slate-400 hover:text-primary transition-colors">
-                        <span class="material-symbols-outlined text-2xl">arrow_back</span>
+        <!-- 1. Header: Breadcrumbs & Actions (Matching Edit Style) -->
+        <div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 text-sm text-slate-500 mb-2">
+                    <a href="{{ route('admin.products.index') }}" class="flex items-center gap-1 font-bold text-primary hover:underline">
+                        <span class="material-symbols-outlined text-sm">inventory_2</span> Sản phẩm
                     </a>
-                    <h1 class="text-3xl font-black leading-tight tracking-tight text-slate-800">Chi tiết: {{ $product->name }}</h1>
+                    <span class="material-symbols-outlined text-xs">chevron_right</span>
+                    <span class="text-slate-900 font-medium">Chi tiết sản phẩm</span>
                 </div>
-                <a href="{{ route('admin.products.edit', $product->id) }}" class="flex items-center justify-center gap-2 rounded-lg h-10 px-6 bg-primary hover:brightness-105 text-slate-900 text-sm font-bold transition-all shadow-sm">
-                    <span class="material-symbols-outlined text-sm">edit</span>
-                    <span>Chỉnh sửa sản phẩm</span>
-                </a>
+                <h1 class="text-3xl font-black tracking-tight text-slate-900">Chi tiết: {{ $product->name }}</h1>
             </div>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('client.product.detail', $product->id) }}" target="_blank" class="px-5 py-2.5 rounded-lg border border-slate-300 font-bold text-sm bg-white hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm text-slate-700">
+                    <span class="material-symbols-outlined text-[20px]">visibility</span>
+                    Xem Website
+                </a>
+                <a href="{{ route('admin.products.edit', $product->id) }}" class="px-6 py-2.5 rounded-lg bg-primary text-slate-900 font-bold text-sm hover:brightness-105 shadow-md shadow-primary/20 transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">edit</span>
+                    Sửa sản phẩm
+                </a>
+                <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="p-2.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all">
+                        <span class="material-symbols-outlined text-[20px]">delete</span>
+                    </button>
+                </form>
+            </div>
+        </div>
 
-            <div class="p-6 space-y-10">
-                <div class="flex flex-col md:flex-row gap-6 bg-slate-50 p-6 rounded-xl border border-slate-100">
-                    <div class="shrink-0">
-                        @if($product->thumbnail)
-                            <img alt="{{ $product->name }}" class="w-40 h-40 object-cover rounded-lg shadow-sm border border-slate-200 bg-white" src="{{ asset('storage/' . $product->thumbnail) }}"/>
-                        @else
-                            <div class="w-40 h-40 rounded-lg shadow-sm border border-slate-200 bg-white flex items-center justify-center text-slate-300">
-                                <span class="material-symbols-outlined text-5xl">image</span>
+        <!-- 2. Grid Layout Matching Edit (8:4) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- LEFT COLUMN (8/12) -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                {{-- Tên sản phẩm & SKU --}}
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-3">Tên sản phẩm</label>
+                            <div class="text-xl font-bold p-3 bg-slate-50/50 rounded-lg border border-slate-100 text-slate-800">
+                                {{ $product->name }}
                             </div>
-                        @endif
-                    </div>
-                    
-                    <div class="flex flex-col justify-center flex-1">
-                        <h2 class="text-2xl font-bold leading-tight mb-2">{{ $product->name }} - SKU: {{ $product->sku ?? 'Chưa cập nhật' }}</h2>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-4">
-                            <div class="flex flex-col gap-1">
-                                <span class="text-slate-500">Thương hiệu</span>
-                                <span class="font-semibold text-base">{{ $product->brand ? $product->brand->name : 'Không có' }}</span>
-                            </div>
-                            <div class="flex flex-col gap-1">
-                                <span class="text-slate-500">Danh mục</span>
-                                <span class="font-semibold text-base">
-                                    @forelse($product->categories as $category)
-                                        <span class="inline-block bg-slate-200 text-slate-700 px-2 py-0.5 rounded text-xs mr-1">{{ $category->name }}</span>
-                                    @empty
-                                        Chưa phân loại
-                                    @endforelse
-                                </span>
-                            </div>
-                            <div class="flex flex-col gap-1">
-                                <span class="text-slate-500">Trạng thái</span>
-                                @if($product->status == 'active')
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 text-green-800 font-medium text-xs w-fit">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                                        Đang kinh doanh
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 font-medium text-xs w-fit">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                                        Bản nháp
-                                    </span>
-                                @endif
-                            </div>
-                            <div class="flex flex-col gap-1">
-                                <span class="text-slate-500">Ngày tạo</span>
-                                <span class="font-semibold text-base">{{ $product->created_at->format('d/m/Y H:i') }}</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-3">Mã SP (SKU)</label>
+                            <div class="text-xl font-bold p-3 bg-slate-50/50 rounded-lg border border-slate-100 text-slate-800">
+                                {{ $product->sku ?? 'Chưa cấu hình' }}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div>
-                    <h3 class="text-xl font-bold leading-tight mb-4 flex items-center gap-2 text-slate-800">
-                        <span class="material-symbols-outlined text-primary">insights</span> Thống kê nhanh
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="flex flex-col gap-2 rounded-xl p-5 border border-slate-200 bg-white shadow-sm">
-                            <div class="flex items-center gap-2 text-slate-500 mb-1">
-                                <span class="material-symbols-outlined text-lg">visibility</span>
-                                <p class="text-sm font-medium">Tổng lượt xem</p>
-                            </div>
-                            <p class="text-3xl font-bold text-slate-900">12,500</p>
-                        </div>
-                        <div class="flex flex-col gap-2 rounded-xl p-5 border border-slate-200 bg-white shadow-sm">
-                            <div class="flex items-center gap-2 text-slate-500 mb-1">
-                                <span class="material-symbols-outlined text-lg">shopping_cart</span>
-                                <p class="text-sm font-medium">Tổng lượt mua</p>
-                            </div>
-                            <p class="text-3xl font-bold text-slate-900">1,200</p>
-                        </div>
-                        <div class="flex flex-col gap-2 rounded-xl p-5 border border-slate-200 bg-white shadow-sm">
-                            <div class="flex items-center gap-2 text-slate-500 mb-1">
-                                <span class="material-symbols-outlined text-lg">star</span>
-                                <p class="text-sm font-medium">Đánh giá trung bình</p>
-                            </div>
-                            <div class="flex items-end gap-2">
-                                <p class="text-3xl font-bold text-slate-900">4.8</p>
-                                <p class="text-lg text-slate-400 mb-0.5">/5</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-xl font-bold leading-tight mb-4 flex items-center gap-2 text-slate-800">
-                        <span class="material-symbols-outlined text-primary">memory</span> Thông số kỹ thuật
-                    </h3>
-                    <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
-                        <table class="w-full text-left text-sm text-slate-600">
-                            <tbody class="divide-y divide-slate-200">
-                                @if($product->specifications && is_array($product->specifications) && count($product->specifications) > 0)
-                                    @foreach($product->specifications as $key => $value)
-                                        <tr class="hover:bg-slate-50 transition-colors">
-                                            <th class="py-3 px-4 font-semibold w-1/3 bg-slate-50/50 border-r border-slate-100">{{ $key }}</th>
-                                            <td class="py-3 px-4 font-medium text-slate-800">{{ $value }}</td>
-                                        </tr>
-                                    @endforeach
-                                @else
-                                    <tr>
-                                        <td class="py-6 px-4 text-center text-slate-400 italic">Sản phẩm này chưa được cập nhật thông số kỹ thuật.</td>
-                                    </tr>
-                                @endif
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-xl font-bold leading-tight mb-4 flex items-center gap-2 text-slate-800">
-                        <span class="material-symbols-outlined text-primary">category</span> Phiên bản & Giá bán
-                    </h3>
-                    
-                    @if($product->type == 'simple')
-                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-slate-500 font-bold mb-1">Giá bán hiện tại:</p>
-                                <div class="flex items-center gap-3">
-                                    @if($product->sale_price && $product->sale_price > 0)
-                                        <span class="text-2xl font-black text-red-600">{{ number_format($product->sale_price, 0, ',', '.') }} ₫</span>
-                                        <span class="text-sm text-slate-400 line-through">{{ number_format($product->price, 0, ',', '.') }} ₫</span>
-                                    @else
-                                        <span class="text-2xl font-black text-slate-900">{{ number_format($product->price, 0, ',', '.') }} ₫</span>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-sm text-slate-500 font-bold mb-1">Kho hàng:</p>
-                                <span class="text-lg font-bold text-slate-800">{{ $product->stock }} sản phẩm</span>
-                            </div>
-                        </div>
-                    @else
-                        <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-                            <table class="w-full text-left text-sm text-slate-600 whitespace-nowrap">
-                                <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
-                                    <tr>
-                                        <th class="py-3 px-4">Phiên bản</th>
-                                        <th class="py-3 px-4 text-right">Giá bán (VNĐ)</th>
-                                        <th class="py-3 px-4 text-right">Tồn kho</th>
-                                        <th class="py-3 px-4 text-center">Trạng thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-200 bg-white">
-                                    @forelse($product->variants as $variant)
-                                        <tr class="hover:bg-slate-50 transition-colors">
-                                            <td class="py-3 px-4 font-medium flex items-center gap-2">
-                                                <span class="material-symbols-outlined text-slate-400 text-sm">sell</span>
-                                                @foreach($variant->attributeValues as $value)
-                                                    {{ $value->value }}{{ !$loop->last ? ' - ' : '' }}
-                                                @endforeach
-                                            </td>
-                                            <td class="py-3 px-4 text-right">
-                                                @if($variant->sale_price && $variant->sale_price > 0)
-                                                    <div class="font-semibold text-red-600">{{ number_format($variant->sale_price, 0, ',', '.') }} ₫</div>
-                                                    <div class="text-[10px] text-slate-400 line-through">{{ number_format($variant->price, 0, ',', '.') }} ₫</div>
-                                                @else
-                                                    <div class="font-semibold text-slate-900">{{ number_format($variant->price, 0, ',', '.') }} ₫</div>
-                                                @endif
-                                            </td>
-                                            <td class="py-3 px-4 text-right font-medium {{ $variant->stock <= 5 ? 'text-amber-600' : 'text-slate-500' }}">
-                                                {{ $variant->stock }}
-                                            </td>
-                                            <td class="py-3 px-4 text-center">
-                                                @if($variant->stock > 0)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Còn hàng</span>
-                                                @else
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Hết hàng</span>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4" class="py-8 text-center text-slate-400 italic">
-                                                Sản phẩm này chưa có biến thể nào được tạo.
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
-                </div>
-
-                <div>
-                    <h3 class="text-xl font-bold leading-tight mb-4 flex items-center gap-2 text-slate-800">
-                        <span class="material-symbols-outlined text-primary">photo_library</span> Thư viện hình ảnh
-                    </h3>
-                    @if($product->images && $product->images->count() > 0)
-                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            <div class="aspect-square rounded-xl border border-primary overflow-hidden bg-slate-50 relative group shadow-sm">
-                                <img alt="Thumbnail" class="w-full h-full object-cover" src="{{ asset('storage/' . $product->thumbnail) }}"/>
-                                <div class="absolute inset-0 bg-black/10 flex items-start justify-end p-2">
-                                    <span class="text-white text-[10px] font-bold uppercase bg-primary px-2 py-1 rounded shadow-sm text-slate-900">Ảnh chính</span>
-                                </div>
-                            </div>
-                            
-                            @foreach($product->images as $img)
-                                <div class="aspect-square rounded-xl border border-slate-200 overflow-hidden bg-slate-50 shadow-sm">
-                                    <img alt="Gallery" class="w-full h-full object-cover" src="{{ asset('storage/' . $img->path) }}"/>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="p-6 bg-slate-50 border border-slate-200 border-dashed rounded-xl text-center text-slate-400 font-medium text-sm">
-                            Sản phẩm này chưa có album ảnh phụ nào.
-                        </div>
-                    @endif
-                </div>
-
-                <div>
-                    <h3 class="text-xl font-bold leading-tight mb-4 flex items-center gap-2 text-slate-800">
-                        <span class="material-symbols-outlined text-primary">description</span> Mô tả sản phẩm
-                    </h3>
-                    <div class="relative bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                {{-- Mô tả sản phẩm (Positioned exactly like Edit) --}}
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                    <label class="block text-sm font-bold text-slate-700 mb-4">Mô tả sản phẩm</label>
+                    <div class="relative">
                         @if($product->description)
-                            <div id="admin-desc-content" class="prose prose-slate max-w-none text-sm overflow-hidden" style="max-height: 300px;">
+                            <div id="admin-desc-content" class="prose prose-slate max-w-none text-sm text-slate-700 overflow-hidden leading-relaxed" style="max-height: 250px;">
                                 {!! $product->description !!}
                             </div>
-                            <div id="admin-desc-gradient" class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                            <div id="admin-desc-gradient" class="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none transition-opacity duration-300"></div>
                             
-                            <div class="mt-4 text-center">
-                                <button type="button" id="admin-desc-toggle" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-2 rounded-full font-bold text-sm transition-colors border border-slate-300 shadow-sm">
-                                    Xem toàn bộ mô tả
+                            <div class="mt-4 flex justify-center">
+                                <button type="button" id="admin-desc-toggle" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-1.5 rounded-full font-bold text-[11px] transition-all border border-slate-200 flex items-center gap-1 uppercase tracking-wider">
+                                    <span id="toggle-text">Xem chi tiết</span>
+                                    <span class="material-symbols-outlined text-[18px]">expand_more</span>
                                 </button>
                             </div>
                         @else
-                            <p class="text-slate-400 italic text-center py-6">Chưa có thông tin mô tả chi tiết cho sản phẩm này.</p>
+                            <p class="text-sm text-slate-400 italic py-4">Chưa có bài viết mô tả cho sản phẩm này.</p>
                         @endif
                     </div>
+                </div>
+
+                {{-- Loại sản phẩm --}}
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                    <label class="block text-sm font-bold text-slate-700 mb-3">Loại sản phẩm</label>
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg font-bold text-sm">
+                        <span class="material-symbols-outlined text-sm">{{ $product->type == 'variable' ? 'account_tree' : 'radio_button_checked' }}</span>
+                        {{ $product->type == 'variable' ? 'Sản phẩm biến thể' : 'Sản phẩm đơn giản' }}
+                    </div>
+                </div>
+
+                {{-- THUỘC TÍNH & BIẾN THỂ / CẤU HÌNH (Matching Edit structure) --}}
+                @if($product->type == 'variable')
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                            <h4 class="font-black text-sm uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                                 <span class="material-symbols-outlined text-primary">inventory_2</span>
+                                 Cài đặt phiên bản
+                            </h4>
+                        </div>
+                        <div class="p-6">
+                            <div id="variations-wrapper" class="space-y-4">
+                                @forelse($product->variants as $index => $variant)
+                                    <div class="border {{ $variant->status == 'inactive' ? 'border-red-200 opacity-50' : 'border-slate-200' }} rounded-lg overflow-hidden bg-white shadow-sm hover:border-slate-300 transition-all">
+                                        <!-- Header (Collapsible) -->
+                                        <div class="bg-slate-50 p-3 flex justify-between items-center border-b border-slate-200 cursor-pointer group" onclick="$(this).next().slideToggle()">
+                                            <div class="flex items-center gap-3">
+                                                <span class="material-symbols-outlined text-slate-400">drag_indicator</span>
+                                                <strong class="text-sm text-slate-800">
+                                                    #{{ $index + 1 }} —
+                                                    @foreach($variant->attributeValues as $val)
+                                                        {{ $val->value }}{{ !$loop->last ? ' - ' : '' }}
+                                                    @endforeach
+                                                </strong>
+                                                @if($variant->status == 'inactive')
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-600 text-[10px] font-black uppercase rounded-full border border-red-200">
+                                                        <span class="material-symbols-outlined text-[12px]">visibility_off</span> Ẩn
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <div class="flex items-center gap-4">
+                                                <div class="text-right">
+                                                    <span class="text-xs font-black text-red-600 block">{{ number_format($variant->sale_price ?: $variant->price, 0, ',', '.') }}₫</span>
+                                                    <span class="text-[10px] font-bold text-slate-400 capitalize">Tồn: {{ $variant->stock }}</span>
+                                                </div>
+                                                <span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-all">expand_more</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Body (Matches Edit UI fields but read-only) -->
+                                        <div class="p-5 space-y-4" style="display: none;">
+                                            {{-- Row 1: Image --}}
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ảnh biến thể</label>
+                                                <div class="w-24 h-24 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                                                    @if($variant->thumbnail)
+                                                        <img src="{{ asset('storage/' . $variant->thumbnail) }}" class="w-full h-full object-cover">
+                                                    @else
+                                                        <span class="material-symbols-outlined text-2xl text-slate-200">image</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            {{-- Row 2: SKU + Stock --}}
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 px-1">Mã SP (SKU)</label>
+                                                    <div class="p-2.5 bg-slate-50 rounded-lg text-sm font-bold text-slate-800 border border-slate-100 italic-none">
+                                                        {{ $variant->sku }}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 px-1">Tồn kho</label>
+                                                    <div class="p-2.5 bg-slate-50 rounded-lg text-sm font-bold text-slate-800 border border-slate-100">
+                                                        {{ $variant->stock }}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {{-- Row 3: Price + Sale --}}
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 px-1">Giá thường (₫)</label>
+                                                    <div class="p-2.5 bg-slate-50 rounded-lg text-sm font-bold text-slate-500 {{ $variant->sale_price ? 'line-through' : '' }} border border-slate-100">
+                                                        {{ number_format($variant->price, 0, ',', '.') }}₫
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 px-1">Giá KM (₫)</label>
+                                                    <div class="p-2.5 bg-slate-50 rounded-lg text-sm font-bold text-red-600 border border-slate-100">
+                                                        {{ $variant->sale_price ? number_format((int)$variant->sale_price, 0, ',', '.') . '₫' : 'Không có' }}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {{-- Row 4: Specs --}}
+                                            <div class="border-t border-slate-100 pt-4">
+                                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3 px-1">
+                                                    <span class="material-symbols-outlined text-sm align-middle mr-1">memory</span> Thông số kỹ thuật
+                                                </label>
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    @forelse($variant->specifications as $spec)
+                                                        <div class="flex items-center gap-2 p-2 bg-slate-50/50 rounded-md border border-slate-100">
+                                                            <span class="text-[11px] font-bold text-slate-500 w-1/3 border-r border-slate-200 pr-2">{{ $spec->spec_key }}</span>
+                                                            <span class="text-[11px] font-black text-slate-800 flex-1 pl-1">{{ $spec->spec_value }}</span>
+                                                        </div>
+                                                    @empty
+                                                        <div class="col-span-2 text-[11px] text-slate-300 italic py-2">Chưa cấu hình thông số kĩ thuật.</div>
+                                                    @endforelse
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="py-12 text-center text-slate-300 font-bold italic">Sản phẩm này hiện chưa có phiên bản nào.</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    @php $mainVariant = $product->variants->first(); @endphp
+                    {{-- Card 1: Cấu hình chung --}}
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                            <h4 class="font-black text-sm uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">settings_applications</span>
+                                Cấu hình chung
+                            </h4>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 px-1">Mã SP (SKU)</label>
+                                    <div class="p-3 bg-slate-50 rounded-xl text-sm font-bold text-slate-800 border border-slate-100 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-slate-400 text-lg">barcode</span>
+                                        {{ $mainVariant->sku }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 px-1">Tồn kho</label>
+                                    <div class="p-3 bg-slate-50 rounded-xl text-sm font-bold text-slate-800 border border-slate-100 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-slate-400 text-lg">inventory_2</span>
+                                        {{ $mainVariant->stock }} sản phẩm
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 px-1">Giá bán thường</label>
+                                    <div class="p-3 bg-slate-50 rounded-xl text-sm font-bold text-slate-500 {{ $mainVariant->sale_price ? 'line-through' : '' }} border border-slate-100 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-slate-400 text-lg">payments</span>
+                                        {{ number_format($mainVariant->price, 0, ',', '.') }}₫
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 px-1">Giá khuyến mãi</label>
+                                    <div class="p-3 bg-rose-50 rounded-xl text-sm font-bold text-red-600 border border-rose-100 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-rose-500 text-lg">local_offer</span>
+                                        {{ $mainVariant->sale_price ? number_format((int)$mainVariant->sale_price, 0, ',', '.') . '₫' : 'Chưa thiết lập' }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Card 2: Thông số kỹ thuật --}}
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                            <h4 class="font-black text-sm uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">analytics</span>
+                                Thông số kỹ thuật
+                            </h4>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 gap-3">
+                                @forelse($mainVariant->specifications as $spec)
+                                    <div class="flex items-center gap-4 p-3 bg-slate-50/30 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                                        <div class="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-tight">{{ $spec->spec_key }}</div>
+                                        <div class="flex-1 text-sm font-black text-slate-800">{{ $spec->spec_value }}</div>
+                                    </div>
+                                @empty
+                                    <div class="py-8 text-center text-slate-300 italic font-bold">Chưa có thông số kỹ thuật nào được nhập.</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+            </div>
+
+            <!-- RIGHT SIDEBAR (4/12) -->
+            <div class="lg:col-span-4 space-y-6">
+
+                {{-- Card: Publishing Status --}}
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                        <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Đăng</h4>
+                    </div>
+                    <div class="p-5 space-y-4">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="flex items-center gap-2 text-slate-500 font-medium"><span class="material-symbols-outlined text-lg text-slate-400">key</span> Trạng thái:</span>
+                            <span class="font-bold flex items-center gap-1 {{ $product->status == 'active' ? 'text-green-600' : 'text-slate-400' }}">
+                                {{ $product->status == 'active' ? 'Hiển thị' : 'Đang ẩn' }}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="flex items-center gap-2 text-slate-500 font-medium"><span class="material-symbols-outlined text-lg text-amber-500">rocket_launch</span> Nổi bật:</span>
+                            <span class="font-bold text-slate-700">
+                                {{ $product->is_featured ? 'Có' : 'Không' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Card: Categories --}}
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                        <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Danh mục</h4>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex flex-wrap gap-2">
+                             @forelse($product->categories as $category)
+                                <span class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-[11px] font-bold border border-slate-200">
+                                    {{ $category->name }}
+                                </span>
+                             @empty
+                                <span class="text-slate-300 italic text-sm">Chưa chọn danh mục</span>
+                             @endforelse
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Card: Brand --}}
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                        <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Thương hiệu</h4>
+                    </div>
+                    <div class="p-5">
+                        <div class="p-2.5 bg-slate-50 rounded-lg text-sm font-bold text-slate-700 border border-slate-100">
+                            {{ $product->brand->name ?? 'Không có' }}
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Card: Thumbnail --}}
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                        <h4 class="font-black text-sm uppercase text-slate-700">Ảnh đại diện</h4>
+                    </div>
+                    <div class="p-5">
+                        <div class="rounded-xl overflow-hidden border border-slate-200 shadow-inner group relative aspect-square bg-slate-50 flex items-center justify-center p-2">
+                            @if($product->thumbnail)
+                                <img src="{{ asset('storage/' . $product->thumbnail) }}" class="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700">
+                            @else
+                                <span class="material-symbols-outlined text-5xl text-slate-200">image</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Album hình ảnh --}}
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                        <h4 class="font-black text-sm uppercase text-slate-700">Album hình ảnh</h4>
+                    </div>
+                    <div class="p-5">
+                        @if($product->images->count() > 0)
+                            <div class="grid grid-cols-3 gap-2">
+                                @foreach($product->images as $img)
+                                    <div class="rounded-lg overflow-hidden border border-slate-100 relative group aspect-square bg-slate-50 p-1">
+                                        <img src="{{ asset('storage/' . $img->path) }}" class="w-full h-full object-cover rounded-md">
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-xs text-slate-300 italic text-center py-4">Chưa có album ảnh phụ.</p>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Slug sản phẩm</p>
+                    <code class="block p-3 bg-slate-100 rounded-lg text-[11px] font-mono text-slate-500 break-all border border-slate-200">{{ $product->slug }}</code>
                 </div>
 
             </div>
@@ -253,37 +367,49 @@
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener("DOMContentLoaded", function() {
         const descContent = document.getElementById('admin-desc-content');
         const descToggleBtn = document.getElementById('admin-desc-toggle');
         const descGradient = document.getElementById('admin-desc-gradient');
+        const toggleText = document.getElementById('toggle-text');
 
         if (descContent && descToggleBtn) {
-            // Nếu bài viết thực sự ngắn (không bị tràn 300px), thì ẩn nút Xem thêm luôn
-            if (descContent.scrollHeight <= 300) {
+            if (descContent.scrollHeight <= 250) {
                 descToggleBtn.style.display = 'none';
                 if(descGradient) descGradient.style.display = 'none';
             }
 
             descToggleBtn.addEventListener('click', function() {
-                if (descContent.style.maxHeight === '300px') {
-                    // Mở rộng
+                const isExpanded = descContent.style.maxHeight !== '250px';
+                if (!isExpanded) {
                     descContent.style.maxHeight = descContent.scrollHeight + 'px';
-                    descToggleBtn.innerHTML = 'Thu gọn mô tả';
+                    toggleText.innerHTML = 'Thu gọn';
                     if(descGradient) descGradient.style.opacity = '0';
+                    this.querySelector('.material-symbols-outlined').style.transform = 'rotate(180deg)';
                 } else {
-                    // Thu gọn
-                    descContent.style.maxHeight = '300px';
-                    descToggleBtn.innerHTML = 'Xem toàn bộ mô tả';
+                    descContent.style.maxHeight = '250px';
+                    toggleText.innerHTML = 'Xem chi tiết';
                     if(descGradient) descGradient.style.opacity = '1';
-                    
-                    // Cuộn nhẹ lên trên để Admin không bị lạc trôi
-                    const y = descContent.getBoundingClientRect().top + window.scrollY - 100;
-                    window.scrollTo({top: y, behavior: 'smooth'});
+                    this.querySelector('.material-symbols-outlined').style.transform = 'rotate(0deg)';
                 }
             });
         }
     });
+
+    $(document).ready(function() {
+        // Toggle variant collapsible
+        window.toggleVariant = function(header) {
+            $(header).next().slideToggle(200);
+            const icon = $(header).find('.material-symbols-outlined:last-child');
+            icon.toggleClass('rotate-180');
+        };
+    });
 </script>
+
+<style>
+    .rotate-180 { transform: rotate(180deg); }
+    .material-symbols-outlined { transition: transform 0.2s ease; }
+</style>
 @endsection

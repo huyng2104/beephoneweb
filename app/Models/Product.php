@@ -14,13 +14,39 @@ class Product extends Model
     use SoftDeletes;
     use LogsActivity;
     protected $fillable = [
-    'name', 'slug', 'description', 'type', 'price', 'sale_price',
-    'sku', 'stock', 'status', 'is_featured', 'brand_id', 'thumbnail','specifications'
-];
-protected $casts = [
-    // ... các casts cũ nếu có
-    'specifications' => 'array', // Ép kiểu tự động cực kỳ quan trọng
-];
+        'name', 'slug', 'description', 'type', 'status', 'is_featured', 'brand_id', 'thumbnail','sku'
+    ];
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($product) {
+            if (empty($product->slug) || $product->isDirty('name')) {
+                $baseSlug = \Illuminate\Support\Str::slug($product->name);
+                $slug = $baseSlug;
+                $count = 1;
+
+                // Ensure slug uniqueness (except for current model)
+                while (static::where('slug', $slug)->where('id', '!=', $product->id)->exists()) {
+                    $slug = $baseSlug . '-' . $count++;
+                }
+
+                $product->slug = $slug;
+            }
+        });
+    }
+
+    /**
+     * Use 'id' for route model binding (Ensure admin/products/{id} works).
+     */
+    public function getRouteKeyName()
+    {
+        return 'id';
+    }
 
     // Sản phẩm thuộc 1 Thương hiệu
     public function brand(): BelongsTo

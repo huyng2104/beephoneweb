@@ -139,14 +139,14 @@
                                                 <p class="font-black text-[#181611] dark:text-white line-clamp-2">{{ $item->product_name ?? $p->name }}</p>
                                                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Số lượng: {{ $item->quantity }}</p>
                                             </div>
-                                            <a href="{{ route('client.product.detail', ['slug' => $productParam]) }}#comments" class="text-sm font-black text-primary hover:underline">
+                                            <a href="{{ route('client.product.detail', ['id' => $productParam]) }}#comments" class="text-sm font-black text-primary hover:underline">
                                                 Xem sản phẩm
                                             </a>
                                         </div>
 
                                         <form action="{{ route('products.comments.store', $p) }}" method="POST" enctype="multipart/form-data" class="mt-4 grid gap-3">
                                             @csrf
-                                            <input type="hidden" name="redirect_to" value="{{ route('client.product.detail', ['slug' => $productParam]) }}#comments">
+                                            <input type="hidden" name="redirect_to" value="{{ route('client.product.detail', ['id' => $productParam]) }}#comments">
 
                                             @guest
                                                 <div class="grid gap-3 sm:grid-cols-2">

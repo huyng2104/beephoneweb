@@ -44,7 +44,7 @@ use App\Models\User;
 use App\Http\Controllers\AdminControllers\CommentController as AdminCommentController;
 use App\Http\Controllers\AdminControllers\ReviewController as AdminReviewController;
 use App\Http\Controllers\CommentController;
-
+use App\Http\Controllers\AdminControllers\WithdrawalController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -67,7 +67,7 @@ Route::middleware('check.verified')->group(function () {
     Route::get('/lien-he-v2', function() { return view('client.Contact & Support.index'); })->name('contact.v2');
 
     // Chi tiết sản phẩm & Danh sách sản phẩm
-    Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
+    Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('client.product.detail');
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
 
     // Thông tin tài khoản
@@ -99,22 +99,26 @@ Route::middleware('check.verified')->group(function () {
     Route::get('/gio-hang', [CartController::class, 'index'])->name('client.cart.index');
     Route::post('/cart/update', [CartController::class, 'update'])->name('client.cart.update');
     Route::post('/cart/remove', [CartController::class, 'remove'])->name('client.cart.remove');
+    Route::get('/cart/get-variants', [CartController::class, 'getVariants'])->name('client.cart.get_variants');
+    Route::post('/cart/change-variant', [CartController::class, 'changeVariant'])->name('client.cart.change_variant');
     Route::post('/cart/apply-voucher', [CartController::class, 'applyVoucher'])->name('client.cart.apply_voucher');
     Route::post('/cart/checkout-select', [App\Http\Controllers\Client\CartController::class, 'checkoutSelect'])->name('client.cart.checkout_select');
     // THANH TOÁN (CHECKOUT)
     Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('client.checkout.index');
-    Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('client.checkout.process');
+    Route::post('/thanh-toan', [CheckoutController::class, 'process'])->middleware('throttle:10,1')->name('client.checkout.process');
     Route::get('/dat-hang-thanh-cong', [CheckoutController::class, 'success'])->name('client.checkout.success');
     Route::get('/vnpay/response', [App\Http\Controllers\Client\CheckoutController::class, 'vnpay_return'])->name('vnpay.return');
     Route::post('/thanh-toan/remove-voucher', [CheckoutController::class, 'removeVoucher'])->name('client.checkout.remove_voucher');
     // QUẢN LÝ ĐƠN HÀNG CỦA KHÁCH
     Route::middleware(['auth'])->group(function () {
+        Route::get('/thanh-toan-lai/{id}', [CheckoutController::class, 'retryPayment'])->name('client.checkout.retry');
+
         Route::get('/don-mua', [ClientOrderController::class, 'index'])->name('client.orders.index');
         Route::get('/don-mua/{id}', [ClientOrderController::class, 'show'])->name('client.orders.show');
         Route::patch('/don-mua/{id}/xac-nhan', [ClientOrderController::class, 'confirmReceived'])->name('client.orders.confirm');
         Route::patch('/don-mua/{id}/huy', [ClientOrderController::class, 'cancel'])->name('client.orders.cancel');
-        Route::patch('/don-mua/{id}/hoan-hang', [ClientOrderController::class, 'requestReturn'])->name('client.orders.return');
-        Route::patch('/don-mua/{id}/gui-hang-hoan', [ClientOrderController::class, 'markReturnShipped'])->name('client.orders.return.shipped');
+        Route::patch('/don-mua/item/{itemId}/hoan-hang', [ClientOrderController::class, 'requestReturn'])->name('client.orders.return');
+        Route::patch('/don-mua/item/{itemId}/gui-hang-hoan', [ClientOrderController::class, 'markReturnShipped'])->name('client.orders.return.shipped');
     });
 
     Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
@@ -204,7 +208,8 @@ Route::middleware(['check.verified', 'check.banned'])->group(function () {
 
     // Sản phẩm
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('client.products.index');
-    Route::get('/san-pham/{slug}', [ClientProductController::class, 'show'])->name('client.product.detail');
+    // Xem theo ID (Đã hỗ trợ slug bên trong controller)
+    Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('client.product.detail');
 
     // Profile & Ví
     Route::get('profile/wallet', [ProfileController::class, 'user_wallet'])->name('profile.wallet');
@@ -225,18 +230,22 @@ Route::middleware(['check.verified', 'check.banned'])->group(function () {
     Route::get('/gio-hang', [CartController::class, 'index'])->name('client.cart.index');
     Route::post('/cart/update', [CartController::class, 'update'])->name('client.cart.update');
     Route::post('/cart/remove', [CartController::class, 'remove'])->name('client.cart.remove');
+    Route::get('/cart/get-variants', [CartController::class, 'getVariants'])->name('client.cart.get_variants');
+    Route::post('/cart/change-variant', [CartController::class, 'changeVariant'])->name('client.cart.change_variant');
     Route::post('/cart/apply-voucher', [CartController::class, 'applyVoucher'])->name('client.cart.apply_voucher');
     Route::post('/cart/checkout-select', [CartController::class, 'checkoutSelect'])->name('client.cart.checkout_select');
 
     // Thanh toán
     Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('client.checkout.index');
-    Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('client.checkout.process');
+    Route::post('/thanh-toan', [CheckoutController::class, 'process'])->middleware('throttle:10,1')->name('client.checkout.process');
     Route::get('/dat-hang-thanh-cong', [CheckoutController::class, 'success'])->name('client.checkout.success');
     Route::get('/vnpay/response', [CheckoutController::class, 'vnpay_return'])->name('vnpay.return');
     Route::post('/thanh-toan/remove-voucher', [CheckoutController::class, 'removeVoucher'])->name('client.checkout.remove_voucher');
 
     // Đơn hàng (yêu cầu đăng nhập)
     Route::middleware(['auth'])->group(function () {
+        Route::get('/thanh-toan-lai/{id}', [CheckoutController::class, 'retryPayment'])->name('client.checkout.retry');
+
         Route::get('/don-mua', [ClientOrderController::class, 'index'])->name('client.orders.index');
         Route::get('/don-mua/{id}', [ClientOrderController::class, 'show'])->name('client.orders.show');
         Route::patch('/don-mua/{id}/xac-nhan', [ClientOrderController::class, 'confirmReceived'])->name('client.orders.confirm');
@@ -367,10 +376,10 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
         Route::patch('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
-        Route::patch('orders/{order}/return-approve', [OrderController::class, 'approveReturn'])->name('orders.return.approve');
-        Route::patch('orders/{order}/return-reject', [OrderController::class, 'rejectReturn'])->name('orders.return.reject');
-        Route::patch('orders/{order}/return-received', [OrderController::class, 'markReturnReceived'])->name('orders.return.received');
-        Route::patch('orders/{order}/return-refund', [OrderController::class, 'refundReturn'])->name('orders.return.refund');
+        Route::patch('orders/item/{itemId}/return-approve', [OrderController::class, 'approveReturn'])->name('orders.return.approve');
+        Route::patch('orders/item/{itemId}/return-reject', [OrderController::class, 'rejectReturn'])->name('orders.return.reject');
+        Route::patch('orders/item/{itemId}/return-received', [OrderController::class, 'markReturnReceived'])->name('orders.return.received');
+        Route::patch('orders/item/{itemId}/return-refund', [OrderController::class, 'refundReturn'])->name('orders.return.refund');
         Route::get('orders/{order}/print-pdf', [OrderController::class, 'printPdf'])->name('orders.print.pdf');
 
         // Posts
