@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\ChatbotFaq;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -31,10 +32,15 @@ class ChatbotController extends Controller
             env('GEMINI_API_KEY_2'),
             env('GEMINI_API_KEY_3')
         ];
-        // Lọc bỏ những key rỗng (lỡ bro chỉ điền 2 key)
-        $validKeys = array_filter($keys);
-        
-        // Random bốc đại 1 key ra để xài -> Tránh bị quá tải 1 key
+        // Lọc bỏ các key rỗng
+        $validKeys = array_filter($keys, fn($k) => !empty($k));
+
+        // Nếu không có key nào, không gọi Gemini
+        if (empty($validKeys)) {
+            return response()->json(['reply' => 'Hệ thống AI chưa được cấu hình API chìa khóa. Vui lòng thử lại sau hoặc liên hệ quản trị.', 'type' => 'error']);
+        }
+
+        // Random bốc đại 1 key ra để xài -> Tránh quá tải 1 key
         $apiKey = $validKeys[array_rand($validKeys)];
 
         // ==========================================

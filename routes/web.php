@@ -30,6 +30,11 @@ use App\Http\Controllers\AdminControllers\PostCategoryController;
 use App\Http\Controllers\AdminControllers\RoleController;
 use App\Http\Controllers\AdminControllers\PermissionController;
 use App\Http\Controllers\AdminControllers\WalletController;
+use App\Http\Controllers\AdminControllers\SupportController;
+use App\Http\Controllers\AdminControllers\CustomerActivityController;
+use App\Http\Controllers\AdminControllers\ChatbotFaqController;
+
+
 use App\Http\Controllers\Client\PointController as ClientPointController;
 use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\Client\ProfileController;
@@ -66,6 +71,22 @@ Route::middleware('check.verified')->group(function () {
     
     // So sánh: view file Contact & Support (tạm thời)
     Route::get('/lien-he-v2', function() { return view('client.Contact & Support.index'); })->name('contact.v2');
+
+    // Chatbot API
+    Route::get('/api/chatbot/categories', [ChatbotController::class, 'getCategories']);
+    Route::get('/api/chatbot/questions/{category}', [ChatbotController::class, 'getQuestions']);
+    Route::get('/api/search/suggestions', [ClientProductController::class, 'searchSuggestions'])->name('client.search.suggestions');
+    // Terms of Service
+    Route::get('/dieu-khoan-su-dung', function() { return view('client.terms'); })->name('terms');
+
+    // Return Policy
+    Route::get('/chinh-sach-doi-tra', function() { return view('client.return-policy'); })->name('return-policy');
+
+    // Privacy Policy
+    Route::get('/chinh-sach-bao-mat', function() { return view('client.privacy-policy'); })->name('privacy-policy');
+
+    // Cookie Policy
+    Route::get('/chinh-sach-cookie', function() { return view('client.cookie-policy'); })->name('cookie-policy');
 
     // Chi tiết sản phẩm & Danh sách sản phẩm
     Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('client.product.detail');
@@ -125,6 +146,11 @@ Route::middleware('check.verified')->group(function () {
     Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
     Route::get('/bai-viet/{slug}', [ClientPostController::class, 'show'])->name('client.posts.show');
     Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])->name('chatbot.chat');
+
+    // API: Ticket từ Chatbot
+    Route::post('/api/tickets/create-from-chat', [\App\Http\Controllers\Api\TicketController::class, 'createFromChat'])->name('api.tickets.create');
+    Route::post('/api/tickets/add-message', [\App\Http\Controllers\Api\TicketController::class, 'addMessage'])->name('api.tickets.add-message');
+    Route::get('/api/tickets/{ticketId}/messages', [\App\Http\Controllers\Api\TicketController::class, 'getMessages'])->name('api.tickets.messages');
 
     // QUẢN LÝ ĐIỂM THƯỞNG (BEE POINT)
     Route::get('/bee-point', [App\Http\Controllers\Client\PointController::class, 'index'])->name('client.points.index');
@@ -395,13 +421,14 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
         Route::post('/admin/posts/restore/{id}', [PostController::class, 'restore'])->name('posts.restore');
         Route::delete('/admin/posts/force-delete/{id}', [PostController::class, 'forceDelete'])->name('posts.forceDelete');
 
-        // Tickets
+        // Quản lý yêu cầu hỗ trợ
         Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
-
         Route::get('/tickets/{id}', [TicketController::class, 'show'])->name('tickets.show');
-
         Route::post('/tickets/{id}/status', [TicketController::class, 'updateStatus'])
             ->name('tickets.updateStatus');
+        Route::post('/tickets/{id}/messages', [TicketController::class, 'addMessage'])->name('tickets.addMessage');
+
+        // 9. Quản lý Banner
 
         // Banners
         Route::get('banners/trash', [BannerController::class, 'trash'])->name('banners.trash');
@@ -426,8 +453,8 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
         Route::post('/wallet/{id}/lock', [WalletController::class, 'lock'])->name('wallet.lock');
         Route::post('/wallet/{id}/unlock', [WalletController::class, 'unlock'])->name('wallet.unlock');
 
-        // 10. Quản lý Chatbot FAQ
-        Route::resource('chatbot-faqs', \App\Http\Controllers\AdminControllers\ChatbotFaqController::class);
+        // 11. Quản lý Chatbot FAQs
+        Route::resource('chatbot-faqs', ChatbotFaqController::class);
 
         // Giao diện xem sao kê Ví Tổng
         Route::get('/system-wallet', [WalletController::class, 'systemWallet'])->name('system_wallet');

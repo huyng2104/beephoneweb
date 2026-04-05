@@ -1,70 +1,92 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Sửa Chatbot FAQ')
+@section('title', 'Sửa Câu Hỏi Chatbot')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <h1 class="h3 mb-0">Sửa Chatbot FAQ</h1>
-        </div>
+<div class="p-8">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-slate-900 dark:text-white">Sửa Câu Hỏi Chatbot</h1>
+        <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Cập nhật câu hỏi và câu trả lời cho chatbot</p>
     </div>
 
     @if($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
+        <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p class="text-red-800 dark:text-red-200 font-semibold text-sm mb-2">Vui lòng sửa các lỗi sau:</p>
+            <ul class="space-y-1">
                 @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
+                    <li class="text-red-700 dark:text-red-300 text-sm">• {{ $error }}</li>
                 @endforeach
             </ul>
         </div>
     @endif
 
-    <div class="card">
-        <div class="card-body">
-            <form action="{{ route('admin.chatbot-faqs.update', $faq->id) }}" method="POST">
-                @csrf @method('PUT')
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+        <form action="{{ route('admin.chatbot-faqs.update', $faq->id) }}" method="POST" class="space-y-6">
+            @csrf @method('PUT')
 
-                <div class="form-group">
-                    <label>Câu Hỏi <span class="text-danger">*</span></label>
-                    <input type="text" name="question" class="form-control @error('question') is-invalid @enderror" placeholder="Nhập câu hỏi FAQ" value="{{ old('question', $faq->question) }}" required>
-                    @error('question')<span class="invalid-feedback">{{ $message }}</span>@enderror
+            <div>
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                    Câu Hỏi <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="question" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent @error('question') ring-2 ring-red-500 @enderror" placeholder="Nhập câu hỏi FAQ" value="{{ old('question', $faq->question) }}" required>
+                @error('question')<span class="text-red-600 dark:text-red-400 text-sm mt-1 block">{{ $message }}</span>@enderror
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                    Loại Chuyên Mục <span class="text-red-500">*</span>
+                </label>
+                <select name="category" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent @error('category') ring-2 ring-red-500 @enderror" required>
+                    <option value="">-- Chọn Chuyên Mục --</option>
+                    @foreach($categories as $key => $label)
+                        <option value="{{ $key }}" {{ old('category', $faq->category) == $key ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+                @error('category')<span class="text-red-600 dark:text-red-400 text-sm mt-1 block">{{ $message }}</span>@enderror
+                <small class="text-slate-500 dark:text-slate-400 text-xs mt-1.5 block">Chọn nhóm câu hỏi, ví dụ: Giao hàng, Bảo hành, Thanh toán, Đổi trả.</small>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                    Câu Trả Lời <span class="text-red-500">*</span>
+                </label>
+                <textarea name="answer" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent @error('answer') ring-2 ring-red-500 @enderror" rows="8" placeholder="Nhập câu trả lời chi tiết cho câu hỏi" required>{{ old('answer', $faq->answer) }}</textarea>
+                @error('answer')<span class="text-red-600 dark:text-red-400 text-sm mt-1 block">{{ $message }}</span>@enderror
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                    Từ Khóa (không bắt buộc)
+                </label>
+                <input type="text" name="keywords" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Ví dụ: bảo hành, lỗi, kỹ thuật, hỗ trợ" value="{{ old('keywords', $faq->keywords) }}">
+                <small class="text-slate-500 dark:text-slate-400 text-xs mt-1.5 block">Nhập các từ khóa ngăn cách bằng dấu phẩy. Chatbot sẽ tự động nhận dạng câu hỏi dựa trên những từ khóa này</small>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                        Độ Ưu Tiên
+                    </label>
+                <input type="number" name="sort_order" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="0" value="{{ old('sort_order', $faq->sort_order) }}">
+                <div class="flex items-end">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="is_active" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary dark:border-slate-600 dark:bg-slate-700" value="1" {{ $faq->is_active ? 'checked' : '' }}>
+                        <span class="ml-3 text-sm font-medium text-slate-900 dark:text-white">Kích hoạt</span>
+                    </label>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label>Trả Lời <span class="text-danger">*</span></label>
-                    <textarea name="answer" class="form-control @error('answer') is-invalid @enderror" rows="6" placeholder="Nhập câu trả lời" required>{{ old('answer', $faq->answer) }}</textarea>
-                    @error('answer')<span class="invalid-feedback">{{ $message }}</span>@enderror
-                </div>
-
-                <div class="form-group">
-                    <label>Từ Khóa (ngăn cách bằng dấu phẩy)</label>
-                    <input type="text" name="keywords" class="form-control" placeholder="Ví dụ: giá, giá cả, bao nhiêu tiền" value="{{ old('keywords', $faq->keywords) }}">
-                    <small class="text-muted">Nhập các từ khóa liên quan để chatbot tự động nhận dạng câu hỏi</small>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label>Độ Ưu Tiên</label>
-                        <input type="number" name="priority" class="form-control" placeholder="0" value="{{ old('priority', $faq->priority) }}">
-                        <small class="text-muted">Số càng cao, FAQ sẽ được ưu tiên trả lời trước</small>
-                    </div>
-
-                    <div class="form-group col-md-6">
-                        <label>&nbsp;</label>
-                        <div class="custom-control custom-checkbox mt-2">
-                            <input type="checkbox" name="is_active" id="is_active" class="custom-control-input" value="1" {{ $faq->is_active ? 'checked' : '' }}>
-                            <label class="custom-control-label" for="is_active">Kích Hoạt</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group mt-4">
-                    <button type="submit" class="btn btn-primary">Cập Nhật FAQ</button>
-                    <a href="{{ route('admin.chatbot-faqs.index') }}" class="btn btn-secondary">Quay Lại</a>
-                </div>
-            </form>
-        </div>
+            <div class="flex items-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                <button type="submit" class="flex items-center gap-2 px-6 py-2.5 bg-primary text-black text-sm font-bold hover:brightness-105 transition-all rounded-lg shadow-sm">
+                    <span class="material-symbols-outlined text-[18px]">check</span>
+                    <span>Cập Nhật Câu Hỏi</span>
+                </button>
+                <a href="{{ route('admin.chatbot-faqs.index') }}" class="flex items-center gap-2 px-6 py-2.5 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors rounded-lg">
+                    <span class="material-symbols-outlined text-[18px]">cancel</span>
+                    <span>Hủy</span>
+                </a>
+            </div>
+        </form>
     </div>
 </div>
 @endsection

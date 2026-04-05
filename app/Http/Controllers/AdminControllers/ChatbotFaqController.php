@@ -3,62 +3,116 @@
 namespace App\Http\Controllers\AdminControllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\ChatbotFaq;
+use App\Models\SupportFaq;
 use Illuminate\Http\Request;
 
 class ChatbotFaqController extends Controller
 {
+    private $categories = [
+        'shipping' => 'Giao hàng',
+        'warranty' => 'Bảo hành',
+        'payment' => 'Thanh toán',
+        'return' => 'Đổi trả',
+    ];
+
+    /**
+     * Display a listing of FAQs
+     */
     public function index()
     {
-        $faqs = ChatbotFaq::orderBy('priority', 'desc')->paginate(20);
-        return view('admin.chatbot-faqs.index', compact('faqs'));
+        $faqs = SupportFaq::orderBy('category')->orderBy('sort_order')->paginate(15);
+        $categories = $this->categories;
+
+        return view('admin.chatbot-faqs.index', compact('faqs', 'categories'));
     }
 
+    /**
+     * Show the form for creating a new FAQ
+     */
     public function create()
     {
-        return view('admin.chatbot-faqs.create');
+        $categories = $this->categories;
+
+        return view('admin.chatbot-faqs.create', compact('categories'));
     }
 
+    /**
+     * Store a newly created FAQ
+     */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'question' => 'required|string|unique:chatbot_faqs,question',
+        $request->validate([
+            'category' => 'required|in:' . implode(',', array_keys($this->categories)),
+            'question' => 'required|string|max:255',
             'answer' => 'required|string',
-            'keywords' => 'nullable|string',
-            'priority' => 'nullable|integer',
+            'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
         ]);
 
-        $data['is_active'] = $request->has('is_active') ? true : false;
-        ChatbotFaq::create($data);
+        SupportFaq::create([
+            'category' => $request->category,
+            'question' => $request->question,
+            'answer' => $request->answer,
+            'keywords' => $request->keywords,
+            'sort_order' => $request->sort_order ?? 0,
+            'is_active' => $request->has('is_active') ? true : false,
+        ]);
 
-        return redirect()->route('admin.chatbot-faqs.index')->with('success', 'Thêm FAQ thành công!');
+        return redirect()
+            ->route('admin.chatbot-faqs.index')
+            ->with('success', 'Thêm FAQ thành công!');
     }
 
-    public function edit(ChatbotFaq $faq)
+    /**
+     * Show the form for editing the specified FAQ
+     */
+    public function edit($id)
     {
-        return view('admin.chatbot-faqs.edit', compact('faq'));
+        $faq = SupportFaq::findOrFail($id);
+        $categories = $this->categories;
+
+        return view('admin.chatbot-faqs.edit', compact('faq', 'categories'));
     }
 
-    public function update(Request $request, ChatbotFaq $faq)
+    /**
+     * Update the specified FAQ
+     */
+    public function update(Request $request, $id)
     {
-        $data = $request->validate([
-            'question' => 'required|string|unique:chatbot_faqs,question,' . $faq->id,
+        $faq = SupportFaq::findOrFail($id);
+
+        $request->validate([
+            'category' => 'required|in:' . implode(',', array_keys($this->categories)),
+            'question' => 'required|string|max:255',
             'answer' => 'required|string',
-            'keywords' => 'nullable|string',
-            'priority' => 'nullable|integer',
+            'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
         ]);
 
-        $data['is_active'] = $request->has('is_active') ? true : false;
-        $faq->update($data);
+        $faq->update([
+            'category' => $request->category,
+            'question' => $request->question,
+            'answer' => $request->answer,
+            'keywords' => $request->keywords,
+            'sort_order' => $request->sort_order ?? 0,
+            'is_active' => $request->has('is_active') ? true : false,
+        ]);
 
-        return redirect()->route('admin.chatbot-faqs.index')->with('success', 'Cập nhật FAQ thành công!');
+        return redirect()
+            ->route('admin.chatbot-faqs.index')
+            ->with('success', 'Cập nhật FAQ thành công!');
     }
 
-    public function destroy(ChatbotFaq $faq)
+    /**
+     * Delete the specified FAQ
+     */
+    public function destroy($id)
     {
+        $faq = SupportFaq::findOrFail($id);
         $faq->delete();
-        return redirect()->route('admin.chatbot-faqs.index')->with('success', 'Xóa FAQ thành công!');
+
+        return redirect()
+            ->route('admin.chatbot-faqs.index')
+            ->with('success', 'Xóa FAQ thành công!');
     }
 }
