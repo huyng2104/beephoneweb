@@ -33,20 +33,37 @@ class AuthController extends Controller
     }
     public function postLogin(LoginRequest $request)
     {
+        $user = User::withTrashed()->where('email', $request->email)->first();
+        if ($user->trashed()) {
+            return back()->withErrors([
+                'email' => 'Tài khoản của bạn đã bị xóa khỏi hệ thống.'
+            ])->onlyInput('email');
+        }
         $data = [
             'email' => $request->email,
             'password' => $request->password,
         ];
+
         $status = User::select('status', 'email_verified_at')->where('email', $request->email)->first();
+
         if ($status->status != 'active') {
             return back()->withErrors([
                 'email' => 'Tài khoản hiện chưa kích hoạt hoặc bị khóa'
             ])->onlyInput('email');
         }
 
-        if (Auth::attempt($data)) {
+        $remember = $request->boolean('remember');
+
+        if (Auth::attempt($data, $remember)) {
             $request->session()->regenerate();
-            activity_log('login', 'Đăng nhập hệ thống');
+            activity('auth')
+                ->causedBy($user) // Xác định người vừa đăng nhập
+                ->withProperties([
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(), // Lưu thông tin trình duyệt, thiết bị
+                    'status'     => 'success'
+                ])
+                ->log('Đăng nhập hệ thống thành công.');
             return redirect()->intended('/')->with(
                 [
                     'success' => 'Đăng nhập thành công'
@@ -85,7 +102,16 @@ class AuthController extends Controller
     }
     public function logOut(Request $request)
     {
-        activity_log('logout', 'Đăng xuất');
+        $user = Auth::id();
+        if ($user) {
+        // Thực hiện ghi log
+        activity('auth')
+            ->causedBy($user)
+            ->withProperties([
+                'ip_address' => $request->ip(),
+            ])
+            ->log('Đã đăng xuất khỏi hệ thống.');
+    }
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

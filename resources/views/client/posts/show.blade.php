@@ -185,7 +185,7 @@
                 <!-- Sidebar: Ads & Products -->
                 <aside class="w-full lg:w-[340px] space-y-8">
                     <!-- Promo Card -->
-                    <div class="bg-background-dark text-white rounded-xl overflow-hidden relative p-6 group">
+                    {{-- <div class="bg-background-dark text-white rounded-xl overflow-hidden relative p-6 group">
                         <div class="absolute top-0 right-0 p-4">
                             <span
                                 class="bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-full animate-pulse">HOT
@@ -205,31 +205,31 @@
                             class="w-full bg-primary text-background-dark font-black py-3 rounded-lg hover:bg-white transition-colors">
                             MUA NGAY
                         </button>
-                    </div>
+                    </div> --}}
                     <!-- Newsletter -->
 
                     <!-- Trending Topics -->
                     <div>
                         <h4 class="font-bold mb-4 uppercase text-xs tracking-widest text-[#8a8060]">Xu hướng</h4>
+
                         <div class="space-y-4">
-                            <a class="flex items-center gap-3 group" href="#">
-                                <span
-                                    class="text-2xl font-black text-gray-200 group-hover:text-primary transition-colors">01</span>
-                                <p class="text-sm font-medium leading-snug group-hover:text-primary">Đánh giá chi tiết iPad
-                                    Pro M4 mới nhất</p>
-                            </a>
-                            <a class="flex items-center gap-3 group" href="#">
-                                <span
-                                    class="text-2xl font-black text-gray-200 group-hover:text-primary transition-colors">02</span>
-                                <p class="text-sm font-medium leading-snug group-hover:text-primary">Cách tối ưu pin cho
-                                    iOS 17.5</p>
-                            </a>
-                            <a class="flex items-center gap-3 group" href="#">
-                                <span
-                                    class="text-2xl font-black text-gray-200 group-hover:text-primary transition-colors">03</span>
-                                <p class="text-sm font-medium leading-snug group-hover:text-primary">Mẹo chụp ảnh đêm bằng
-                                    smartphone</p>
-                            </a>
+
+                            @foreach ($mostViewed as $index => $post)
+                                <a class="flex items-center gap-3 group"
+                                    href="{{ route('client.posts.show', $post->slug) }}">
+
+                                    <span
+                                        class="text-2xl font-black text-gray-200 group-hover:text-primary transition-colors">
+                                        {{ str_pad($index + 1, 2, '0', STR_PAD_LEFT) }}
+                                    </span>
+
+                                    <p class="text-sm font-medium leading-snug group-hover:text-primary">
+                                        {{ $post->title }}
+                                    </p>
+
+                                </a>
+                            @endforeach
+
                         </div>
                     </div>
                 </aside>
@@ -246,12 +246,15 @@
                                 style="background-image: url('{{ asset('uploads/posts/' . $item->thumbnail) }}')">
                                 <div class="w-full h-full bg-black/20 group-hover:bg-black/0 transition-all"></div>
                             </div>
-                            <span class="text-xs font-bold text-primary uppercase mb-2 block">{{ $item->category->name ?? 'Tin tức' }}</span>
-                            <h4 class="font-bold text-lg leading-snug group-hover:text-primary transition-colors mb-2">{{ $item->title }}</h4>
-                            <p class="text-sm text-[#8a8060] line-clamp-2">{{ Str::limit(strip_tags($item->content), 100) }}</p>
+                            <span
+                                class="text-xs font-bold text-primary uppercase mb-2 block">{{ $item->category->name ?? 'Tin tức' }}</span>
+                            <h4 class="font-bold text-lg leading-snug group-hover:text-primary transition-colors mb-2">
+                                {{ $item->title }}</h4>
+                            <p class="text-sm text-[#8a8060] line-clamp-2">
+                                {{ Str::limit(strip_tags($item->content), 100) }}</p>
                         </div>
                     @endforeach
-                    
+
                 </div>
             </section>
         </main>

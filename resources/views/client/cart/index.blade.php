@@ -7,15 +7,28 @@
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #f4c025; border-radius: 10px; }
+    
+    .attr-btn-modal.active {
+        border-color: #f4c025;
+        background-color: rgba(244, 192, 37, 0.1);
+        box-shadow: 0 0 0 2px #f4c025;
+    }
+    .attr-btn-modal.disabled {
+        opacity: 0.4;
+        filter: grayscale(100%);
+        pointer-events: none;
+        cursor: not-allowed;
+    }
 </style>
 
 <main class="pt-10 pb-20 px-6 md:px-12 max-w-screen-2xl mx-auto min-h-screen">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold tracking-tight text-[#181611] dark:text-white">Giỏ hàng của bạn</h1>
+    </div>
+
     <div class="flex flex-col lg:flex-row gap-8">
         
         <div class="flex-grow">
-            <div class="flex items-center justify-between mb-8">
-                <h1 class="text-3xl font-bold tracking-tight text-[#181611] dark:text-white">Giỏ hàng của bạn</h1>
-            </div>
             
             @if($cartItems->count() > 0)
                 {{-- NÚT CHỌN TẤT CẢ --}}
@@ -63,7 +76,17 @@
                                             <h3 class="text-lg font-bold leading-tight text-[#181611] dark:text-white hover:text-primary transition-colors line-clamp-2">{{ $item->product->name }}</h3>
                                         </a>
                                         @if($variantName)
-                                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1 uppercase tracking-wider font-bold">{{ $variantName }}</p>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <p class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider font-bold">{{ $variantName }}</p>
+                                                @if($item->product->type == 'variable')
+                                                    <button type="button" class="btn-change-variant text-primary text-[10px] font-black uppercase tracking-tighter hover:underline bg-primary/10 px-2 py-0.5 rounded transition-transform active:scale-95" 
+                                                            data-product-id="{{ $item->product_id }}" 
+                                                            data-item-id="{{ $item->id }}"
+                                                            data-current-variant-id="{{ $item->product_variant_id }}">
+                                                        Thay đổi
+                                                    </button>
+                                                @endif
+                                            </div>
                                         @endif
                                         <span class="inline-flex items-center mt-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-emerald-100 text-emerald-700">Còn hàng ({{ $stock }})</span>
                                     </div>
@@ -137,6 +160,41 @@
     </div>
 </main>
 
+{{-- MODAL CHỌN BIẾN THỂ --}}
+<div id="variant-modal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-white dark:bg-[#111111] w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-gray-100 dark:border-white/10">
+        <div class="p-6 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
+            <h3 class="text-xl font-bold text-[#181611] dark:text-white">Thay đổi phiên bản</h3>
+            <button type="button" class="close-variant-modal text-gray-400 hover:text-red-500 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div id="modal-product-info" class="flex gap-4 mb-6 pb-6 border-b border-dashed border-gray-200 dark:border-white/10">
+                <div class="w-20 h-20 bg-gray-50 dark:bg-white/5 rounded-lg p-2 flex items-center justify-center">
+                    <img id="modal-img" src="" class="max-w-full max-h-full object-contain">
+                </div>
+                <div class="flex-grow">
+                    <h4 id="modal-product-name" class="font-bold text-base text-[#181611] dark:text-white line-clamp-2"></h4>
+                    <p id="modal-price-display" class="text-red-500 font-black text-xl mt-1"></p>
+                    <p id="modal-stock-display" class="text-xs text-gray-500 mt-1"></p>
+                </div>
+            </div>
+            
+            <div id="modal-attributes" class="space-y-6">
+                {{-- Sẽ được render bằng JS --}}
+                <div class="flex items-center justify-center py-10">
+                    <span class="text-gray-500 font-bold animate-pulse">Đang tải...</span>
+                </div>
+            </div>
+        </div>
+        <div class="p-6 border-t border-gray-100 dark:border-white/10 flex gap-3">
+            <button type="button" class="close-variant-modal flex-1 bg-gray-100 dark:bg-white/5 text-gray-500 font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors transition-all active:scale-95">Hủy</button>
+            <button type="button" id="confirm-variant-change" class="flex-[2] bg-primary text-black font-bold py-3 rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
 <script> 
 document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = '{{ csrf_token() }}';
@@ -153,9 +211,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.querySelectorAll('.cart-item').forEach(item => {
             const checkbox = item.querySelector('.item-checkbox');
-            if (checkbox.checked) {
-                const qty = parseInt(item.querySelector('.qty-input').value);
-                const price = parseFloat(item.getAttribute('data-price'));
+            if (checkbox && checkbox.checked) {
+                const qtyInput = item.querySelector('.qty-input');
+                const qty = qtyInput ? parseInt(qtyInput.value) : 0;
+                const price = parseFloat(item.getAttribute('data-price')) || 0;
                 totalQty += qty;
                 totalPrice += (qty * price);
             } else {
@@ -163,11 +222,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Cập nhật checkbox tổng
         const checkAllEl = document.getElementById('check-all');
         if(checkAllEl) checkAllEl.checked = allChecked;
 
-        // In ra màn hình
         const totalEl = document.getElementById('summary-total');
         const countEl = document.getElementById('summary-count');
         if(totalEl) totalEl.innerText = formatMoney(totalPrice);
@@ -201,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Tăng / Giảm SL giữ nguyên logic cũ, gọi updateCartTotals() sau khi bấm
+    // Tăng / Giảm SL
     document.querySelectorAll('.btn-qty-plus').forEach(btn => {
         btn.addEventListener('click', function() {
             const itemRow = this.closest('.cart-item');
@@ -257,6 +314,151 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         document.getElementById('checkout-form').submit();
     }
+
+    // ==========================================
+    // LOGIC THAY ĐỔI BIẾN THỂ (VARIANT CHANGE)
+    // ==========================================
+    const variantModal = document.getElementById('variant-modal');
+    const modalAttributes = document.getElementById('modal-attributes');
+    const modalImg = document.getElementById('modal-img');
+    const modalName = document.getElementById('modal-product-name');
+    const modalPrice = document.getElementById('modal-price-display');
+    const modalStock = document.getElementById('modal-stock-display');
+    const confirmBtn = document.getElementById('confirm-variant-change');
+    
+    let currentProductId = null;
+    let currentItemId = null;
+    let variantsData = [];
+    let selectedAttrs = {};
+
+    function openModal() { variantModal.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+    function closeModal() { variantModal.classList.add('hidden'); document.body.style.overflow = ''; }
+
+    document.querySelectorAll('.close-variant-modal').forEach(b => b.addEventListener('click', closeModal));
+
+    document.querySelectorAll('.btn-change-variant').forEach(btn => {
+        btn.addEventListener('click', function() {
+            currentProductId = this.getAttribute('data-product-id');
+            currentItemId = this.getAttribute('data-item-id');
+            const currentVariantId = this.getAttribute('data-current-variant-id');
+            
+            openModal();
+            modalAttributes.innerHTML = '<div class="flex items-center justify-center py-10"><span class="text-gray-500 font-bold animate-pulse">Đang tải...</span></div>';
+            confirmBtn.disabled = true;
+
+            fetch(`{{ route('client.cart.get_variants') }}?product_id=${currentProductId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        variantsData = data.variants;
+                        modalName.innerText = data.product_name;
+                        
+                        // Render Attributes
+                        renderModalAttributes(data.attributes, currentVariantId);
+                    } else {
+                        alert(data.message);
+                        closeModal();
+                    }
+                });
+        });
+    });
+
+    function renderModalAttributes(attributes, currentVariantId) {
+        let html = '';
+        selectedAttrs = {};
+        
+        // Tìm biến thể hiện tại để pre-select
+        const currentVar = variantsData.find(v => v.id == currentVariantId) || variantsData[0];
+        
+        for (let attrName in attributes) {
+            html += `<div class="modal-attr-group" data-name="${attrName}">
+                <p class="font-bold text-sm text-[#181611] dark:text-white uppercase tracking-wider mb-2">${attrName}:</p>
+                <div class="grid grid-cols-2 gap-2">`;
+            
+            for (let valId in attributes[attrName]) {
+                const valName = attributes[attrName][valId];
+                const isActive = currentVar && currentVar.attributes.includes(parseInt(valId));
+                if (isActive) selectedAttrs[attrName] = parseInt(valId);
+
+                html += `<button type="button" class="attr-btn-modal border dark:border-white/10 rounded-xl py-2 px-3 text-center text-sm font-bold transition-all hover:border-primary ${isActive ? 'active' : ''}" data-id="${valId}">
+                    ${valName}
+                </button>`;
+            }
+            html += `</div></div>`;
+        }
+        
+        modalAttributes.innerHTML = html;
+        
+        // Gắn sự kiện click
+        document.querySelectorAll('.attr-btn-modal').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const group = this.closest('.modal-attr-group');
+                const groupName = group.getAttribute('data-name');
+                const valId = parseInt(this.getAttribute('data-id'));
+                
+                group.querySelectorAll('.attr-btn-modal').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                selectedAttrs[groupName] = valId;
+                updateModalUI();
+            });
+        });
+
+        updateModalUI();
+    }
+
+    function updateModalUI() {
+        const totalGroups = document.querySelectorAll('.modal-attr-group').length;
+        const selectedCount = Object.keys(selectedAttrs).length;
+        const selectedIdsArr = Object.values(selectedAttrs);
+
+        // Update availability of other buttons
+        document.querySelectorAll('.attr-btn-modal').forEach(btn => {
+            const group = btn.closest('.modal-attr-group');
+            const gName = group.getAttribute('data-name');
+            const valId = parseInt(btn.getAttribute('data-id'));
+            
+            let testIds = [valId];
+            for (let name in selectedAttrs) { if (name !== gName) testIds.push(selectedAttrs[name]); }
+
+            const isPossible = variantsData.some(v => testIds.every(id => v.attributes.includes(id)));
+            btn.classList.toggle('disabled', !isPossible);
+        });
+
+        if (selectedCount === totalGroups) {
+            const match = variantsData.find(v => selectedIdsArr.every(id => v.attributes.includes(id)));
+            if (match) {
+                const finalPrice = match.sale_price > 0 ? match.sale_price : match.price;
+                modalPrice.innerText = formatMoney(finalPrice);
+                modalStock.innerText = `Còn lại: ${match.stock} sản phẩm`;
+                modalImg.src = match.image || '';
+                confirmBtn.disabled = match.stock === 0;
+                confirmBtn.setAttribute('data-variant-id', match.id);
+            }
+        }
+    }
+
+    confirmBtn.addEventListener('click', function() {
+        const variantId = this.getAttribute('data-variant-id');
+        this.innerHTML = 'Đang xử lý...';
+        this.disabled = true;
+
+        fetch('{{ route("client.cart.change_variant") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ item_id: currentItemId, variant_id: variantId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(data.message);
+                this.innerHTML = 'Xác nhận';
+                this.disabled = false;
+            }
+        });
+    });
 });
 </script>
 @endsection

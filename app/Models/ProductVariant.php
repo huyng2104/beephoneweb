@@ -28,5 +28,9 @@ class ProductVariant extends Model
                     ->withTimestamps();
     }
 
-    
+    // [hasMany] Biến thể này có những Thông số phụ kỹ thuật nào?
+    public function specifications()
+    {
+        return $this->hasMany(VariantSpecification::class, 'variant_id');
+    }
 }

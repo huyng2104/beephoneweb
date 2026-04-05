@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class AttributeValue extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity;
 
 protected $fillable = ['attribute_id', 'value', 'sort_order'];
     // Giá trị này thuộc về Thuộc tính nào?
@@ -23,5 +25,13 @@ protected $fillable = ['attribute_id', 'value', 'sort_order'];
     {
         return $this->belongsToMany(ProductVariant::class, 'variant_attribute_values', 'attribute_value_id', 'variant_id')
                     ->withTimestamps();
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->useLogName('attribute value')
+            ->logOnlyDirty();
     }
 }

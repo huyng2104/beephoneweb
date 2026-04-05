@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\ContactMessage;
 use Illuminate\Http\Request;
+use App\Models\ContactMessage;
+use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
 {
@@ -15,22 +16,23 @@ class ContactController extends Controller
 
     public function submit(Request $request)
     {
-        $validated = $request->validate([
+        $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email',
-            'phone' => 'nullable|string|max:20',
-            'category' => 'nullable|string|max:100',
-            'message' => 'required|string',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:30',
+            'category' => 'required|string|max:100',
+            'message' => 'required|string|max:2000',
         ]);
 
-        ContactMessage::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'category' => $validated['category'] ?? 'general',
-            'message' => $validated['message'],
-        ]);
+        $contact = ContactMessage::create($data);
 
-        return redirect()->route('contact')->with('success', 'Gửi yêu cầu thành công. Chúng tôi sẽ liên hệ sớm.');
+        // Tuỳ chọn: gửi email thông báo cho support (nếu cấu hình mail đã bật)
+        // try {
+        //     Mail::to(config('mail.support', 'support@beephone.vn'))->send(new \App\Mail\NewContactMessage($contact));
+        // } catch (\Exception $e) {
+        //     // không fail user flow
+        // }
+
+        return back()->with('success', 'Cảm ơn bạn! Yêu cầu đã gửi thành công. Chúng tôi sẽ phản hồi sớm nhất.');
     }
 }

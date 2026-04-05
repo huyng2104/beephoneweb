@@ -1,6 +1,10 @@
 @extends('client.layouts.app')
 @section('title', 'Bee Phone - ' . $product->name)
 
+@push('styles')
+    <link rel="stylesheet" href="/css/comments.css">
+@endpush
+
 @section('content')
 <style data-purpose="custom-styles">
     /* Đã xóa màu body cứng để ăn theo app.blade.php */
@@ -56,7 +60,7 @@
     </nav>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <section class="lg:col-span-7" data-purpose="product-gallery">
+        <section class="lg:col-span-8" data-purpose="product-gallery">
             <div class="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-white/10 custom-shadow mb-4 sticky top-24">
                 @php
                     $mainImg = $product->thumbnail ?? '';
@@ -88,25 +92,42 @@
                     @endif
                 </div>
                 
-                <div class="mt-8 p-5 bg-primary/10 dark:bg-primary/5 rounded-xl border border-primary/20 shadow-sm">
-                    <h3 class="font-bold text-[#181611] dark:text-white mb-3 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary">stars</span> Đặc điểm nổi bật
-                    </h3>
-                    <div class="text-sm space-y-2 text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-4">
-                        {!! strip_tags($product->description) !!}
-                    </div>
-                </div>
+
             </div>
         </section>
 
-        <section class="lg:col-span-5" data-purpose="product-info-actions">
+        <section class="lg:col-span-4" data-purpose="product-info-actions">
             <form action="#" method="POST" id="add-to-cart-form" class="flex flex-col gap-6">
                 @csrf
                 <input type="hidden" name="product_id" value="{{ $product->id }}">
                 <input type="hidden" name="variant_id" id="selected-variant-id" value="">
 
                 <div class="bg-white dark:bg-white/5 p-6 rounded-2xl border border-gray-100 dark:border-white/10 custom-shadow relative overflow-hidden">
-                    <h1 class="text-2xl lg:text-3xl font-bold text-[#181611] dark:text-white mb-2 pr-12">{{ $product->name }}</h1>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-xs font-bold text-gray-400">
+                            SKU: <span id="display-sku" class="text-gray-600 dark:text-gray-300">{{ $product->sku ?? 'N/A' }}</span>
+                        </div>
+                    </div>
+
+                    <h1 class="text-2xl lg:text-3xl font-bold text-[#181611] dark:text-white mb-1 pr-12">{{ $product->name }}</h1>
+                    
+                    <div class="flex flex-col gap-1 text-sm mb-5">
+                        @if($product->brand)
+                        <div class="flex items-center">
+                            <span class="text-gray-500 mr-1.5">Thương hiệu:</span>
+                            <span class="font-bold text-[#181611] dark:text-gray-200">{{ $product->brand->name }}</span>
+                        </div>
+                        @endif
+                        
+                        @if($product->categories->isNotEmpty())
+                        <div class="flex items-center">
+                            <span class="text-gray-500 mr-1.5">Danh mục:</span>
+                            <span class="font-bold text-[#181611] dark:text-gray-200">
+                                {{ $product->categories->pluck('name')->join(' | ') }}
+                            </span>
+                        </div>
+                        @endif
+                    </div>
                     
                     <div class="flex items-center gap-2 mb-4">
                         <div class="flex text-primary">
@@ -130,9 +151,12 @@
                     @php
                         $groupedAttributes = [];
                         $variantsJS = [];
+                        
+                        // Lấy tất cả biến thể ĐANG HOẠT ĐỘNG
+                        $activeVariants = $product->variants->where('status', 'active');
 
-                        if($product->type == 'variable' && isset($product->variants)) {
-                            foreach($product->variants as $variant) {
+                        if($product->type == 'variable' && $activeVariants->isNotEmpty()) {
+                            foreach($activeVariants as $variant) {
                                 $attrIds = [];
                                 foreach($variant->attributeValues as $val) {
                                     $attrName = $val->attribute->name;
@@ -144,10 +168,12 @@
                                 $variantsJS[] = [
                                     'id' => $variant->id,
                                     'attributes' => $attrIds,
+                                    'sku' => $variant->sku,
                                     'price' => $variant->price,
                                     'sale_price' => $variant->sale_price,
                                     'stock' => $variant->stock,
-                                    'image' => $variant->thumbnail ? asset('storage/' . $variant->thumbnail) : null
+                                    'image' => $variant->thumbnail ? asset('storage/' . $variant->thumbnail) : null,
+                                    'specs' => $variant->specifications->mapWithKeys(fn($s) => [$s->spec_key => $s->spec_value])
                                 ];
                             }
                         }
@@ -173,13 +199,6 @@
                                 </div>
                             </div>
                         @endforeach
-                    @else
-                        <div>
-                            <p class="font-bold mb-3 text-[#181611] dark:text-white">Phiên bản:</p>
-                            <button type="button" class="border-2 border-primary bg-primary/10 rounded-xl py-3 px-6 font-bold text-sm text-[#181611] dark:text-white">
-                                Sản phẩm tiêu chuẩn
-                            </button>
-                        </div>
                     @endif
                 </div>
 
@@ -198,7 +217,6 @@
                 <div class="flex flex-col gap-3 mt-2">
                     <button type="button" id="btn-buy-now" class="w-full bg-primary text-black font-bold py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] flex flex-col items-center justify-center">
                         <span class="text-lg uppercase tracking-wider">Mua ngay</span>
-                        <span class="text-xs font-medium opacity-80">(Giao hàng tận nơi)</span>
                     </button>
                     <button type="button" id="btn-add-cart" class="w-full bg-[#181611] dark:bg-white dark:text-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-primary hover:text-black dark:hover:bg-primary transition-all shadow-md mt-2 group">
                         <span class="material-symbols-outlined group-hover:scale-110 transition-transform">add_shopping_cart</span>
@@ -230,13 +248,20 @@
                 <h2 class="text-xl font-bold mb-6 pb-2 border-b-2 border-primary inline-flex items-center gap-2 uppercase text-[#181611] dark:text-white">
                     <span class="material-symbols-outlined text-primary">memory</span> Thông số kỹ thuật
                 </h2>
-                <div class="border border-gray-100 dark:border-white/10 rounded-xl overflow-hidden text-sm">
-                    @if(is_array($product->specifications) && count($product->specifications) > 0)
+                <div class="border border-gray-100 dark:border-white/10 rounded-xl overflow-hidden text-sm" id="specifications-table">
+                    @php
+                        $displaySpecs = collect();
+                        if ($activeVariants->isNotEmpty()) {
+                            $displaySpecs = $activeVariants->first()->specifications;
+                        }
+                    @endphp
+
+                    @if($displaySpecs->isNotEmpty())
                         <div class="w-full">
-                            @foreach($product->specifications as $key => $value)
+                            @foreach($displaySpecs as $spec)
                             <div class="spec-row p-3 flex justify-between border-b border-gray-100 dark:border-white/5 last:border-0">
-                                <span class="text-sm text-gray-500 dark:text-gray-400 w-1/3 font-medium">{{ $key }}:</span>
-                                <span class="text-sm font-bold text-[#181611] dark:text-white text-right w-2/3">{{ is_array($value) ? implode(', ', $value) : $value }}</span>
+                                <span class="text-sm text-gray-500 dark:text-gray-400 w-1/3 font-medium">{{ $spec->spec_key }}:</span>
+                                <span class="text-sm font-bold text-[#181611] dark:text-white text-right w-2/3">{{ $spec->spec_value }}</span>
                             </div>
                             @endforeach
                         </div>
@@ -250,7 +275,160 @@
             </div>
         </section>
     </div>
+
+    {{-- SẢN PHẨM LIÊN QUAN --}}
+    @if($relatedProducts->isNotEmpty())
+    <div class="mt-20">
+        <h2 class="text-2xl font-black mb-8 pb-3 border-b-4 border-primary inline-block uppercase text-[#181611] dark:text-white">
+            Sản phẩm liên quan
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            @foreach($relatedProducts as $relProduct)
+                @include('client.home.partials.product-card', ['product' => $relProduct])
+            @endforeach
+        </div>
+    </div>
+    @endif
 </main>
+
+<section id="comments" class="max-w-[1440px] mx-auto px-4 md:px-10 lg:px-20 pb-12 -mt-4">
+    <div class="overflow-hidden rounded-2xl border border-white/10 bg-[#141a1e] text-white shadow-[0_16px_45px_-30px_rgba(0,0,0,0.75)]">
+        <div class="border-b border-white/10 px-6 py-6">
+            <div class="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_1px]">
+                <div class="flex flex-col justify-center">
+                    <div class="flex items-end gap-2">
+                        <span class="text-6xl font-black leading-none">{{ number_format($averageRating, 1) }}</span>
+                        <span class="pb-2 text-3xl font-bold text-slate-300">/5</span>
+                    </div>
+                    <div class="mt-4 flex items-center gap-0.5 text-primary">
+                        @for($i = 1; $i <= 5; $i++)
+                            <span class="material-symbols-outlined text-[22px]">star</span>
+                        @endfor
+                    </div>
+                    <p class="mt-2 text-lg font-medium text-slate-200">{{ $totalRatings }} luot danh gia</p>
+
+                    <button id="open-review-modal" type="button" class="mt-5 inline-flex h-12 w-44 items-center justify-center rounded-xl bg-primary px-6 text-base font-black text-black shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary/60">
+                        Viết đánh giá
+                    </button>
+                </div>
+
+                <div class="flex flex-col justify-center gap-3 lg:pr-6">
+                    @foreach($ratingBreakdown as $star => $count)
+                        @php
+                            $percent = $totalRatings > 0 ? round(($count / $totalRatings) * 100, 2) : 0;
+                        @endphp
+                        <div class="grid grid-cols-[30px_minmax(0,1fr)_84px] items-center gap-3">
+                            <div class="flex items-center gap-1 text-base font-bold text-white">
+                                <span>{{ $star }}</span>
+                                <span class="material-symbols-outlined text-primary text-[18px]">star</span>
+                            </div>
+                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-800">
+                                <div class="h-full rounded-full bg-primary transition-all duration-300" style="width: {{ $percent }}%"></div>
+                            </div>
+                            <div class="text-right text-sm text-slate-300">{{ $count }} danh gia</div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="hidden lg:block w-px bg-white/10"></div>
+            </div>
+        </div>
+
+        <div class="comments-list px-6 py-2">
+            @forelse($comments as $comment)
+                @include('components.comment', ['comment' => $comment, 'product' => $product])
+            @empty
+                <div class="rounded-2xl border border-dashed border-white/15 bg-black/10 px-6 py-10 text-center text-sm font-medium text-slate-300">
+                    Chua co danh gia nao. Hay viet danh gia dau tien cho san pham nay.
+                </div>
+            @endforelse
+        </div>
+    </div>
+</section>
+
+<div id="review-modal" aria-hidden="true" class="fixed inset-0 z-[9998] flex items-start justify-center px-4 py-8 opacity-0 pointer-events-none transition duration-200 ease-out sm:py-12">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" data-review-close></div>
+
+    <div id="review-modal-panel" class="relative w-full max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-[#141a1e] shadow-[0_20px_60px_-40px_rgba(0,0,0,0.9)] opacity-0 translate-y-3 scale-95 transition duration-200 ease-out">
+        <div class="flex items-center justify-between border-b border-white/10 px-6 py-4">
+            <h3 class="text-lg font-black text-white">Danh gia & nhan xet</h3>
+            <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-white/20 hover:bg-white/10" data-review-close>
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div class="grid gap-6 px-6 py-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+            <div class="flex flex-col gap-4 rounded-2xl border border-white/10 bg-black/10 p-5">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                        @if($product->thumbnail)
+                            <img src="{{ asset('storage/' . $product->thumbnail) }}" alt="{{ $product->name }}" class="h-full w-full object-cover">
+                        @else
+                            <span class="material-symbols-outlined text-4xl text-slate-500">image</span>
+                        @endif
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-xs font-bold uppercase tracking-wide text-slate-400">San pham</div>
+                        <div class="mt-1 line-clamp-2 text-base font-black text-white">{{ $product->name }}</div>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-[#0f141a] p-4">
+                    <div class="text-sm font-bold text-slate-200">Danh gia chung</div>
+                    <div class="mt-3 flex items-center gap-2 text-primary" data-rating-stars>
+                        @for($i = 1; $i <= 5; $i++)
+                            <button type="button" class="review-star inline-flex items-center justify-center rounded-lg p-1 transition hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary/40" data-value="{{ $i }}" aria-label="{{ $i }} sao">
+                                <span class="material-symbols-outlined text-[26px]">star</span>
+                            </button>
+                        @endfor
+                    </div>
+                    <p class="mt-2 text-xs text-slate-400" data-rating-label>Chon so sao de danh gia</p>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-black/10 p-5">
+                <form action="{{ route('products.comments.store', $product) }}" method="POST" enctype="multipart/form-data" id="review-form" class="space-y-4">
+                    @csrf
+                    <input type="hidden" name="rating" id="review_rating" value="">
+
+                    @guest
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="review_guest_name" class="block text-xs font-bold text-slate-300">Ten cua ban</label>
+                            <input id="review_guest_name" type="text" name="guest_name" required class="mt-2 w-full rounded-xl border border-white/10 bg-[#0f141a] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary/30" placeholder="Nhap ten hien thi">
+                        </div>
+                        <div>
+                            <label for="review_guest_email" class="block text-xs font-bold text-slate-300">Email</label>
+                            <input id="review_guest_email" type="email" name="guest_email" required class="mt-2 w-full rounded-xl border border-white/10 bg-[#0f141a] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary/30" placeholder="email@example.com">
+                        </div>
+                    </div>
+                    @endguest
+
+                    <div>
+                        <label for="review_content" class="block text-xs font-bold text-slate-300">Nhan xet</label>
+                        <textarea id="review_content" name="content" rows="6" required class="mt-2 w-full rounded-xl border border-white/10 bg-[#0f141a] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary/30" placeholder="Xin moi chia se mot so cam nhan ve san pham (nhap toi thieu 15 ki tu)"></textarea>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="review_image" class="block text-xs font-bold text-slate-300">Anh (tuy chon)</label>
+                            <input id="review_image" type="file" name="image" accept=".jpg,.jpeg,.png,.webp" class="mt-2 w-full rounded-xl border border-white/10 bg-[#0f141a] px-4 py-3 text-sm text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-xs file:font-bold file:text-slate-100 hover:file:bg-white/15">
+                        </div>
+                        <div class="flex items-end">
+                            <div class="w-full rounded-xl border border-white/10 bg-[#0f141a] px-4 py-3 text-xs text-slate-400">
+                                Meo: ban co the nhan <span class="font-bold text-slate-200">ESC</span> de dong form.
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-primary px-6 py-4 text-sm font-black text-black shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary/60">
+                        Gui danh gia
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -275,18 +453,34 @@
         });
 
         // --- DỮ LIỆU TỪ SERVER SANG JS ---
+        @php
+            $basePrice = 0;
+            $baseSalePrice = 0;
+            $baseStock = 0;
+            $baseVariantId = '';
+            
+            if ($activeVariants->isNotEmpty()) {
+                $firstVar = $activeVariants->first();
+                $basePrice = $firstVar->price;
+                $baseSalePrice = $firstVar->sale_price;
+                $baseStock = $firstVar->stock;
+                $baseVariantId = $firstVar->id;
+            }
+        @endphp
         const productType = "{{ $product->type }}";
-        const basePrice = {{ $product->price ?? 0 }};
-        const baseSalePrice = {{ $product->sale_price ?? 0 }};
-        const baseStock = {{ $product->stock ?? 0 }};
+        const basePrice = {{ $basePrice }};
+        const baseSalePrice = {{ $baseSalePrice ?? 0 }};
+        const baseStock = {{ $baseStock }};
         const csrfToken = '{{ csrf_token() }}';
         
         const variantsList = @json($variantsJS ?? []);
         
         const priceEl = document.getElementById('main-price');
         const oldPriceEl = document.getElementById('old-price');
+        const skuEl = document.getElementById('display-sku');
         const stockStatusEl = document.getElementById('header-stock-status');
         const stockTextEl = document.getElementById('stock-text');
+        const specsWrapper = document.getElementById('specifications-table');
         const inputVariantId = document.getElementById('selected-variant-id');
         const inputQty = document.getElementById('input-qty');
         
@@ -299,7 +493,7 @@
             return new Intl.NumberFormat('vi-VN').format(num) + 'đ';
         }
 
-        function updateUI(price, salePrice, stock, image, variantId) {
+        function updateUI(price, salePrice, stock, image, variantId, sku, specs) {
             const finalPrice = (salePrice > 0 && salePrice < price) ? salePrice : price;
             priceEl.textContent = formatCurrency(finalPrice);
             
@@ -308,6 +502,8 @@
             } else {
                 oldPriceEl.textContent = '';
             }
+
+            if (skuEl) skuEl.textContent = sku || '{{ $product->sku }}';
 
             currentMaxStock = stock;
             stockTextEl.textContent = stock;
@@ -329,6 +525,20 @@
                 setTimeout(() => { mainImage.src = image; mainImage.style.opacity = '1'; }, 150);
             }
 
+            // Cập nhật bảng thông số
+            if (specsWrapper && specs) {
+                let specsHtml = '<div class="w-full">';
+                for (let key in specs) {
+                    specsHtml += `
+                        <div class="spec-row p-3 flex justify-between border-b border-gray-100 dark:border-white/5 last:border-0 font-medium">
+                            <span class="text-sm text-gray-500 dark:text-gray-400 w-1/3">${key}:</span>
+                            <span class="text-sm font-bold text-[#181611] dark:text-white text-right w-2/3">${specs[key]}</span>
+                        </div>`;
+                }
+                specsHtml += '</div>';
+                specsWrapper.innerHTML = specsHtml;
+            }
+
             inputVariantId.value = variantId || '';
             inputQty.value = 1;
         }
@@ -337,64 +547,173 @@
         if(productType === 'variable' && variantsList.length > 0) {
             let selectedAttributes = {};
 
-            document.querySelectorAll('.attr-group').forEach(group => {
-                const groupName = group.getAttribute('data-name');
-                const firstBtn = group.querySelector('.attr-btn');
-                if (firstBtn) {
-                    selectButton(firstBtn, group);
-                    selectedAttributes[groupName] = parseInt(firstBtn.getAttribute('data-id'));
-                }
-            });
+            // Khởi tạo mặc định: Chọn biến thể đầu tiên có sẵn
+            const firstAvailableVariant = variantsList.find(v => v.stock > 0) || variantsList[0];
+            if (firstAvailableVariant) {
+                const groups = document.querySelectorAll('.attr-group');
+                groups.forEach(group => {
+                    const groupName = group.getAttribute('data-name');
+                    const btns = group.querySelectorAll('.attr-btn');
+                    btns.forEach(btn => {
+                        const valId = parseInt(btn.getAttribute('data-id'));
+                        if (firstAvailableVariant.attributes.includes(valId)) {
+                            selectButton(btn, group);
+                            selectedAttributes[groupName] = valId;
+                        }
+                    });
+                });
+            }
 
             document.querySelectorAll('.attr-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const group = this.closest('.attr-group');
                     const groupName = group.getAttribute('data-name');
+                    const valId = parseInt(this.getAttribute('data-id'));
+
+                    // Chỉ cho đổi, không cho hủy: Nếu đã chọn rồi thì không cho bỏ chọn
+                    if (selectedAttributes[groupName] === valId) {
+                        return;
+                    } 
                     
+                    // Chọn mới
                     selectButton(this, group);
-                    selectedAttributes[groupName] = parseInt(this.getAttribute('data-id'));
+                    selectedAttributes[groupName] = valId;
                     
+                    updateAvailability();
                     findMatchingVariant();
                 });
             });
 
-            function selectButton(btn, group) {
+            function deselectButtonInGroup(group) {
                 group.querySelectorAll('.attr-btn').forEach(b => {
-                    b.classList.remove('border-primary', 'bg-primary/10', 'border-2');
+                    b.classList.remove('border-primary', 'bg-primary/10', 'border-2', 'ring-2', 'ring-primary');
                     b.classList.add('border-gray-200', 'dark:border-white/10', 'border', 'bg-transparent');
                     b.querySelector('.check-icon').classList.add('hidden');
-                    b.querySelector('.attr-text').classList.remove('text-[#181611]', 'dark:text-white');
+                    b.querySelector('.attr-text').classList.remove('text-[#181611]', 'dark:text-white', 'font-black');
                     b.querySelector('.attr-text').classList.add('text-gray-600', 'dark:text-gray-300');
                 });
+            }
+
+            function selectButton(btn, group) {
+                deselectButtonInGroup(group);
                 
                 btn.classList.remove('border-gray-200', 'dark:border-white/10', 'border', 'bg-transparent');
-                btn.classList.add('border-primary', 'bg-primary/10', 'border-2');
+                btn.classList.add('border-primary', 'bg-primary/10', 'border-2', 'ring-2', 'ring-primary');
                 btn.querySelector('.check-icon').classList.remove('hidden');
                 btn.querySelector('.attr-text').classList.remove('text-gray-600', 'dark:text-gray-300');
-                btn.querySelector('.attr-text').classList.add('text-[#181611]', 'dark:text-white');
+                btn.querySelector('.attr-text').classList.add('text-[#181611]', 'dark:text-white', 'font-black');
+            }
+
+            function updateAvailability() {
+                const groups = document.querySelectorAll('.attr-group');
+                
+                groups.forEach(group => {
+                    const currentGroupName = group.getAttribute('data-name');
+                    const buttons = group.querySelectorAll('.attr-btn');
+                    
+                    buttons.forEach(btn => {
+                        const valId = parseInt(btn.getAttribute('data-id'));
+                        
+                        let testIds = [valId];
+                        for (let gName in selectedAttributes) {
+                            if (gName !== currentGroupName) {
+                                testIds.push(selectedAttributes[gName]);
+                            }
+                        }
+
+                        // Một nút khả dụng nếu tồn tại ít nhất 1 biến thể active mà
+                        // TẤT CẢ thuộc tính testIds của chúng ta đều nằm trong biến thể đó
+                        const isPossible = variantsList.some(variant => {
+                            return testIds.every(attrId => variant.attributes.includes(attrId));
+                        });
+
+                        if (isPossible) {
+                            // Mở khóa nút
+                            btn.classList.remove('opacity-40', 'grayscale', 'pointer-events-none', 'cursor-not-allowed');
+                            // Xóa gạch ngang nếu có
+                            const strikeEl = btn.querySelector('.strike-line');
+                            if (strikeEl) strikeEl.remove();
+                        } else {
+                            // Khóa nút: mờ, không click được, gạch ngang
+                            btn.classList.add('opacity-40', 'grayscale', 'pointer-events-none', 'cursor-not-allowed');
+                            // Thêm gạch ngang nếu chưa có
+                            if (!btn.querySelector('.strike-line')) {
+                                const strike = document.createElement('span');
+                                strike.className = 'strike-line absolute inset-0 flex items-center justify-center pointer-events-none';
+                                strike.innerHTML = '<span style="display:block;width:80%;height:1.5px;background:currentColor;transform:rotate(-20deg);opacity:0.6;"></span>';
+                                btn.appendChild(strike);
+                            }
+                        }
+                    });
+                });
             }
 
             function findMatchingVariant() {
-                let selectedIds = Object.values(selectedAttributes).sort((a,b) => a-b).join(',');
-                let matchedVariant = variantsList.find(v => v.attributes.join(',') === selectedIds);
+                const selectedIdsArr = Object.values(selectedAttributes);
+                const totalGroups = document.querySelectorAll('.attr-group').length;
+                
+                // Nếu chưa chọn gì
+                if (selectedIdsArr.length === 0) {
+                    updateUI(basePrice, baseSalePrice, baseStock, null, '{{ $baseVariantId }}', '{{ $product->sku }}', null);
+                    return;
+                }
 
-                if (matchedVariant) {
-                    updateUI(matchedVariant.price, matchedVariant.sale_price, matchedVariant.stock, matchedVariant.image, matchedVariant.id);
-                } else {
-                    stockStatusEl.textContent = 'Ngừng kinh doanh';
-                    stockStatusEl.className = 'text-xs text-gray-600 bg-gray-100 dark:bg-white/10 dark:text-gray-300 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
-                    priceEl.textContent = 'Liên hệ';
-                    oldPriceEl.textContent = '';
-                    stockTextEl.textContent = 0;
-                    
+                // Tìm biến thể khớp CHÍNH XÁC với tất cả lựa chọn
+                let exactMatch = variantsList.find(variant => {
+                    return selectedIdsArr.every(attrId => variant.attributes.includes(attrId)) && 
+                           variant.attributes.length === selectedIdsArr.length; // Số lượng thuộc tính phải bằng nhau
+                });
+
+                // Tìm biến thể khớp một phần (tập con) để hiển thị giá tạm thời nếu chưa chọn đủ
+                let partialMatches = variantsList.filter(variant => {
+                    return selectedIdsArr.every(attrId => variant.attributes.includes(attrId));
+                });
+
+                if (selectedIdsArr.length < totalGroups) {
+                    // Cần chọn thêm để xác định chính xác biến thể
+                    stockStatusEl.textContent = 'Chọn thêm cấu hình';
+                    stockStatusEl.className = 'text-xs text-amber-600 bg-amber-100 dark:bg-amber-500/20 dark:text-amber-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
+                    stockTextEl.textContent = '-';
                     btnBuyNow.classList.add('btn-disabled');
                     btnAddCart.classList.add('btn-disabled');
+
+                    if (partialMatches.length > 0) {
+                        let minPrice = Math.min(...partialMatches.map(m => m.sale_price > 0 && m.sale_price < m.price ? m.sale_price : m.price));
+                        priceEl.textContent = formatCurrency(minPrice);
+                        oldPriceEl.textContent = '';
+                    } else {
+                        priceEl.textContent = formatCurrency(basePrice);
+                        oldPriceEl.textContent = baseSalePrice > 0 ? formatCurrency(baseSalePrice) : '';
+                    }
+                } else {
+                    // Đã chọn xong TẤT CẢ các nhóm thuộc tính
+                    if (exactMatch || partialMatches.length > 0) {
+                        let matchedVariant = exactMatch || partialMatches[0];
+                        updateUI(matchedVariant.price, matchedVariant.sale_price, matchedVariant.stock, matchedVariant.image, matchedVariant.id, matchedVariant.sku, matchedVariant.specs);
+                    } else {
+                        // Tổ hợp không có trong db -> "hiển thị biến thể không có"
+                        stockStatusEl.textContent = 'Biến thể không tồn tại';
+                        stockStatusEl.className = 'text-xs text-red-600 bg-red-100 dark:bg-red-500/20 dark:text-red-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
+                        priceEl.textContent = 'Liên hệ';
+                        oldPriceEl.textContent = '';
+                        stockTextEl.textContent = 0;
+                        
+                        btnBuyNow.classList.add('btn-disabled');
+                        btnAddCart.classList.add('btn-disabled');
+                    }
                 }
             }
 
+            updateAvailability();
             findMatchingVariant();
         } else {
-            updateUI(basePrice, baseSalePrice, baseStock, null, null);
+            @php
+                $firstVar = $activeVariants->first();
+                $sSpecs = $firstVar ? $firstVar->specifications->mapWithKeys(fn($s) => [$s->spec_key => $s->spec_value]) : null;
+            @endphp
+            if(typeof updateUI === 'function') {
+                updateUI(basePrice, baseSalePrice, baseStock, null, '{{ $baseVariantId }}', '{{ $firstVar->sku ?? $product->sku }}', @json($sSpecs));
+            }
         }
 
         // --- TĂNG GIẢM SỐ LƯỢNG ---
@@ -499,4 +818,108 @@
         }
     });
 </script>
+
+@push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function byId(id) {
+                return document.getElementById(id);
+            }
+
+            var modal = byId('review-modal');
+            var panel = byId('review-modal-panel');
+            var ratingInput = byId('review_rating');
+            var ratingLabel = modal ? modal.querySelector('[data-rating-label]') : null;
+            var starsWrap = modal ? modal.querySelector('[data-rating-stars]') : null;
+
+            if (!modal || !panel) return;
+
+            function setRating(value) {
+                if (ratingInput) ratingInput.value = String(value || '');
+
+                if (starsWrap) {
+                    var stars = starsWrap.querySelectorAll('.review-star');
+                    for (var i = 0; i < stars.length; i++) {
+                        var btn = stars[i];
+                        var v = Number(btn.getAttribute('data-value') || 0);
+                        if (v <= value) {
+                            btn.classList.add('text-primary');
+                            btn.classList.remove('text-slate-600');
+                        } else {
+                            btn.classList.add('text-slate-600');
+                            btn.classList.remove('text-primary');
+                        }
+                    }
+                }
+
+                if (ratingLabel) {
+                    var map = { 1: 'Rat te', 2: 'Te', 3: 'Binh thuong', 4: 'Tot', 5: 'Tuyet voi' };
+                    ratingLabel.textContent = value ? value + '/5 - ' + (map[value] || '') : 'Chon so sao de danh gia';
+                }
+            }
+
+            function openModal() {
+                modal.setAttribute('aria-hidden', 'false');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+
+                panel.classList.remove('opacity-0', 'translate-y-3', 'scale-95');
+                panel.classList.add('opacity-100', 'translate-y-0', 'scale-100');
+
+                // Rating is optional: don't auto-select stars.
+
+                var content = byId('review_content');
+                if (content && content.focus) content.focus();
+            }
+
+            function closeModal() {
+                modal.setAttribute('aria-hidden', 'true');
+                modal.classList.remove('opacity-100', 'pointer-events-auto');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+
+                panel.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+                panel.classList.add('opacity-0', 'translate-y-3', 'scale-95');
+            }
+
+            // init stars as unselected
+            if (starsWrap) {
+                var stars = starsWrap.querySelectorAll('.review-star');
+                for (var i = 0; i < stars.length; i++) {
+                    stars[i].classList.add('text-slate-600');
+                }
+            }
+
+            // Event delegation (more robust than binding to a single element)
+            document.addEventListener('click', function (e) {
+                var target = e.target;
+                if (!(target instanceof Element)) return;
+
+                if (target.closest('#open-review-modal')) {
+                    e.preventDefault();
+                    openModal();
+                    return;
+                }
+
+                if (target.closest('[data-review-close]')) {
+                    e.preventDefault();
+                    closeModal();
+                    return;
+                }
+
+                var starBtn = target.closest('#review-modal .review-star');
+                if (starBtn) {
+                    e.preventDefault();
+                    var v = Number(starBtn.getAttribute('data-value') || 0);
+                    if (v >= 1 && v <= 5) setRating(v);
+                }
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key !== 'Escape') return;
+                if (modal.getAttribute('aria-hidden') === 'true') return;
+                closeModal();
+            });
+        });
+    </script>
+@endpush
 @endsection

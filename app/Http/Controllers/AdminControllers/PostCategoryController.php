@@ -6,25 +6,50 @@ use App\Http\Controllers\Controller;
 use App\Models\PostCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Gate;
 
 class PostCategoryController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        $categories = PostCategory::latest()->get();
+        Gate::authorize('post_category.view');
+        $query = PostCategory::query();
 
-        return view('admin.post-categories.index', compact('categories'));
+        // tìm kiếm theo tên danh mục
+        if ($request->keyword) {
+            $query->where('name', 'like', '%' . $request->keyword . '%');
+        }
+
+        $categories = $query->latest()->paginate(10);
+
+        // thống kê
+        $totalCategories = PostCategory::count();
+
+        $topCategory = PostCategory::withCount('posts')
+            ->orderByDesc('posts_count')
+            ->first();
+
+        $newCategoriesThisMonth = PostCategory::whereMonth('created_at', now()->month)
+            ->count();
+
+        return view('admin.post-categories.index', compact(
+            'categories',
+            'totalCategories',
+            'topCategory',
+            'newCategoriesThisMonth'
+        ));
     }
 
     public function create()
     {
+        Gate::authorize('post_category.create');
         return view('admin.post-categories.create');
     }
 
     public function store(Request $request)
     {
-
+        Gate::authorize('post_category.create');
         PostCategory::create([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
@@ -39,6 +64,7 @@ class PostCategoryController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('post_category.update');
         $category = PostCategory::findOrFail($id);
 
         return view('admin.post-categories.edit', compact('category'));
@@ -46,7 +72,7 @@ class PostCategoryController extends Controller
 
     public function update(Request $request, $id)
     {
-
+        Gate::authorize('post_category.update');
         $category = PostCategory::findOrFail($id);
 
         $category->update([
@@ -62,7 +88,7 @@ class PostCategoryController extends Controller
 
     public function destroy($id)
     {
-
+        Gate::authorize('post_category.delete');
         $category = PostCategory::findOrFail($id);
 
         $category->delete();

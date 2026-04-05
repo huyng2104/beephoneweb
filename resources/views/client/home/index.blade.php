@@ -3,32 +3,120 @@
 @section('title','Trang chủ')
 
 @section('content')
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <style>
+        .swiper-pagination-bullet {
+            width: 32px !important;
+            height: 4px !important;
+            border-radius: 4px !important;
+            background: rgba(0, 0, 0, 0.2) !important;
+            opacity: 1 !important;
+            transition: all 0.3s ease !important;
+        }
+        .swiper-pagination-bullet-active {
+            background: #f4c025 !important; 
+            width: 48px !important;
+        }
+
+        /* 🚨 TUYỆT CHIÊU CỦA CELLPHONES: CỐ ĐỊNH TỶ LỆ KHUNG (KHÔNG DÙNG HEIGHT) */
+        .banner-container {
+            /* Tỷ lệ vàng cho banner dẹt: rộng 21, cao 7 (Ví dụ: rộng 1050px thì cao 350px) */
+            aspect-ratio: 21 / 7; 
+            width: 100%;
+        }
+        /* Mobile màn hình dọc thì cho tỷ lệ bớt dẹt đi tí để dễ nhìn */
+        @media (max-width: 768px) {
+            .banner-container { aspect-ratio: 16 / 9; }
+        }
+        
+        .swiper-slide-active img {
+            transition: transform 3s ease-out;
+            transform: scale(1.02); /* Zoom nhẹ cực sang khi hiện ra */
+        }
+    </style>
+
     <main class="max-w-[1440px] mx-auto pb-20">
+        
+        {{-- ========================================== --}}
+        {{-- KHU VỰC BANNER TRANG CHỦ (CHUẨN CELLPHONES) --}}
+        {{-- ========================================== --}}
+      {{-- ========================================== --}}
+        {{-- KHU VỰC BANNER TRANG CHỦ (CHỐNG CẮT ẢNH 100%) --}}
+        {{-- ========================================== --}}
+        @if($banners->count() > 0)
         <section class="px-4 md:px-10 lg:px-20 pt-6">
-            <div class="relative rounded-xl overflow-hidden min-h-[500px] flex items-center bg-black">
-                <div class="absolute inset-0 opacity-60 bg-cover bg-center"
-                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC5kdFa3m9RUyDOq-JtvVLeftcUlBc6RuUdpkwd-5rIXy21cwcMlwnUIkUZaRfoj74ICQrqwsO7DeeuvrhgFF_x8I92BXUHwJMMRUZf-MR8fjOhUaI9Oxm8WU2eguZGf_UlhPXIrY623OqW6I1pyC1LyqeQLCOmaBjJXRvA_tqBqeuWZ9YFkhq0TXuqygePpabB11X7C97enS5EAu0DtT6mle7wJJJRXh6vPTyatcvr5OshfcRZEWITof1ivLP04JrBjdi79dY67SE');">
-                </div>
-                <div class="relative z-10 p-8 md:p-16 max-w-2xl text-white">
-                    <span class="bg-primary text-black px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 inline-block">Flash Sale</span>
-                    <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-6">Trải nghiệm Tương lai: iPhone 15 Pro</h1>
-                    <p class="text-lg text-gray-200 mb-8">Thiết kế Titan, chip A17 Pro và hệ thống camera chuyên nghiệp. Ưu đãi flagship không thể bỏ lỡ trong thời gian có hạn.</p>
-                    <div class="flex flex-wrap gap-4">
-                        <button class="bg-primary text-black px-8 py-4 rounded-lg font-bold hover:scale-105 transition-transform flex items-center gap-2">
-                            Mua ngay <span class="material-symbols-outlined">arrow_forward</span>
-                        </button>
-                        <button class="bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-4 rounded-lg font-bold hover:bg-white/20 transition-colors">
-                            Thông số
-                        </button>
+            <div class="swiper bannerSwiper relative rounded-2xl overflow-hidden aspect-[16/9] md:aspect-[21/9] shadow-2xl group bg-white dark:bg-black">
+                <div class="swiper-wrapper">
+                    
+                    @foreach($banners as $banner)
+                    <div class="swiper-slide relative flex items-center justify-center w-full h-full overflow-hidden">
+                        
+                        {{-- 🚨 LAYER 1: Ảnh nền mờ (Tự động lấp đầy các viền trống nếu ảnh bị dư) --}}
+                        <img src="{{ $banner->image_url }}" alt="Background" 
+                             class="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-125 dark:opacity-30">
+                        
+                        {{-- 🚨 LAYER 2: Ảnh gốc nét căng (Dùng object-contain để GIỮ NGUYÊN BẢN, KHÔNG BỊ CẮT XÉN) --}}
+                        <img src="{{ $banner->image_url }}" alt="{{ $banner->title }}" 
+                             class="relative z-10 w-full h-full object-contain transition-transform duration-700 hover:scale-[1.02]">
+                        
+                        {{-- Link ẩn bọc lên trên cùng để click --}}
+                        <a href="{{ $banner->link ?? '#' }}" class="absolute inset-0 z-20"></a>
                     </div>
+                    @endforeach
+
                 </div>
-                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-                    <div class="w-8 h-1 bg-primary rounded-full"></div>
-                    <div class="w-8 h-1 bg-white/30 rounded-full"></div>
-                    <div class="w-8 h-1 bg-white/30 rounded-full"></div>
-                </div>
+
+                <div class="swiper-pagination !bottom-4 z-30 drop-shadow-md"></div>
+                
+                <div class="swiper-button-next !text-white opacity-0 group-hover:opacity-100 transition-opacity after:!text-2xl pr-4 z-30 drop-shadow-lg"></div>
+                <div class="swiper-button-prev !text-white opacity-0 group-hover:opacity-100 transition-opacity after:!text-2xl pl-4 z-30 drop-shadow-lg"></div>
             </div>
         </section>
+        @endif
+
+        {{-- ========================================== --}}
+        {{-- KHU VỰC DANH MỤC NỔI BẬT --}}
+        {{-- ========================================== --}}
+        @if($categories->count() > 0)
+        <section class="px-4 md:px-10 lg:px-20 mt-12">
+            <div class="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-4 md:gap-6">
+                @foreach($categories as $category)
+                <a href="{{ route('client.products.index', ['category' => $category->slug]) }}" 
+                   class="group flex flex-col items-center">
+                    <div class="aspect-square w-full max-w-[100px] rounded-2xl bg-white dark:bg-white/5 border-2 border-transparent group-hover:border-primary group-hover:shadow-xl transition-all duration-300 flex items-center justify-center overflow-hidden p-3 mb-3">
+                        <img src="{{ $category->thumbnail ? asset('storage/' . $category->thumbnail) : 'https://placehold.co/100/f8f9fa/1a1a1a?text=' . substr($category->name, 0, 1) }}" 
+                             alt="{{ $category->name }}" 
+                             class="w-full h-full object-contain group-hover:scale-110 transition-transform">
+                    </div>
+                    <span class="text-xs font-bold text-center group-hover:text-primary transition-colors line-clamp-1">{{ $category->name }}</span>
+                </a>
+                @endforeach
+            </div>
+        </section>
+        @endif
+
+        {{-- ========================================== --}}
+        {{-- SẢN PHẨM NỔI BẬT --}}
+        {{-- ========================================== --}}
+        @if($featuredProducts->count() > 0)
+        <section class="px-4 md:px-10 lg:px-20 mt-20">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-red-500 animate-pulse">star</span>
+                    <h2 class="text-3xl font-bold uppercase tracking-tight">Sản phẩm nổi bật</h2>
+                </div>
+                <a class="text-primary font-bold flex items-center gap-1 hover:underline" href="{{ route('client.products.index', ['featured' => 1]) }}">Tất cả
+                    <span class="material-symbols-outlined">chevron_right</span></a>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                @foreach($featuredProducts as $product)
+                    @include('client.home.partials.product-card', ['product' => $product, 'badge' => 'HOT'])
+                @endforeach
+            </div>
+        </section>
+        @endif
 
         <section class="px-4 md:px-10 lg:px-20 mt-20">
             <div class="flex items-center gap-3 mb-8">
@@ -87,6 +175,9 @@
             </div>
         </section>
 
+        {{-- ========================================== --}}
+        {{-- SẢN PHẨM MỚI --}}
+        {{-- ========================================== --}}
         <section class="px-4 md:px-10 lg:px-20 mt-16">
             <div class="flex items-center justify-between mb-8">
                 <h2 class="text-3xl font-bold">Sản phẩm mới</h2>
@@ -94,73 +185,16 @@
                     <span class="material-symbols-outlined">chevron_right</span></a>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                
-                @foreach($newProducts->take(8) as $product)
-                    @php
-                        $prodImg = $product->thumbnail ?? '';
-                        $prodUrl = Str::startsWith($prodImg, ['http://', 'https://']) ? $prodImg : ($prodImg ? asset('storage/' . $prodImg) : 'https://placehold.co/400x400/f8f9fa/1a1a1a?text=BeePhone');
-                        
-                        // Logic tìm giá chuẩn cho biến thể
-                        $finalPrice = $product->price;
-                        $finalSalePrice = $product->sale_price;
-                        $isVariable = false;
-
-                        if($product->type == 'variable' && $product->variants && $product->variants->count() > 0) {
-                            $isVariable = true;
-                            $minVariant = $product->variants->sortBy(function($v) {
-                                return ($v->sale_price > 0 && $v->sale_price < $v->price) ? $v->sale_price : $v->price;
-                            })->first();
-
-                            $finalPrice = $minVariant->price;
-                            $finalSalePrice = $minVariant->sale_price;
-                        }
-                        
-                        $hasSale = $finalSalePrice > 0 && $finalSalePrice < $finalPrice;
-                        $discountPercent = $hasSale ? round((($finalPrice - $finalSalePrice) / $finalPrice) * 100) : 0;
-                        $displayPrice = $hasSale ? $finalSalePrice : $finalPrice;
-                    @endphp
-
-                    <div class="bg-white dark:bg-white/5 p-4 rounded-xl border border-transparent hover:border-primary transition-all group flex flex-col">
-                        <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" class="relative rounded-lg overflow-hidden aspect-square bg-gray-100 mb-4 block">
-                            <div class="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-500"
-                                style="background-image: url('{{ $prodUrl }}');">
-                            </div>
-                            <span class="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded uppercase shadow-sm">MỚI</span>
-                            @if($hasSale)
-                                <span class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded uppercase shadow-sm">-{{ $discountPercent }}%</span>
-                            @endif
-                        </a>
-                        
-                        <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}">
-                            <h3 class="font-bold text-lg mb-4 line-clamp-1 hover:text-primary transition-colors" title="{{ $product->name }}">{{ $product->name }}</h3>
-                        </a>
-                        
-                        <div class="flex items-end justify-between mt-auto">
-                            <div class="flex flex-col">
-                                @if($isVariable) 
-                                    <span class="text-[10px] text-gray-400 font-bold leading-none mb-1 uppercase tracking-wider">Giá từ</span> 
-                                @endif
-                                <span class="text-xl font-bold text-red-500">{{ number_format($displayPrice, 0, ',', '.') }}₫</span>
-                            </div>
-                            
-                            @if($isVariable)
-                                <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" 
-                                   class="bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-colors shrink-0 shadow-sm" title="Chọn phiên bản">
-                                    <span class="material-symbols-outlined">tune</span>
-                                </a>
-                            @else
-                                <button class="btn-add-cart-quick bg-black dark:bg-primary text-white dark:text-black w-10 h-10 rounded-lg flex items-center justify-center hover:scale-105 transition-transform shrink-0 shadow-md" 
-                                        data-product-id="{{ $product->id }}" title="Thêm vào giỏ">
-                                    <span class="material-symbols-outlined">add_shopping_cart</span>
-                                </button>
-                            @endif
-                        </div>
-                    </div>
+                @foreach($newProducts as $product)
+                    @include('client.home.partials.product-card', ['product' => $product, 'badge' => 'MỚI'])
                 @endforeach
-
             </div>
         </section>
 
+
+        {{-- ========================================== --}}
+        {{-- ƯU ĐÃI CỰC HOT --}}
+        {{-- ========================================== --}}
         <section class="px-4 md:px-10 lg:px-20 mt-20">
             <div class="bg-primary/10 border-2 border-primary/20 rounded-2xl p-8">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-8 mb-10">
@@ -222,6 +256,9 @@
             </div>
         </section>
 
+        {{-- ========================================== --}}
+        {{-- ĐỀ XUẤT THÔNG MINH --}}
+        {{-- ========================================== --}}
         <section class="mt-20 px-4 md:px-10 lg:px-20 overflow-hidden">
             <div class="flex items-center gap-3 mb-8">
                 <span class="material-symbols-outlined text-primary">auto_awesome</span>
@@ -271,66 +308,128 @@
                 </div>
             </div>
         </section>
+        {{-- ========================================== --}}
+        {{-- THƯƠNG HIỆU ĐỒNG HÀNH --}}
+        {{-- ========================================== --}}
+        @if($brands->count() > 0)
+        <section class="px-4 md:px-10 lg:px-20 mt-20">
+            <div class="bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-100 dark:border-white/10">
+                <div class="flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+                    @foreach($brands as $brand)
+                        <img src="{{ $brand->logo ? asset('storage/' . $brand->logo) : 'https://placehold.co/120x60?text=' . $brand->name }}" 
+                             alt="{{ $brand->name }}" class="h-8 md:h-12 object-contain">
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+
+        {{-- ========================================== --}}
+        {{-- TIN TỨC CẬP NHẬT --}}
+        {{-- ========================================== --}}
+        @if($news->count() > 0)
+        <section class="px-4 md:px-10 lg:px-20 mt-20 pb-20">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold">Tin tức công nghệ</h2>
+                <a class="text-primary font-bold flex items-center gap-1 hover:underline" href="{{ route('client.posts.index') }}">Xem tin mới
+                    <span class="material-symbols-outlined">chevron_right</span></a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                @foreach($news as $post)
+                <a href="{{ route('client.posts.show', $post->slug) }}" class="group">
+                    <div class="aspect-video rounded-xl overflow-hidden mb-4">
+                        <img src="{{ $post->thumbnail ? asset('storage/' . $post->thumbnail) : 'https://placehold.co/600x400' }}" 
+                             alt="{{ $post->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                    <p class="text-xs text-primary font-bold uppercase mb-2">{{ $post->category->name ?? 'Tin tức' }}</p>
+                    <h3 class="font-bold text-xl line-clamp-2 group-hover:text-primary transition-colors">{{ $post->title }}</h3>
+                </a>
+                @endforeach
+            </div>
+        </section>
+        @endif
     </main>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Lấy token bảo mật của Laravel
-    const csrfToken = '{{ csrf_token() }}';
-
-    // Bắt sự kiện cho tất cả các nút "Thêm vào giỏ nhanh"
-    document.querySelectorAll('.btn-add-cart-quick').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
+        document.addEventListener('DOMContentLoaded', function() {
             
-            const productId = this.getAttribute('data-product-id');
-            const originalHtml = this.innerHTML;
-            
-            // Hiệu ứng xoay xoay đang load
-            this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>';
-            this.classList.add('pointer-events-none', 'opacity-70');
-
-            // Gửi AJAX lên CartController
-            fetch('{{ route("client.cart.add") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
+            // ==========================================
+            // KHỞI TẠO SLIDER BANNER (CHẠY TỰ ĐỘNG MƯỢT MÀ)
+            // ==========================================
+            var bannerSwiper = new Swiper(".bannerSwiper", {
+                loop: true, // Cho phép vuốt qua vòng lặp
+                autoplay: {
+                    delay: 4000, // Đổi ảnh sau mỗi 4 giây
+                    disableOnInteraction: false, // Vẫn tự động chạy sau khi user vuốt
                 },
-                body: JSON.stringify({
-                    product_id: productId,
-                    variant_id: '', // Bỏ trống vì đây là SP thường
-                    quantity: 1
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Phục hồi lại nút
-                this.innerHTML = '<span class="material-symbols-outlined text-[20px]">check</span>';
-                this.classList.remove('pointer-events-none', 'opacity-70');
-                this.classList.replace('bg-black', 'bg-green-500'); // Đổi màu xanh lá báo thành công
-                
-                setTimeout(() => {
-                    this.innerHTML = originalHtml;
-                    this.classList.replace('bg-green-500', 'bg-black');
-                }, 2000);
+                effect: "fade", // Hiệu ứng mờ ảo (Sang trọng hơn trượt)
+                pagination: {
+                    el: ".swiper-pagination",
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: ".swiper-button-next",
+                    prevEl: ".swiper-button-prev",
+                },
+            });
 
-                if (data.success) {
-                    // Update số lượng giỏ hàng trên Header (Nếu có class này)
-                    const cartBadges = document.querySelectorAll('.bg-primary.text-black.rounded-full');
-                    cartBadges.forEach(badge => badge.innerText = data.cart_count);
+            // ==========================================
+            // LOGIC THÊM GIỎ HÀNG NHANH CỦA BRO
+            // ==========================================
+            const csrfToken = '{{ csrf_token() }}';
+
+            document.querySelectorAll('.btn-add-cart-quick').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
                     
-                    alert('Đã thêm sản phẩm vào giỏ hàng!');
-                } else {
-                    alert(data.message);
-                }
-            })
-            .catch(error => {
-                this.innerHTML = originalHtml;
-                this.classList.remove('pointer-events-none', 'opacity-70');
-                alert('Có lỗi xảy ra, vui lòng thử lại!');
+                    const productId = this.getAttribute('data-product-id');
+                    const variantId = this.getAttribute('data-variant-id') || '';
+                    const originalHtml = this.innerHTML;
+                    
+                    this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>';
+                    this.classList.add('pointer-events-none', 'opacity-70');
+
+                    fetch('{{ route("client.cart.add") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            product_id: productId,
+                            variant_id: variantId,
+                            quantity: 1
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        this.innerHTML = '<span class="material-symbols-outlined text-[20px]">check</span>';
+                        this.classList.remove('pointer-events-none', 'opacity-70');
+                        this.classList.replace('bg-black', 'bg-green-500'); 
+                        
+                        setTimeout(() => {
+                            this.innerHTML = originalHtml;
+                            this.classList.replace('bg-green-500', 'bg-black');
+                        }, 2000);
+
+                        if (data.success) {
+                            const cartBadges = document.querySelectorAll('.bg-primary.text-black.rounded-full');
+                            cartBadges.forEach(badge => badge.innerText = data.cart_count);
+                            alert('Đã thêm sản phẩm vào giỏ hàng!');
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        this.innerHTML = originalHtml;
+                        this.classList.remove('pointer-events-none', 'opacity-70');
+                        alert('Có lỗi xảy ra, vui lòng thử lại!');
+                    });
+                });
             });
         });
-    });
-});
-</script>
+    </script>
 @endsection

@@ -3,60 +3,166 @@
 namespace App\Http\Controllers\AdminControllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
+use App\Models\Banner;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 class BannerController extends Controller
 {
-    public function index(): View|RedirectResponse
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
     {
-        return redirect()->route('admin.dashboard')->with('error', 'Chức năng banner chưa được triển khai.');
+        Gate::authorize('banner.view');
+        $banners = Banner::orderBy('sort_order', 'asc')->get();
+        return view('admin.banners.index', compact('banners'));
     }
 
-    public function create(): View|RedirectResponse
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
     {
-        return redirect()->route('admin.dashboard')->with('error', 'Chức năng banner chưa được triển khai.');
+        Gate::authorize('banner.create');
+        return view('admin.banners.create');
     }
 
-    public function store(Request $request): RedirectResponse
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
     {
-        return redirect()->route('admin.dashboard')->with('error', 'Chức năng banner chưa được triển khai.');
+        Gate::authorize('banner.create');
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'type' => 'required',
+            'title' => 'nullable|string|max:255',
+        ]);
+
+        $imageUrl = null;
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $name = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/banners'), $name);
+            $imageUrl = asset('uploads/banners/' . $name);
+        }
+
+        Banner::create([
+            'title' => $request->title,
+            'link' => $request->link,
+            'type' => $request->type,
+            'image_url' => $imageUrl,
+            'is_active' => $request->has('is_active'),
+            'sort_order' => $request->sort_order ?? 0,
+        ]);
+
+        return redirect()->route('admin.banners.index')->with('success', 'Thêm banner thành công!');
     }
 
-    public function show(string $id): RedirectResponse
+    /**
+     * Display the specified resource.
+     */
+    public function show(Banner $banner)
     {
-        return redirect()->route('admin.dashboard')->with('error', 'Chức năng banner chưa được triển khai.');
+        Gate::authorize('banner.view');
+        //
     }
 
-    public function edit(string $id): RedirectResponse
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Banner $banner)
     {
-        return redirect()->route('admin.dashboard')->with('error', 'Chức năng banner chưa được triển khai.');
+        Gate::authorize('banner.update');
+        return view('admin.banners.edit', compact('banner'));
     }
 
-    public function update(Request $request, string $id): RedirectResponse
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Banner $banner)
     {
-        return redirect()->route('admin.dashboard')->with('error', 'Chức năng banner chưa được triển khai.');
+        Gate::authorize('banner.update');
+        $request->validate([
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'type' => 'required',
+            'title' => 'nullable|string|max:255',
+        ]);
+
+        $imageUrl = $banner->image_url;
+        if ($request->hasFile('image')) {
+            // Delete old file if exists
+            if ($banner->image_url) {
+                $oldPath = public_path(str_replace(asset(''), '', $banner->image_url));
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
+            }
+
+            $file = $request->file('image');
+            $name = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/banners'), $name);
+            $imageUrl = asset('uploads/banners/' . $name);
+        }
+
+        $banner->update([
+            'title' => $request->title,
+            'link' => $request->link,
+            'type' => $request->type,
+            'image_url' => $imageUrl,
+            'is_active' => $request->has('is_active'),
+            'sort_order' => $request->sort_order ?? 0,
+        ]);
+
+        return redirect()->route('admin.banners.index')->with('success', 'Cập nhật banner thành công!');
     }
 
-    public function destroy(string $id): RedirectResponse
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Banner $banner)
     {
-        return redirect()->route('admin.dashboard')->with('error', 'Chức năng banner chưa được triển khai.');
+        Gate::authorize('banner.delete');
+        $banner->delete();
+        return redirect()->route('admin.banners.index')->with('success', 'Đã chuyển banner vào thùng rác!');
     }
 
-    public function trash(): RedirectResponse
+    /**
+     * Display a listing of trashed resources.
+     */
+    public function trash()
     {
-        return redirect()->route('admin.dashboard')->with('error', 'Chức năng banner chưa được triển khai.');
+        Gate::authorize('banner.delete');
+        $banners = Banner::onlyTrashed()->orderBy('deleted_at', 'desc')->get();
+        return view('admin.banners.trash', compact('banners'));
     }
 
-    public function restore(string $id): RedirectResponse
+    /**
+     * Restore the specified resource from trash.
+     */
+    public function restore($id)
     {
-        return redirect()->route('admin.dashboard')->with('error', 'Chức năng banner chưa được triển khai.');
+        Gate::authorize('banner.delete');
+        $banner = Banner::onlyTrashed()->findOrFail($id);
+        $banner->restore();
+        return redirect()->route('admin.banners.trash')->with('success', 'Khôi phục banner thành công!');
     }
 
-    public function forceDelete(string $id): RedirectResponse
+    /**
+     * Permanently remove the specified resource from storage.
+     */
+    public function forceDelete($id)
     {
-        return redirect()->route('admin.dashboard')->with('error', 'Chức năng banner chưa được triển khai.');
+        Gate::authorize('banner.delete');
+        $banner = Banner::onlyTrashed()->findOrFail($id);
+        if ($banner->image_url) {
+            $path = public_path(str_replace(asset(''), '', $banner->image_url));
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
+        $banner->forceDelete();
+        return redirect()->route('admin.banners.trash')->with('success', 'Đã xóa vĩnh viễn banner!');
     }
 }
-

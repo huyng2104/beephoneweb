@@ -235,7 +235,6 @@
             startPolling();
         }
 
-        // XỬ LÝ GỬI TIN NHẮN (Đã tích hợp Lớp Giáp chống Spam)
         function sendMessage() {
             const message = $('#chat-input').val().trim();
             if (message === '') return;
@@ -448,4 +447,5 @@
             });
         });
     });
+
 </script>

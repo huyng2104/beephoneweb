@@ -11,15 +11,27 @@ class CheckRole
 {
     /**
      * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next,...$roles): Response
+    public function handle(Request $request, Closure $next): Response
     {
         $user = Auth::user();
-        if(!in_array($user->role->name,$roles)){
-            abort(403);
+
+        // 1. Kiểm tra xem người dùng đã đăng nhập chưa.
+        if (! $user) {
+            return redirect()->route('login');
         }
+
+        $roleValue = $user->role;
+        $roleName = is_object($roleValue)
+            ? ($roleValue->name ?? $roleValue->name_role ?? null)
+            : $roleValue;
+
+        // 2. Chặn tuyệt đối role user không cho vào admin.
+        if ($roleName === 'user') {
+            abort(403, 'Tài khoản thành viên không thể truy cập khu vực Admin!');
+        }
+
+        // 3. Nếu là admin/staff/... thì cho đi tiếp.
         return $next($request);
     }
 }

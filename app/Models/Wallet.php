@@ -4,22 +4,43 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Wallet extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
-    protected $fillable = ['user_id', 'balance', 'status'];
-
+    protected $fillable = [
+        'user_id',
+        'balance',
+        'status',
+        'wallet_pin',
+        'pin_attempts',
+        'locked_until',
+        'version',
+        'lock_reason'
+    ];
+    protected $casts = [
+        'wallet_pin' => 'hashed', // Tự động mã hóa Bcrypt mỗi khi lưu
+    ];
     // Mối quan hệ: Một ví thuộc về 1 User
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withTrashed();
     }
 
     // Mối quan hệ: Một ví có nhiều Giao dịch
     public function transactions()
     {
         return $this->hasMany(WalletTransaction::class)->orderBy('created_at', 'desc');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->useLogName('wallet')
+            ->logOnlyDirty();
     }
 }

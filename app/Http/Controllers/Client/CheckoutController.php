@@ -16,6 +16,12 @@ use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderPlacedMail;
+
+// IMPORT 3 THƯ VIỆN NÀY ĐỂ BẮN THÔNG BÁO CHO ADMIN
+use App\Models\User;
+use App\Notifications\SystemNotification;
+use App\Events\StatusUpdated;
+
 class CheckoutController extends Controller
 {
     /**
@@ -29,14 +35,12 @@ class CheckoutController extends Controller
                 else $q->where('session_id', Session::getId());
             })->first();
 
-        // ---------------- THÊM ĐOẠN NÀY LÀ XONG ----------------
         // Lọc giỏ hàng: CHỈ giữ lại các item có ID nằm trong Session đã chọn
         $selectedIds = session('selected_cart_items', []);
         if (!empty($selectedIds)) {
             // Ép cái relationship items chỉ lấy những món khách chọn
             $cart->setRelation('items', $cart->items->whereIn('id', $selectedIds));
         }
-        // --------------------------------------------------------
 
         if (!$cart || $cart->items->count() == 0) {
             return redirect()->route('client.products.index')->with('error', 'Không có sản phẩm nào để thanh toán!');
@@ -45,9 +49,11 @@ class CheckoutController extends Controller
         // Tính tổng tiền gốc (Chỉ tính các món đã chọn)
         $totalPrice = 0;
         foreach ($cart->items as $item) {
-            $price = $item->product->sale_price > 0 ? $item->product->sale_price : $item->product->price;
+            $price = 0;
             if ($item->variant) {
                 $price = $item->variant->sale_price > 0 ? $item->variant->sale_price : $item->variant->price;
+            } else {
+                $price = $item->product->sale_price > 0 ? $item->product->sale_price : $item->product->price;
             }
             $totalPrice += $price * $item->quantity;
         }
@@ -60,11 +66,27 @@ class CheckoutController extends Controller
      */
     public function process(Request $request)
     {
+        // --- BẢO MẬT: Chặn wallet nếu chưa đăng nhập ---
+        $allowedMethods = ['cod', 'vnpay'];
+        if (Auth::check()) {
+            $allowedMethods[] = 'wallet';
+        }
+
         $request->validate([
-            'customer_name' => 'required|string|max:255',
-            'customer_phone' => 'required|string|max:20',
-            'shipping_address' => 'required|string',
-            'payment_method' => 'required|in:cod,vnpay,wallet',
+            'customer_name'    => 'required|string|max:255',
+            'customer_phone'   => 'required|string|max:20',
+            'customer_email'   => 'nullable|email|max:255',
+            'shipping_address' => 'required|string|max:500',
+            'note'             => 'nullable|string|max:1000',
+            'payment_method'   => 'required|in:' . implode(',', $allowedMethods),
+            'wallet_pin'       => 'exclude_unless:payment_method,wallet|required|digits:6',
+        ], [
+            'shipping_address.max'   => 'Địa chỉ giao hàng không được vượt quá 500 ký tự!',
+            'note.max'               => 'Ghi chú không được vượt quá 1000 ký tự!',
+            'customer_email.email'   => 'Email không đúng định dạng!',
+            'payment_method.in'      => 'Phương thức thanh toán không hợp lệ!',
+            'wallet_pin.required_if' => 'Vui lòng nhập mã PIN ví để xác thực thanh toán!',
+            'wallet_pin.digits'      => 'Mã PIN ví bắt buộc phải có chính xác 6 chữ số!',
         ]);
 
         $cart = Cart::with(['items.product', 'items.variant.attributeValues.attribute'])
@@ -81,6 +103,59 @@ class CheckoutController extends Controller
 
         if (!$cart || $cart->items->count() == 0) {
             return redirect()->route('client.products.index')->with('error', 'Giỏ hàng trống hoặc chưa chọn sản phẩm!');
+        }
+
+        // ============================================================
+        // KIỂM TRA VÍ & PIN TRƯỚC KHI VÀO TRANSACTION
+        // (để pin_attempts luôn được lưu DB dù transaction chính rollback)
+        // ============================================================
+        if ($request->payment_method === 'wallet') {
+            $walletUser = Auth::user();
+            if (!$walletUser) {
+                return back()->withInput()->with('error', 'Vui lòng đăng nhập để thanh toán bằng Ví Bee Pay!');
+            }
+
+            $wallet = Wallet::where('user_id', $walletUser->id)->first();
+            if (!$wallet) {
+                return back()->withInput()->with('error', 'Ví Bee Pay của bạn không tồn tại!');
+            }
+
+            // Tự động mở khóa nếu đã hết thời gian tạm khóa
+            if ($wallet->locked_until && $wallet->locked_until <= now()) {
+                $wallet->update(['status' => 'active', 'locked_until' => null, 'pin_attempts' => 0]);
+            }
+
+            // Kiểm tra trạng thái khóa
+            if ($wallet->status === 'locked') {
+                if ($wallet->locked_until && $wallet->locked_until > now()) {
+                    $minutes = now()->diffInMinutes($wallet->locked_until);
+                    return back()->withInput()->with('error', 'Ví Bee Pay đang bị khóa tạm thời. Thử lại sau ' . ($minutes + 1) . ' phút!');
+                } else {
+                    return back()->withInput()->with('error', 'Ví Bee Pay đang bị khóa. Lý do: ' . ($wallet->lock_reason ?: 'Vi phạm chính sách.'));
+                }
+            }
+
+            // Kiểm tra PIN -- ghi vào DB ngay lập tức (ngoài transaction chính)
+            if (!\Hash::check($request->wallet_pin, $wallet->wallet_pin)) {
+                $wallet->increment('pin_attempts');
+
+                if ($wallet->pin_attempts >= 5) {
+                    $wallet->update([
+                        'status'       => 'locked',
+                        'locked_until' => now()->addMinutes(15),
+                        'lock_reason'  => 'Nhập sai mã PIN quá 5 lần',
+                    ]);
+                    return back()->withInput()->with('error', 'Nhập sai PIN 5 lần! Ví đã bị khóa tạm thời 15 phút.');
+                }
+
+                $remaining = 5 - $wallet->pin_attempts;
+                return back()->withInput()->with('error', 'Mã PIN không chính xác! Còn ' . $remaining . ' lần thử trước khi ví bị khóa.');
+            }
+
+            // PIN đúng → reset số lần sai
+            if ($wallet->pin_attempts > 0) {
+                $wallet->update(['pin_attempts' => 0]);
+            }
         }
 
         DB::beginTransaction();
@@ -112,19 +187,28 @@ class CheckoutController extends Controller
 
             // 2.2 Chuyển Item từ Cart sang Order & Trừ tồn kho
             foreach ($cart->items as $item) {
-                $price = $item->product->sale_price > 0 ? $item->product->sale_price : $item->product->price;
-                $sku = $item->product->sku;
-                $thumbnail = $item->product->thumbnail;
+                $price = 0;
+                $sku = '';
+                $thumbnail = '';
                 $productName = $item->product->name;
-                $stockObj = $item->product;
+                $stockObj = null;
 
                 if ($item->variant) {
                     $price = $item->variant->sale_price > 0 ? $item->variant->sale_price : $item->variant->price;
                     $sku = $item->variant->sku;
                     $thumbnail = $item->variant->thumbnail ?? $item->product->thumbnail;
+                    
+                    // Chỉ thêm chuỗi thuộc tính nếu có thuộc tính (variable), simple thì rỗng
                     $variantName = $item->variant->attributeValues->pluck('value')->implode(' - ');
-                    $productName = $item->product->name . ' (' . $variantName . ')';
+                    if (!empty($variantName)) {
+                        $productName = $item->product->name . ' (' . $variantName . ')';
+                    }
                     $stockObj = $item->variant; 
+                } else {
+                    $price = $item->product->sale_price > 0 ? $item->product->sale_price : $item->product->price;
+                    $sku = $item->product->sku;
+                    $thumbnail = $item->product->thumbnail;
+                    $stockObj = $item->product;
                 }
 
                 if ($stockObj->stock < $item->quantity) {
@@ -148,7 +232,7 @@ class CheckoutController extends Controller
                 $stockObj->decrement('stock', $item->quantity);
             }
 
-            // 2.3 XỬ LÝ VOUCHER (Upsert chống lỗi Duplicate 1062)
+            // 2.3 XỬ LÝ VOUCHER 
             $discountAmount = 0;
             if (session()->has('voucher')) {
                 $voucherSession = session('voucher');
@@ -179,12 +263,11 @@ class CheckoutController extends Controller
             ]);
 
             // 2.4 LOGIC THANH TOÁN BẰNG VÍ BEE PAY
+            // (PIN đã được xác thực trước transaction, chỉ cần kiểm tra số dư và trừ tiền)
             if ($request->payment_method === 'wallet') {
-                $user = Auth::user();
-                if (!$user) throw new \Exception('Vui lòng đăng nhập để thanh toán bằng Ví Bee Pay!');
+                $wallet = Wallet::where('user_id', Auth::id())->first();
 
-                $wallet = Wallet::where('user_id', $user->id)->first();
-                if (!$wallet || $wallet->balance < $finalAmount) {
+                if ($wallet->balance < $finalAmount) {
                     throw new \Exception('Số dư Ví Bee Pay không đủ. Vui lòng nạp thêm tiền!');
                 }
 
@@ -210,26 +293,53 @@ class CheckoutController extends Controller
             // 2.5 DỌN DẸP GIỎ HÀNG (CHỈ XÓA MÓN ĐÃ MUA)
             // ==========================================
             if (!empty($selectedIds)) {
-                // Chỉ xóa các item được tích chọn thanh toán
                 CartItem::whereIn('id', $selectedIds)->delete();
             } else {
-                $cart->items()->delete(); // Mặc định thì xóa hết (nếu có lỗi gì đó)
+                $cart->items()->delete(); 
             }
 
-            // Kiểm tra xem giỏ hàng còn món nào không, nếu không còn thì xóa luôn cái vỏ Cart
             if ($cart->items()->count() == 0) {
                 $cart->delete();
             }
 
-            // Xóa session voucher và session chọn món để khách mua đơn tiếp theo
             session()->forget('voucher'); 
             session()->forget('selected_cart_items');
 
             DB::commit();
+
+            // ==========================================
+            // 🚀 BẮN THÔNG BÁO CÓ ĐƠN HÀNG MỚI CHO ADMIN
+            // ==========================================
+            try {
+                // Quét tìm tất cả các sếp Admin
+                $admins = User::whereHas('role', function($q) { 
+                    $q->where('name', 'admin'); 
+                })->get();
+
+                if ($admins->count() > 0) {
+                    $adminTitle = "Ting ting! Có đơn hàng mới! 🚀";
+                    $adminMsg = "Khách hàng " . $order->customer_name . " vừa chốt đơn #" . $order->order_code . " trị giá " . number_format($finalAmount, 0, ',', '.') . "đ.";
+                    $adminUrl = route('admin.orders.show', $order->id);
+
+                    foreach ($admins as $ad) {
+                        // 1. Lưu vào DB cho Admin
+                        $ad->notify(new SystemNotification($adminTitle, $adminMsg, $adminUrl));
+                        // 2. Bắn Real-time
+                        broadcast(new StatusUpdated($ad->id, $adminTitle, $adminMsg, $adminUrl));
+                    }
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Lỗi báo Admin có đơn mới: ' . $e->getMessage());
+            }
+            // ==========================================
+
+            // Lưu session id để hiện trang success
+            session(['new_order_id' => $order->id]);
+
+            // Gửi email
             $customerEmail = $order->customer_email;
             if (!empty($customerEmail)) {
                 try {
-                    // Dùng Try-Catch để lỡ mạng lag gửi mail lỗi thì đơn hàng vẫn báo thành công
                     Mail::to($customerEmail)->send(new OrderPlacedMail($order));
                 } catch (\Exception $e) {
                     \Illuminate\Support\Facades\Log::error('Lỗi gửi email xác nhận đơn: ' . $e->getMessage());
@@ -255,7 +365,9 @@ class CheckoutController extends Controller
                     "vnp_Command" => "pay",
                     "vnp_CreateDate" => date('YmdHis'),
                     "vnp_CurrCode" => "VND",
-                    "vnp_IpAddr" => $_SERVER['REMOTE_ADDR'],
+                    // BẢO MẬT: dùng request()->ip() thay $_SERVER['REMOTE_ADDR']
+                    // để lấy IP đúng qua reverse proxy (Nginx/Apache)
+                    "vnp_IpAddr" => $request->ip(),
                     "vnp_Locale" => 'vn',
                     "vnp_OrderInfo" => "Thanh toan don hang " . $orderCode,
                     "vnp_OrderType" => 'billpayment',
@@ -280,7 +392,7 @@ class CheckoutController extends Controller
                 $vnp_Url = $vnp_Url . "?" . $query;
                 if (isset($vnp_HashSecret)) {
                     $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
-                    $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
+                    $vnp_Url .= '&vnp_SecureHash=' . $vnpSecureHash;
                 }
 
                 return redirect($vnp_Url);
@@ -325,6 +437,10 @@ class CheckoutController extends Controller
         $order = Order::find($request->vnp_TxnRef);
 
         if ($secureHash == $vnp_SecureHash) {
+            if ($order) {
+                session(['new_order_id' => $order->id]);
+            }
+
             if ($request->vnp_ResponseCode == '00') {
                 if ($order) {
                     $order->update(['payment_status' => 'paid']); 
@@ -346,10 +462,17 @@ class CheckoutController extends Controller
      */
     public function success()
     {
-        if (!session('success')) {
+        if (!session('success') || !session('new_order_id')) {
             return redirect()->route('home');
         }
-        return view('client.checkout.success');
+
+        $order = Order::with('items')->find(session('new_order_id'));
+
+        if (!$order) {
+            return redirect()->route('home');
+        }
+
+        return view('client.checkout.success', compact('order'));
     }
 
     /**
@@ -362,5 +485,67 @@ class CheckoutController extends Controller
             'success' => true, 
             'message' => 'Đã hủy mã giảm giá!'
         ]);
+    }
+
+    /**
+     * 6. THANH TOÁN LẠI VNPAY
+     */
+    public function retryPayment(Request $request, $id)
+    {
+        $order = Order::where('user_id', Auth::id())->findOrFail($id);
+
+        if ($order->status !== 'cancelled' && $order->payment_status === 'pending' && in_array($order->payment_method, ['vnpay', 'vnp'])) {
+            $finalAmount = $order->total_amount;
+
+            if ($finalAmount <= 0) {
+                $order->update(['payment_status' => 'paid']);
+                session(['new_order_id' => $order->id]);
+                return redirect()->route('client.checkout.success')->with('success', 'Đơn hàng thành công!');
+            }
+
+            $vnp_Url = env('VNPAY_URL');
+            $vnp_Returnurl = route('vnpay.return');
+            $vnp_TmnCode = env('VNPAY_TMN_CODE');
+            $vnp_HashSecret = env('VNPAY_HASH_SECRET');
+
+            $inputData = array(
+                "vnp_Version" => "2.1.0",
+                "vnp_TmnCode" => $vnp_TmnCode,
+                "vnp_Amount" => $finalAmount * 100,
+                "vnp_Command" => "pay",
+                "vnp_CreateDate" => date('YmdHis'),
+                "vnp_CurrCode" => "VND",
+                "vnp_IpAddr" => $request->ip(),
+                "vnp_Locale" => 'vn',
+                "vnp_OrderInfo" => "Thanh toan lai don hang " . $order->order_code,
+                "vnp_OrderType" => 'billpayment',
+                "vnp_ReturnUrl" => $vnp_Returnurl,
+                "vnp_TxnRef" => $order->id,
+            );
+
+            ksort($inputData);
+            $query = "";
+            $i = 0;
+            $hashdata = "";
+            foreach ($inputData as $key => $value) {
+                if ($i == 1) {
+                    $hashdata .= '&' . urlencode($key) . "=" . urlencode($value);
+                } else {
+                    $hashdata .= urlencode($key) . "=" . urlencode($value);
+                    $i = 1;
+                }
+                $query .= urlencode($key) . "=" . urlencode($value) . '&';
+            }
+
+            $vnp_Url = $vnp_Url . "?" . $query;
+            if (isset($vnp_HashSecret)) {
+                $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
+                $vnp_Url .= '&vnp_SecureHash=' . $vnpSecureHash;
+            }
+
+            return redirect($vnp_Url);
+        }
+
+        return redirect()->back()->with('error', 'Đơn hàng này không khả dụng để thanh toán lại.');
     }
 }
