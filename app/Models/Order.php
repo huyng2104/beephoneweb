@@ -15,55 +15,35 @@ class Order extends Model
         'order_code',
         'user_id',
         'customer_name',
-        'phone',
         'customer_phone',
         'customer_email',
-        'recipient_name',
-        'recipient_phone',
-        'recipient_address',
         'shipping_address',
-        'address',
-        'total_price',
         'total_amount',
         'status',
         'return_status',
         'note',
         'cancellation_reason',
-        'return_note',
-        'return_image',
-        'return_admin_note',
         'ordered_at',
         'cancelled_at',
-        'return_requested_at',
-        'return_approved_at',
-        'return_rejected_at',
-        'return_shipped_at',
-        'return_received_at',
-        'return_refunded_at',
         'payment_method',
         'payment_status',
         'paid_at',
-        'refund_amount',
     ];
+
 
     protected $casts = [
-        'ordered_at' => 'datetime',
+        'ordered_at'  => 'datetime',
         'cancelled_at' => 'datetime',
-        'return_requested_at' => 'datetime',
-        'return_approved_at' => 'datetime',
-        'return_rejected_at' => 'datetime',
-        'return_shipped_at' => 'datetime',
-        'return_received_at' => 'datetime',
-        'return_refunded_at' => 'datetime',
-        'paid_at' => 'datetime',
+        'paid_at'     => 'datetime',
     ];
 
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_PACKING = 'packing';
-    public const STATUS_SHIPPING = 'shipping';
+    public const STATUS_PENDING   = 'pending';
+    public const STATUS_PACKING   = 'packing';
+    public const STATUS_SHIPPING  = 'shipping';
     public const STATUS_DELIVERED = 'delivered';
-    public const STATUS_RECEIVED = 'received';
+    public const STATUS_RECEIVED  = 'received';
     public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_FAILED_DELIVERY = 'failed_delivery';
 
     public const RETURN_NONE = 'none';
     public const RETURN_REQUESTED = 'requested';
@@ -82,6 +62,7 @@ class Order extends Model
             self::STATUS_DELIVERED,
             self::STATUS_RECEIVED,
             self::STATUS_CANCELLED,
+            self::STATUS_FAILED_DELIVERY,
         ];
     }
 
@@ -94,6 +75,7 @@ class Order extends Model
             self::STATUS_DELIVERED => 'Giao thành công',
             self::STATUS_RECEIVED => 'Đã nhận hàng',
             self::STATUS_CANCELLED => 'Đã hủy',
+            self::STATUS_FAILED_DELIVERY => 'Giao thất bại (Bom hàng)',
         ];
     }
 
@@ -139,18 +121,20 @@ class Order extends Model
             'paid' => 'Đã thanh toán',
             'failed' => 'Thanh toán thất bại',
             'cancelled' => 'Đã hủy',
+            'refunded' => 'Đã hoàn tiền',
         ];
     }
 
     public static function nextStatusMap(): array
     {
         return [
-            self::STATUS_PENDING => [self::STATUS_PACKING],
-            self::STATUS_PACKING => [self::STATUS_SHIPPING],
-            self::STATUS_SHIPPING => [self::STATUS_DELIVERED],
-            self::STATUS_DELIVERED => [self::STATUS_RECEIVED],
-            self::STATUS_RECEIVED => [],
+            self::STATUS_PENDING   => [self::STATUS_PACKING],
+            self::STATUS_PACKING   => [self::STATUS_SHIPPING],
+            self::STATUS_SHIPPING  => [self::STATUS_DELIVERED, self::STATUS_FAILED_DELIVERY],
+            self::STATUS_DELIVERED => [self::STATUS_RECEIVED, self::STATUS_FAILED_DELIVERY],
+            self::STATUS_RECEIVED  => [],
             self::STATUS_CANCELLED => [],
+            self::STATUS_FAILED_DELIVERY => [self::STATUS_PACKING],
         ];
     }
 

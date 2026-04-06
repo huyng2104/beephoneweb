@@ -25,37 +25,58 @@ class OrderController extends Controller
     {
         Gate::authorize('order.view');
 
-        $status = $request->string('status')->toString();
-        $returnStatus = $request->string('return_status')->toString();
-        $search = $request->string('q')->toString();
+        $status        = $request->string('status')->toString();
+        $returnStatus  = $request->string('return_status')->toString();
+        $search        = $request->string('q')->toString();
+        $paymentStatus = $request->string('payment_status')->toString();
+        $dateFrom      = $request->string('date_from')->toString();
+        $dateTo        = $request->string('date_to')->toString();
+        $sort          = $request->string('sort', 'newest')->toString();
 
         $orders = Order::query()
-            ->when(in_array($status, Order::statuses(), true), fn ($query) => $query->where('status', $status))
-            ->when(in_array($returnStatus, Order::returnStatuses(), true), fn ($query) => $query->where('return_status', $returnStatus))
+            ->when(in_array($status, Order::statuses(), true), fn ($q) => $q->where('status', $status))
+            ->when(in_array($returnStatus, Order::returnStatuses(), true), fn ($q) => $q->where('return_status', $returnStatus))
+            ->when($paymentStatus !== '', fn ($q) => $q->where('payment_status', $paymentStatus))
+            ->when($dateFrom !== '', fn ($q) => $q->whereDate('created_at', '>=', $dateFrom))
+            ->when($dateTo !== '', fn ($q) => $q->whereDate('created_at', '<=', $dateTo))
             ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
-                    $subQuery
-                        ->where('order_code', 'like', '%' . $search . '%')
+                $query->where(function ($sub) use ($search) {
+                    $sub->where('order_code', 'like', '%' . $search . '%')
                         ->orWhere('customer_name', 'like', '%' . $search . '%')
                         ->orWhere('customer_phone', 'like', '%' . $search . '%');
                 });
             })
-            ->orderByDesc('ordered_at')
-            ->orderByDesc('id')
+            ->when($sort === 'newest',     fn ($q) => $q->orderByDesc('created_at'))
+            ->when($sort === 'oldest',     fn ($q) => $q->orderBy('created_at'))
+            ->when($sort === 'total_high', fn ($q) => $q->orderByDesc('total_amount'))
+            ->when($sort === 'total_low',  fn ($q) => $q->orderBy('total_amount'))
+            ->when(!in_array($sort, ['newest','oldest','total_high','total_low']), fn ($q) => $q->orderByDesc('created_at'))
             ->paginate(15)
             ->withQueryString();
 
+        // Thống kê nhanh (toàn bộ, không bị ảnh hưởng bởi filter)
+        $stats = [
+            'total_revenue' => Order::whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_RECEIVED])
+                                    ->where('payment_status', 'paid')
+                                    ->sum('total_amount'),
+            'new_orders'    => Order::where('status', Order::STATUS_PENDING)->count(),
+            'cancelled'     => Order::where('status', Order::STATUS_CANCELLED)->count(),
+            'shipping'      => Order::where('status', Order::STATUS_SHIPPING)->count(),
+        ];
+
         return view('admin.orders.index', [
-            'orders' => $orders,
-            'statuses' => Order::statuses(),
-            'statusLabels' => Order::statusLabels(),
-            'returnStatuses' => Order::returnStatuses(),
-            'returnStatusLabels' => Order::returnStatusLabels(),
-            'activeStatus' => $status,
-            'activeReturnStatus' => $returnStatus,
-            'search' => $search,
+            'orders'              => $orders,
+            'statuses'            => Order::statuses(),
+            'statusLabels'        => Order::statusLabels(),
+            'returnStatuses'      => Order::returnStatuses(),
+            'returnStatusLabels'  => Order::returnStatusLabels(),
+            'activeStatus'        => $status,
+            'activeReturnStatus'  => $returnStatus,
+            'search'              => $search,
+            'stats'               => $stats,
         ]);
     }
+
 
     public function show(Order $order): View
     {
@@ -210,6 +231,89 @@ class OrderController extends Controller
         // ==========================================
 
         return back()->with('status', 'Đã hủy đơn hàng.');
+    }
+
+    public function refundFailedDelivery(Request $request, Order $order): RedirectResponse
+    {
+        Gate::authorize('order.update');
+
+        if ($order->status !== Order::STATUS_FAILED_DELIVERY) {
+            return back()->withErrors(['state' => 'Chỉ có thể hoàn tiền cho đơn hàng Giao thất bại (Bom hàng).']);
+        }
+
+        if ($order->payment_status !== 'paid') {
+            return back()->withErrors(['state' => 'Đơn hàng này chưa được thanh toán nên không thể hoàn tiền.']);
+        }
+
+        DB::transaction(function () use ($order) {
+            // 1. Hoàn mức tồn kho
+            foreach ($order->items as $item) {
+                $variant = \App\Models\ProductVariant::where('sku', $item->product_sku)->first();
+                if ($variant) {
+                    $variant->increment('stock', $item->quantity);
+                } else {
+                    $product = \App\Models\Product::where('sku', $item->product_sku)->first();
+                    if ($product) {
+                        $product->increment('stock', $item->quantity);
+                    }
+                }
+            }
+
+            // 2. Chuyển tiền vào ví
+            if (in_array($order->payment_method, ['wallet', 'vnpay', 'vnp'])) {
+                $wallet = Wallet::firstOrCreate(
+                    ['user_id' => $order->user_id],
+                    ['balance' => 0, 'status' => 'active']
+                );
+
+                $wallet = Wallet::whereKey($wallet->id)->lockForUpdate()->first();
+                $balanceBefore = $wallet->balance;
+
+                $wallet->balance += $order->total_amount;
+                $wallet->save();
+
+                WalletTransaction::create([
+                    'wallet_id' => $wallet->id,
+                    'type' => 'refund',
+                    'amount' => $order->total_amount,
+                    'balance_before' => $balanceBefore,
+                    'balance_after' => $wallet->balance,
+                    'description' => 'Hoàn tiền vào ví do giao thất bại (Bom hàng) đơn ' . $order->order_code,
+                    'reference_type' => Order::class,
+                    'reference_id' => (string) $order->id,
+                    'status' => 'completed',
+                ]);
+            }
+
+            // 3. Đổi trạng thái thanh toán
+            $order->update([
+                'payment_status' => 'refunded',
+            ]);
+
+            OrderStatusHistory::create([
+                'order_id' => $order->id,
+                'user_id' => Auth::id(),
+                'status' => Order::STATUS_FAILED_DELIVERY,
+                'note' => 'Admin xác nhận nhập lại kho và hoàn tiền ' . number_format($order->total_amount) . '₫ vào ví cho đơn giao thất bại.',
+            ]);
+        });
+
+        // ==========================================
+        try {
+            if ($order->user_id) {
+                $title = "Hoàn tiền đơn hàng #" . $order->order_code;
+                $message = "Đơn hàng giao thất bại đã được xử lý hoàn tiền toàn bộ vào Ví Bee Pay của bạn.";
+                $url = route('client.orders.show', $order->id);
+
+                $order->user->notify(new SystemNotification($title, $message, $url));
+                broadcast(new StatusUpdated($order->user_id, $title, $message, $url));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Lỗi gửi thông báo hoàn tiền bom hàng: ' . $e->getMessage());
+        }
+        // ==========================================
+
+        return back()->with('status', 'Đã lưu kho thẻ và hoàn tiền thành công vào ví khách hàng.');
     }
 
     public function approveReturn(Request $request, $itemId): RedirectResponse
