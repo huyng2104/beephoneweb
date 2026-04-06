@@ -139,8 +139,10 @@ Route::middleware('check.verified')->group(function () {
         Route::get('/don-mua/{id}', [ClientOrderController::class, 'show'])->name('client.orders.show');
         Route::patch('/don-mua/{id}/xac-nhan', [ClientOrderController::class, 'confirmReceived'])->name('client.orders.confirm');
         Route::patch('/don-mua/{id}/huy', [ClientOrderController::class, 'cancel'])->name('client.orders.cancel');
+        Route::patch('/don-mua/{id}/giao-lai', [ClientOrderController::class, 'requestRedelivery'])->name('client.orders.redeliver');
         Route::patch('/don-mua/item/{itemId}/hoan-hang', [ClientOrderController::class, 'requestReturn'])->name('client.orders.return');
         Route::patch('/don-mua/item/{itemId}/gui-hang-hoan', [ClientOrderController::class, 'markReturnShipped'])->name('client.orders.return.shipped');
+        Route::patch('/don-mua/item/{itemId}/huy-hoan-hang', [ClientOrderController::class, 'cancelReturn'])->name('client.orders.return.cancel');
     });
 
     Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
@@ -401,10 +403,12 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
         Route::resource('vouchers', VoucherController::class);
 
         // Orders
+        Route::get('returns', [\App\Http\Controllers\AdminControllers\ReturnController::class, 'index'])->name('returns.index');
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
         Route::patch('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+        Route::patch('orders/{order}/refund-failed', [OrderController::class, 'refundFailedDelivery'])->name('orders.refund.failed');
         Route::patch('orders/item/{itemId}/return-approve', [OrderController::class, 'approveReturn'])->name('orders.return.approve');
         Route::patch('orders/item/{itemId}/return-reject', [OrderController::class, 'rejectReturn'])->name('orders.return.reject');
         Route::patch('orders/item/{itemId}/return-received', [OrderController::class, 'markReturnReceived'])->name('orders.return.received');

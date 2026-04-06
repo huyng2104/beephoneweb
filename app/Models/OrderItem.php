@@ -74,9 +74,13 @@ class OrderItem extends Model
 
     public function canRequestReturn(): bool
     {
-        // Điều kiện: đơn hàng đã hoàn thành, nằm trong thời gian cho phép hoàn hàng (VD: 3 ngày)
-        // và sản phẩm này chưa từng yêu cầu (hoặc đã bị admin từ chối thì vẫn không cho lại)
-        if (!$this->order || !in_array($this->order->status, [Order::STATUS_DELIVERED, Order::STATUS_RECEIVED])) {
+        // Điều kiện: đơn hàng đã được người dùng xác nhận Đã nhận hàng, nằm trong thời gian cho phép hoàn hàng (7 ngày)
+        if (!$this->order || $this->order->status !== Order::STATUS_RECEIVED) {
+            return false;
+        }
+
+        // Tính từ lúc đơn hàng được giao thành công / nhận hàng (updated_at)
+        if ($this->order->updated_at && $this->order->updated_at->addDays(7)->isPast()) {
             return false;
         }
 

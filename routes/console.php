@@ -24,3 +24,6 @@ Schedule::call(function () {
             'updated_at'  => Carbon::now()
         ]);
 })->everyMinute();
+
+// Tự động hủy yêu cầu hoàn hàng quá 7 ngày chưa được duyệt
+Schedule::command('returns:expire')->daily()->at('02:00');

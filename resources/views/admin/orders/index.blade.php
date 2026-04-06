@@ -20,35 +20,135 @@
     </div>
     @endif
 
+    {{-- THỐNG KÊ NHANH --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {{-- Tổng doanh thu --}}
+        <a href="{{ route('admin.orders.index', ['status' => 'received']) }}"
+            class="group bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5 flex items-center gap-4 hover:border-emerald-300 hover:shadow-md transition-all duration-200">
+            <div class="flex-shrink-0 h-12 w-12 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
+                <span class="material-symbols-outlined text-[24px] text-emerald-500">payments</span>
+            </div>
+            <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tổng doanh thu</p>
+                <p class="text-lg font-black text-emerald-600 mt-0.5 truncate">{{ number_format($stats['total_revenue'], 0, ',', '.') }}₫</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Đơn đã hoàn thành</p>
+            </div>
+        </a>
+
+        {{-- Đơn mới --}}
+        <a href="{{ route('admin.orders.index', ['status' => 'pending']) }}"
+            class="group bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5 flex items-center gap-4 hover:border-amber-300 hover:shadow-md transition-all duration-200">
+            <div class="flex-shrink-0 h-12 w-12 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
+                <span class="material-symbols-outlined text-[24px] text-amber-500">inbox</span>
+            </div>
+            <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Đơn hàng mới</p>
+                <p class="text-2xl font-black text-amber-500 mt-0.5">{{ $stats['new_orders'] }}</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Chờ xử lý</p>
+            </div>
+        </a>
+
+        {{-- Đang giao --}}
+        <a href="{{ route('admin.orders.index', ['status' => 'shipping']) }}"
+            class="group bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5 flex items-center gap-4 hover:border-indigo-300 hover:shadow-md transition-all duration-200">
+            <div class="flex-shrink-0 h-12 w-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
+                <span class="material-symbols-outlined text-[24px] text-indigo-500">local_shipping</span>
+            </div>
+            <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Đang giao hàng</p>
+                <p class="text-2xl font-black text-indigo-500 mt-0.5">{{ $stats['shipping'] }}</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Đang vận chuyển</p>
+            </div>
+        </a>
+
+        {{-- Đã hủy --}}
+        <a href="{{ route('admin.orders.index', ['status' => 'cancelled']) }}"
+            class="group bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5 flex items-center gap-4 hover:border-red-300 hover:shadow-md transition-all duration-200">
+            <div class="flex-shrink-0 h-12 w-12 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center group-hover:bg-red-100 transition-colors">
+                <span class="material-symbols-outlined text-[24px] text-red-500">cancel</span>
+            </div>
+            <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Đã hủy đơn</p>
+                <p class="text-2xl font-black text-red-500 mt-0.5">{{ $stats['cancelled'] }}</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Tổng số đơn đã hủy</p>
+            </div>
+        </a>
+    </div>
+
     <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-4 lg:p-5">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
-            <div class="md:col-span-3">
+        <form method="GET" id="filter-form" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+            {{-- Tìm kiếm --}}
+            <div class="md:col-span-1">
                 <label class="block text-xs font-semibold text-slate-500 mb-1">Tìm kiếm</label>
-                <input
-                    type="text"
-                    name="q"
-                    value="{{ $search }}"
-                    placeholder="Mã đơn, tên người đặt, số điện thoại..."
+                <input type="text" name="q" value="{{ $search }}"
+                    placeholder="Mã đơn, tên KH, SĐT..."
                     class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
             </div>
+
+            {{-- Trạng thái --}}
             <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">Trạng thái</label>
-                <select name="status" class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Trạng thái đơn</label>
+                <select name="status" onchange="document.getElementById('filter-form').submit()"
+                    class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
                     <option value="">Tất cả trạng thái</option>
                     @foreach ($statuses as $status)
                     <option value="{{ $status }}" @selected($activeStatus === $status)>{{ $statusLabels[$status] }}</option>
                     @endforeach
                 </select>
             </div>
+
+            {{-- Hoàn hàng --}}
             <div>
                 <label class="block text-xs font-semibold text-slate-500 mb-1">Hoàn hàng</label>
-                <select name="return_status" class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                <select name="return_status" onchange="document.getElementById('filter-form').submit()"
+                    class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
                     <option value="">Tất cả</option>
                     @foreach ($returnStatuses as $returnStatus)
                     <option value="{{ $returnStatus }}" @selected($activeReturnStatus === $returnStatus)>{{ $returnStatusLabels[$returnStatus] }}</option>
                     @endforeach
                 </select>
             </div>
+
+            {{-- Thanh toán --}}
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Thanh toán</label>
+                <select name="payment_status" onchange="document.getElementById('filter-form').submit()"
+                    class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                    <option value="">Tất cả</option>
+                    <option value="pending" @selected(request('payment_status') === 'pending')>Chưa thanh toán</option>
+                    <option value="paid" @selected(request('payment_status') === 'paid')>Đã thanh toán</option>
+                </select>
+            </div>
+
+            {{-- Từ ngày --}}
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Từ ngày</label>
+                <input type="date" name="date_from" value="{{ request('date_from') }}"
+                    onchange="document.getElementById('filter-form').submit()"
+                    class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+            </div>
+
+            {{-- Đến ngày --}}
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Đến ngày</label>
+                <input type="date" name="date_to" value="{{ request('date_to') }}"
+                    onchange="document.getElementById('filter-form').submit()"
+                    class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+            </div>
+
+            {{-- Sắp xếp --}}
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Sắp xếp</label>
+                <select name="sort" onchange="document.getElementById('filter-form').submit()"
+                    class="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                    <option value="newest" @selected(request('sort', 'newest') === 'newest')>Mới nhất</option>
+                    <option value="oldest" @selected(request('sort') === 'oldest')>Cũ nhất</option>
+                    <option value="total_high" @selected(request('sort') === 'total_high')>Giá trị cao nhất</option>
+                    <option value="total_low" @selected(request('sort') === 'total_low')>Giá trị thấp nhất</option>
+                </select>
+            </div>
+
+            {{-- Nút hành động --}}
             <div class="flex gap-2">
                 <button type="submit" class="flex-1 px-4 py-2 bg-primary text-black rounded-lg font-semibold text-sm hover:brightness-105">Lọc</button>
                 <a href="{{ route('admin.orders.index') }}" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">Reset</a>
@@ -56,83 +156,131 @@
         </form>
     </div>
 
+
     <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead class="bg-slate-50 dark:bg-slate-800/50">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-50 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
                     <tr>
-                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Mã đơn</th>
-                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Người đặt / Người nhận</th>
-                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Ngày đặt</th>
-                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide text-right">Tổng tiền</th>
-                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Thanh toán</th>
-                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide">Trạng thái</th>
-                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-wide text-right">Thao tác</th>
+                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Mã đơn hàng</th>
+                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Khách hàng</th>
+                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Tổng đơn</th>
+                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Thanh toán</th>
+                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Trạng thái</th>
+                        <th class="px-5 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap text-right">Thao tác</th>
                     </tr>
                 </thead>
-                <tbody id="realtime-order-list" class="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody id="realtime-order-list" class="divide-y divide-slate-100 dark:divide-slate-800/60">
                     @forelse ($orders as $order)
                     @php
                     $statusClass = match($order->status) {
-                        \App\Models\Order::STATUS_PENDING => 'bg-slate-100 text-slate-700',
-                        \App\Models\Order::STATUS_PACKING => 'bg-amber-100 text-amber-700',
-                        \App\Models\Order::STATUS_SHIPPING => 'bg-blue-100 text-blue-700',
-                        \App\Models\Order::STATUS_DELIVERED => 'bg-emerald-100 text-emerald-700',
-                        \App\Models\Order::STATUS_RECEIVED => 'bg-green-100 text-green-700',
-                        \App\Models\Order::STATUS_CANCELLED => 'bg-red-100 text-red-700',
-                        default => 'bg-slate-100 text-slate-700',
+                        \App\Models\Order::STATUS_PENDING => 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20',
+                        \App\Models\Order::STATUS_PACKING => 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20',
+                        \App\Models\Order::STATUS_SHIPPING => 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-500/10 dark:border-indigo-500/20',
+                        \App\Models\Order::STATUS_DELIVERED => 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20',
+                        \App\Models\Order::STATUS_RECEIVED => 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20',
+                        \App\Models\Order::STATUS_CANCELLED => 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:border-red-500/20',
+                        \App\Models\Order::STATUS_FAILED_DELIVERY => 'bg-pink-50 text-pink-600 border-pink-200 dark:bg-pink-500/10 dark:border-pink-500/20',
+                        default => 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:border-slate-700',
                     };
+
                     $returnClass = match($order->return_status) {
-                        \App\Models\Order::RETURN_REQUESTED => 'bg-amber-100 text-amber-700',
-                        \App\Models\Order::RETURN_APPROVED => 'bg-blue-100 text-blue-700',
-                        \App\Models\Order::RETURN_REJECTED => 'bg-red-100 text-red-700',
-                        \App\Models\Order::RETURN_CUSTOMER_SHIPPED => 'bg-indigo-100 text-indigo-700',
-                        \App\Models\Order::RETURN_RECEIVED => 'bg-cyan-100 text-cyan-700',
-                        \App\Models\Order::RETURN_REFUNDED => 'bg-green-100 text-green-700',
-                        default => 'bg-slate-100 text-slate-700',
+                        \App\Models\Order::RETURN_REQUESTED => 'bg-amber-100 text-amber-700 dark:bg-amber-500/20',
+                        \App\Models\Order::RETURN_APPROVED => 'bg-blue-100 text-blue-700 dark:bg-blue-500/20',
+                        \App\Models\Order::RETURN_REJECTED => 'bg-red-100 text-red-700 dark:bg-red-500/20',
+                        \App\Models\Order::RETURN_CUSTOMER_SHIPPED => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20',
+                        \App\Models\Order::RETURN_RECEIVED => 'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20',
+                        \App\Models\Order::RETURN_REFUNDED => 'bg-green-100 text-green-700 dark:bg-green-500/20',
+                        default => 'bg-slate-100 text-slate-700 dark:bg-slate-800',
                     };
                     @endphp
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                        <td class="px-5 py-4 align-top">
-                            <p class="font-semibold text-primary">{{ $order->order_code }}</p>
+                    <tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors duration-200">
+                        <td class="px-5 py-5 align-middle border-b border-transparent">
+                            <div class="flex items-center gap-3">
+                              
+                                <div>
+                                    <p class="font-bold text-slate-900 dark:text-white uppercase tracking-wide">{{ $order->order_code }}</p>
+                                    <p class="text-[12px] font-semibold text-slate-500 mt-1 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[13px]">schedule</span>
+                                        {{ optional($order->created_at)->format('d/m/Y H:i') }}
+                                    </p>
+                                </div>
+                            </div>
                         </td>
-                        <td class="px-5 py-4 align-top">
-                            <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ $order->customer_name }} - {{ $order->customer_phone }}</p>
-                            <p class="text-xs text-slate-500 mt-1">Nhận: {{ $order->recipient_name ?: $order->customer_name }} - {{ $order->recipient_phone ?: $order->customer_phone }}</p>
-                        </td>
-                        <td class="px-5 py-4 align-top">
-                            <p class="text-sm text-slate-700 dark:text-slate-200">{{ optional($order->ordered_at)->format('d/m/Y') ?? $order->created_at->format('d/m/Y') }}</p>
-                            <p class="text-xs text-slate-500">{{ optional($order->ordered_at)->format('H:i') ?? $order->created_at->format('H:i') }}</p>
-                        </td>
-                        <td class="px-5 py-4 text-sm font-bold text-slate-900 dark:text-white text-right align-top">{{ number_format($order->total_amount) }} ₫</td>
+                        <td class="px-5 py-5 align-middle border-b border-transparent">
+                            <div class="flex flex-col gap-1.5">
+                                <p class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[16px] text-slate-400">person</span> 
+                                    {{ $order->customer_name }}
+                                </p>
+                                <p class="text-xs font-medium text-slate-500 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[14px]">call</span> 
+                                    {{ $order->customer_phone }}
+                                </p>
 
-                        <td class="px-5 py-4 align-top">
-                            <p class="font-bold text-sm text-slate-900 dark:text-white uppercase">{{ $order->payment_method ?? 'COD' }}</p>
-                            @if(($order->payment_status ?? 'pending') === 'paid')
-                                <span class="inline-flex mt-1 text-[11px] px-2 py-0.5 rounded bg-green-100 text-green-700 font-bold">Đã thanh toán</span>
-                            @else
-                                <span class="inline-flex mt-1 text-[11px] px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-bold">Chưa thanh toán</span>
-                            @endif
+                            </div>
                         </td>
-                        <td class="px-5 py-4 align-top space-y-2">
-                            <span class="inline-flex text-xs px-2.5 py-1 rounded-lg font-semibold {{ $statusClass }}">
-                                {{ $statusLabels[$order->status] ?? $order->status }}
-                            </span>
-                            <span class="inline-flex text-xs px-2.5 py-1 rounded-lg font-semibold {{ $returnClass }}">
-                                {{ $returnStatusLabels[$order->return_status] ?? $order->return_status }}
-                            </span>
+                        <td class="px-5 py-5 align-middle border-b border-transparent">
+                            <div class="flex flex-col gap-1">
+                                <p class="text-[15px] font-bold text-emerald-600 dark:text-emerald-400">{{ number_format($order->total_amount) }} ₫</p>
+                                <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">{{ $order->items->sum('quantity') }} sản phẩm</p>
+                            </div>
                         </td>
-                        <td class="px-5 py-4 text-right align-top">
-                            <a href="{{ route('admin.orders.show', $order) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-semibold text-primary hover:bg-primary/10">
-                                Chi tiết
+                        <td class="px-5 py-5 align-middle border-b border-transparent whitespace-nowrap">
+                            <div class="flex flex-col items-start gap-2">
+                                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
+                                    {{ $order->payment_method ?? 'COD' }}
+                                </span>
+                                @if(($order->payment_status ?? 'pending') === 'paid')
+                                    <span class="flex items-center gap-1.5 text-[11px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 px-2 py-1 rounded">
+                                        <span class="material-symbols-outlined text-[14px]">check_circle</span> Đã thanh toán
+                                    </span>
+                                @else
+                                    <span class="flex items-center gap-1.5 text-[11px] text-amber-700 font-bold bg-amber-50 border border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20 px-2 py-1 rounded">
+                                        <span class="material-symbols-outlined text-[14px]">hourglass_empty</span> Chờ thanh toán
+                                    </span>
+                                @endif
+                            </div>
+                        </td>
+                        <td class="px-5 py-5 align-middle border-b border-transparent">
+                            <div class="flex flex-col items-start gap-2.5">
+                                <span class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg font-bold border {{ $statusClass }}">
+                                    @if(in_array($order->status, [\App\Models\Order::STATUS_DELIVERED, \App\Models\Order::STATUS_RECEIVED]))
+                                        <span class="material-symbols-outlined text-[16px]">done_all</span>
+                                    @elseif($order->status === \App\Models\Order::STATUS_CANCELLED)
+                                        <span class="material-symbols-outlined text-[16px]">cancel</span>
+                                    @elseif($order->status === \App\Models\Order::STATUS_SHIPPING)
+                                        <span class="material-symbols-outlined text-[16px]">local_shipping</span>
+                                    @elseif($order->status === \App\Models\Order::STATUS_PACKING)
+                                        <span class="material-symbols-outlined text-[16px]">inventory_2</span>
+                                    @else
+                                        <span class="material-symbols-outlined text-[16px]">pending_actions</span>
+                                    @endif
+                                    {{ $statusLabels[$order->status] ?? $order->status }}
+                                </span>
+                                
+                                @if($order->return_status && $order->return_status !== \App\Models\Order::RETURN_NONE)
+                                    <span class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider {{ $returnClass }}">
+                                        <span class="material-symbols-outlined text-[12px]">assignment_return</span>
+                                        {{ $returnStatusLabels[$order->return_status] ?? $order->return_status }}
+                                    </span>
+                                @endif
+                            </div>
+                        </td>
+                        <td class="px-5 py-5 align-middle border-b border-transparent text-right">
+                            <a href="{{ route('admin.orders.show', $order) }}" class="inline-flex items-center justify-center size-9 rounded-full bg-slate-50 text-slate-500 hover:text-[#f4c025] hover:bg-[#f4c025]/10 dark:bg-slate-800 transition-colors shadow-sm" title="Xem chi tiết">
+                                <span class="material-symbols-outlined text-[20px]">chevron_right</span>
                             </a>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-5 py-10 text-center">
-                            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Chưa có đơn hàng nào</p>
-                            <p class="text-xs text-slate-500 mt-1">Hãy seed dữ liệu hoặc tạo đơn hàng mới để bắt đầu.</p>
+                        <td colspan="6" class="px-5 py-16 text-center">
+                            <div class="inline-flex items-center justify-center size-16 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 mb-4">
+                                <span class="material-symbols-outlined text-3xl">receipt_long</span>
+                            </div>
+                            <p class="text-base font-bold text-slate-900 dark:text-white">Không có đơn hàng nào!</p>
+                            <p class="text-sm text-slate-500 mt-1">Chưa có dữ liệu hoặc không tìm thấy kết quả phù hợp với bộ lọc.</p>
                         </td>
                     </tr>
                     @endforelse

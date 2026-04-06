@@ -87,11 +87,45 @@
 
         {{-- Các Menu Khác --}}
         @can('order.view')
-            <a class="{{ request()->routeIs('admin.orders.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-                href="{{ route('admin.orders.index') }}">
-                <span class="material-symbols-outlined">shopping_cart</span>
-                <span>Đơn hàng</span>
-            </a>
+            <li class="mb-1 list-none">
+                <div id="btn-toggle-orders"
+                    class="px-3 py-2.5 flex items-center justify-between text-sm cursor-pointer transition-colors {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.returns.*') ? 'bg-primary/10 text-primary font-bold rounded-lg' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium rounded-lg' }}">
+                    <span class="flex items-center gap-3">
+                        <span class="material-symbols-outlined">shopping_cart</span>
+                        Quản lý đơn hàng
+                    </span>
+
+                    <svg id="icon-arrow-orders" xmlns="http://www.w3.org/2000/svg"
+                        class="w-4 h-4 transition-transform duration-200 {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.returns.*') ? 'rotate-180' : '' }}"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+
+                <ul id="menu-orders-sub"
+                    class="space-y-1 mt-1 list-none transition-all duration-300 {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.returns.*') ? '' : 'hidden' }}">
+
+                    <li>
+                        <a href="{{ route('admin.orders.index') }}"
+                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.orders.*') && !request()->routeIs('admin.returns.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                            <div
+                                class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.orders.*') && !request()->routeIs('admin.returns.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                            </div>
+                            Danh sách đơn hàng
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('admin.returns.index') }}"
+                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.returns.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                            <div
+                                class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.returns.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
+                            </div>
+                            Yêu cầu hoàn hàng
+                        </a>
+                    </li>
+                </ul>
+            </li>
         @endcan
 
         @can('customer.view')
@@ -237,6 +271,14 @@
         @endcan
 
         <script>
+            document.getElementById('btn-toggle-orders')?.addEventListener('click', function() {
+                const menu = document.getElementById('menu-orders-sub');
+                const arrow = document.getElementById('icon-arrow-orders');
+
+                menu.classList.toggle('hidden');
+                arrow.classList.toggle('rotate-180');
+            });
+
             document.getElementById('btn-toggle-wallet')?.addEventListener('click', function() {
                 const menu = document.getElementById('menu-wallet-sub');
                 const arrow = document.getElementById('icon-arrow-wallet');
