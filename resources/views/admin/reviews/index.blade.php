@@ -36,14 +36,14 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-white">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">ID</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">User</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">Product</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">Rating</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">Tag</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">Noi dung</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">Thoi gian</th>
-                            <th class="px-6 py-4 text-right text-xs font-black text-gray-500 uppercase">Action</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">ID</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">User</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Product</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Rating</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Tag</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Noi dung</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Thoi gian</th>
+                            <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase">Action</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-100">
@@ -56,7 +56,7 @@
                                 <td class="px-6 py-4 text-sm text-slate-700 font-semibold">
                                     {{ $review->product?->name ?? '-' }}
                                 </td>
-                                <td class="px-6 py-4 text-sm font-black text-slate-700 whitespace-nowrap">
+                                <td class="px-6 py-4 text-sm font-bold text-slate-700 whitespace-nowrap">
                                     {{ $review->rating }}/5
                                 </td>
                                 <td class="px-6 py-4 text-sm whitespace-nowrap">

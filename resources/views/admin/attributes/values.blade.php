@@ -111,10 +111,10 @@
                                     <th class="px-6 py-4 text-left w-10" scope="col">
                                         <input class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded cursor-pointer" type="checkbox"/>
                                     </th>
-                                    <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-wider" scope="col">Tên giá trị</th>
-                                    <th class="px-6 py-4 text-center text-xs font-black text-gray-500 uppercase tracking-wider" scope="col">Thứ tự</th>
-                                    <th class="px-6 py-4 text-center text-xs font-black text-gray-500 uppercase tracking-wider" scope="col">ID</th>
-                                    <th class="px-6 py-4 text-center text-xs font-black text-gray-500 uppercase tracking-wider" scope="col">Số SP đang dùng</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider" scope="col">Tên giá trị</th>
+                                    <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider" scope="col">Thứ tự</th>
+                                    <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider" scope="col">ID</th>
+                                    <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider" scope="col">Số SP đang dùng</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-100">

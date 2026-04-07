@@ -16,8 +16,6 @@
     .attr-btn-modal.disabled {
         opacity: 0.4;
         filter: grayscale(100%);
-        pointer-events: none;
-        cursor: not-allowed;
     }
 </style>
 
@@ -79,7 +77,7 @@
                                             <div class="flex items-center gap-2 mt-1">
                                                 <p class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider font-bold">{{ $variantName }}</p>
                                                 @if($item->product->type == 'variable')
-                                                    <button type="button" class="btn-change-variant text-primary text-[10px] font-black uppercase tracking-tighter hover:underline bg-primary/10 px-2 py-0.5 rounded transition-transform active:scale-95" 
+                                                    <button type="button" class="btn-change-variant text-primary text-[10px] font-bold uppercase tracking-tighter hover:underline bg-primary/10 px-2 py-0.5 rounded transition-transform active:scale-95" 
                                                             data-product-id="{{ $item->product_id }}" 
                                                             data-item-id="{{ $item->id }}"
                                                             data-current-variant-id="{{ $item->product_variant_id }}">
@@ -176,7 +174,7 @@
                 </div>
                 <div class="flex-grow">
                     <h4 id="modal-product-name" class="font-bold text-base text-[#181611] dark:text-white line-clamp-2"></h4>
-                    <p id="modal-price-display" class="text-red-500 font-black text-xl mt-1"></p>
+                    <p id="modal-price-display" class="text-red-500 font-bold text-xl mt-1"></p>
                     <p id="modal-stock-display" class="text-xs text-gray-500 mt-1"></p>
                 </div>
             </div>
@@ -400,9 +398,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.classList.add('active');
                 
                 selectedAttrs[groupName] = valId;
+                autoSelectMatchingModal(groupName);
                 updateModalUI();
             });
         });
+
+        function autoSelectMatchingModal(clickedGroupName) {
+            const selectedIdsArr = Object.values(selectedAttrs);
+            const currentMatch = variantsData.find(v => selectedIdsArr.every(id => v.attributes.includes(id)));
+
+            if (!currentMatch) {
+                const clickedValId = selectedAttrs[clickedGroupName];
+                const newMatch = variantsData.find(v => v.stock > 0 && v.attributes.includes(clickedValId)) 
+                              || variantsData.find(v => v.attributes.includes(clickedValId));
+                if (newMatch) {
+                    const groups = document.querySelectorAll('.modal-attr-group');
+                    groups.forEach(g => {
+                        const gName = g.getAttribute('data-name');
+                        if (gName !== clickedGroupName) {
+                            const btns = g.querySelectorAll('.attr-btn-modal');
+                            btns.forEach(b => {
+                                const bValId = parseInt(b.getAttribute('data-id'));
+                                if (newMatch.attributes.includes(bValId)) {
+                                    g.querySelectorAll('.attr-btn-modal').forEach(bb => bb.classList.remove('active'));
+                                    b.classList.add('active');
+                                    selectedAttrs[gName] = bValId;
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        }
 
         updateModalUI();
     }
@@ -434,6 +461,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalImg.src = match.image || '';
                 confirmBtn.disabled = match.stock === 0;
                 confirmBtn.setAttribute('data-variant-id', match.id);
+            } else {
+                modalPrice.innerText = 'Biến thể không tồn tại';
+                modalStock.innerText = '';
+                confirmBtn.disabled = true;
             }
         }
     }

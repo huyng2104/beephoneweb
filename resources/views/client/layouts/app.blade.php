@@ -97,6 +97,9 @@
     {{-- Chatbot --}}
     @include('client.layouts.chatbot')
 
+    {{-- Quick Add Modal --}}
+    @include('client.layouts.partials.quick-add-modal')
+
     @auth
     <script type="module">
         document.addEventListener('DOMContentLoaded', function () {

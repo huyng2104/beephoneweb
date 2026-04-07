@@ -16,7 +16,7 @@
                         <span class="material-symbols-outlined">arrow_back</span>
                     </a>
                     <div>
-                        <h2 class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Chi tiết giao dịch
+                        <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Chi tiết giao dịch
                         </h2>
                         <p class="text-slate-500 text-sm mt-1">Xem biến động số dư của người dùng</p>
                     </div>
@@ -259,11 +259,11 @@
                                     <td class="px-6 py-4 text-right whitespace-nowrap">
                                         @if ($tx->status === 'completed')
                                             @if ($tx->type === 'deposit' || $tx->type === 'refund')
-                                                <p class="text-base font-black text-green-600 dark:text-green-500">
+                                                <p class="text-base font-bold text-green-600 dark:text-green-500">
                                                     +{{ number_format($tx->amount) }}đ
                                                 </p>
                                             @else
-                                                <p class="text-base font-black text-red-600 dark:text-red-500">
+                                                <p class="text-base font-bold text-red-600 dark:text-red-500">
                                                     -{{ number_format($tx->amount) }}đ
                                                 </p>
                                             @endif

@@ -144,19 +144,19 @@
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 <!-- Step 1 -->
 <div class="md:col-span-1 bg-surface-container-high p-6 rounded-xl space-y-4">
-<span class="text-primary font-black text-4xl opacity-20">01</span>
+<span class="text-primary font-bold text-4xl opacity-20">01</span>
 <h3 class="font-bold text-lg">Liên Hệ Hotline</h3>
 <p class="text-sm text-on-surface-variant">Gọi ngay 1800-BEE-PHONE để thông báo tình trạng máy và nhận hướng dẫn sơ bộ.</p>
 </div>
 <!-- Step 2 -->
 <div class="md:col-span-1 bg-surface-container-low p-6 rounded-xl space-y-4 border border-primary/10">
-<span class="text-primary font-black text-4xl opacity-20">02</span>
+<span class="text-primary font-bold text-4xl opacity-20">02</span>
 <h3 class="font-bold text-lg">Đến Cửa Hàng</h3>
 <p class="text-sm text-on-surface-variant">Mang theo máy, hộp và đầy đủ phụ kiện đến chi nhánh Bee Phone gần nhất để giám định.</p>
 </div>
 <!-- Step 3 -->
 <div class="md:col-span-1 bg-primary-container p-6 rounded-xl space-y-4">
-<span class="text-on-primary-container font-black text-4xl opacity-20">03</span>
+<span class="text-on-primary-container font-bold text-4xl opacity-20">03</span>
 <h3 class="font-bold text-lg text-on-primary-container">Hoàn Tiền Vào Ví</h3>
 <p class="text-sm text-on-primary-container/80">Giá trị hoàn lại sẽ được cộng trực tiếp vào Ví Bee Pay trong vòng 24h sau khi xác nhận.</p>
 </div>

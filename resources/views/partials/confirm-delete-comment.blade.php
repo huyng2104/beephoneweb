@@ -15,7 +15,7 @@
                         <span class="material-symbols-outlined text-[22px]">delete</span>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <div id="delete-comment-confirm-title" class="text-base font-black text-white">
+                        <div id="delete-comment-confirm-title" class="text-base font-bold text-white">
                             Xóa comment?
                         </div>
                         <div class="mt-1 text-sm text-slate-300">
@@ -28,14 +28,14 @@
                             <button
                                 type="button"
                                 data-delete-comment-cancel
-                                class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-black text-slate-200 hover:border-primary/40 hover:text-primary transition"
+                                class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-bold text-slate-200 hover:border-primary/40 hover:text-primary transition"
                             >
                                 Hủy
                             </button>
                             <button
                                 type="button"
                                 data-delete-comment-confirm
-                                class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-black text-slate-900 hover:brightness-105 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                                class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-slate-900 hover:brightness-105 transition disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                                 <span class="material-symbols-outlined text-[18px] hidden" data-delete-comment-spinner>progress_activity</span>
                                 <span data-delete-comment-confirm-label>Xóa</span>

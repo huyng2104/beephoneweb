@@ -61,30 +61,30 @@
             <div id="general" class="tab-pane space-y-8 animate-fade-in">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div class="space-y-4">
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Tên website</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest">Tên website</label>
                         <input type="text" name="settings[site_name]" value="{{ $settings['site_name']->value ?? '' }}" class="w-full bg-slate-50 border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary px-5 py-4 text-slate-700 font-semibold transition-all">
                     </div>
                     <div class="space-y-4">
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Hotline hỗ trợ</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest">Hotline hỗ trợ</label>
                         <input type="text" name="settings[hotline]" value="{{ $settings['hotline']->value ?? '' }}" class="w-full bg-slate-50 border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary px-5 py-4 text-slate-700 font-semibold transition-all">
                     </div>
                     <div class="space-y-4">
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Email liên lạc</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest">Email liên lạc</label>
                         <input type="email" name="settings[email_contact]" value="{{ $settings['email_contact']->value ?? '' }}" class="w-full bg-slate-50 border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary px-5 py-4 text-slate-700 font-semibold transition-all">
                     </div>
                     <div class="space-y-4">
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Địa chỉ showroom</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest">Địa chỉ showroom</label>
                         <input type="text" name="settings[address]" value="{{ $settings['address']->value ?? '' }}" class="w-full bg-slate-50 border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary px-5 py-4 text-slate-700 font-semibold transition-all">
                     </div>
                     <div class="space-y-4">
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Logo Website</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest">Logo Website</label>
                         <div class="flex flex-col gap-4 items-start">
                             <img id="preview_logo" src="{{ isset($settings['site_logo']) && $settings['site_logo']->value ? asset($settings['site_logo']->value) : '' }}" class="h-16 w-auto object-contain border rounded-xl p-2 bg-slate-50 {{ isset($settings['site_logo']) && $settings['site_logo']->value ? '' : 'hidden' }}">
                             <input type="file" name="settings[site_logo]" id="input_logo" accept="image/*" onchange="previewSettingImage(this, 'preview_logo')" class="w-full bg-slate-50 border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary px-5 py-3 text-slate-700 font-semibold transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
                         </div>
                     </div>
                     <div class="space-y-4">
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Favicon</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest">Favicon</label>
                         <div class="flex flex-col gap-4 items-start">
                             <img id="preview_favicon" src="{{ isset($settings['site_favicon']) && $settings['site_favicon']->value ? asset($settings['site_favicon']->value) : '' }}" class="h-12 w-12 object-contain border rounded-xl p-2 bg-slate-50 {{ isset($settings['site_favicon']) && $settings['site_favicon']->value ? '' : 'hidden' }}">
                             <input type="file" name="settings[site_favicon]" id="input_favicon" accept="image/*" onchange="previewSettingImage(this, 'preview_favicon')" class="w-full bg-slate-50 border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary px-5 py-3 text-slate-700 font-semibold transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
@@ -109,11 +109,11 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-5 rounded-2xl border border-amber-100">
                         <div class="space-y-3">
-                            <label class="block text-[11px] font-black text-amber-600 uppercase tracking-widest pl-1">Thời gian dự kiến kết thúc</label>
+                            <label class="block text-[11px] font-bold text-amber-600 uppercase tracking-widest pl-1">Thời gian dự kiến kết thúc</label>
                             <input type="datetime-local" name="settings_json[maintenance_mode][end_at]" value="{{ $settings['maintenance_mode']->value['end_at'] ?? '' }}" class="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-700">
                         </div>
                         <div class="space-y-3">
-                            <label class="block text-[11px] font-black text-amber-600 uppercase tracking-widest pl-1">Thông báo bảo trì</label>
+                            <label class="block text-[11px] font-bold text-amber-600 uppercase tracking-widest pl-1">Thông báo bảo trì</label>
                             <input type="text" name="settings_json[maintenance_mode][message]" value="{{ $settings['maintenance_mode']->value['message'] ?? 'BeePhone đang nâng cấp hệ thống định kỳ.' }}" class="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-700" placeholder="VD: Đang nâng cấp hệ thống...">
                         </div>
                     </div>
@@ -124,7 +124,7 @@
             <div id="header" class="tab-pane hidden animate-fade-in">
                 <div class="space-y-6 mb-8 border-b border-slate-100 pb-6">
                     <div class="max-w-2xl space-y-4">
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Thanh thông báo (Top Bar)</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest">Thanh thông báo (Top Bar)</label>
                         <p class="text-[11px] text-slate-400 font-medium italic">Thêm nhiều thông báo — sẽ cuộn tự động ở đầu trang web.</p>
                         
                         <div id="topbar-items-container" class="space-y-2">
@@ -152,11 +152,11 @@
                                 </button>
                                 <div class="p-4 space-y-3 bg-white hidden">
                                     <div>
-                                        <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-1">URL</label>
+                                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1 mb-1">URL</label>
                                         <input type="text" id="wp_custom_url" value="http://" class="w-full bg-slate-50 border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-primary/20 focus:border-primary">
                                     </div>
                                     <div>
-                                        <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-1">Tên đường dẫn</label>
+                                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1 mb-1">Tên đường dẫn</label>
                                         <input type="text" id="wp_custom_title" placeholder="Ví dụ: Giới thiệu" class="w-full bg-slate-50 border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-primary/20 focus:border-primary">
                                     </div>
                                     <div class="text-right pt-2">
@@ -338,7 +338,7 @@
                 <!-- Copyright -->
                 <div class="max-w-2xl space-y-6 border-b border-slate-100 pb-6">
                     <div class="space-y-4">
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Dòng bản quyền (Copyright)</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest">Dòng bản quyền (Copyright)</label>
                         <input type="text" name="settings[footer_copyright]" value="{{ $settings['footer_copyright']->value ?? '' }}" class="w-full bg-slate-50 border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary px-5 py-4 text-slate-700 font-semibold transition-all">
                     </div>
                 </div>
@@ -425,14 +425,14 @@
                             <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-3xl flex items-center justify-center">
                                 <span class="material-symbols-outlined text-4xl">local_shipping</span>
                             </div>
-                            <span class="bg-blue-100 text-blue-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">Mặc định</span>
+                            <span class="bg-blue-100 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">Mặc định</span>
                         </div>
                         <div class="space-y-2">
-                            <h4 class="font-black text-slate-800 text-xl tracking-tight">Phí vận chuyển</h4>
+                            <h4 class="font-bold text-slate-800 text-xl tracking-tight">Phí vận chuyển</h4>
                             <p class="text-sm text-slate-400 font-medium">Chi phí khách hàng phải trả cho mỗi đơn hàng giao tận nơi.</p>
                         </div>
                         <div class="flex items-center gap-4 bg-slate-50 p-2 rounded-3xl border border-slate-100">
-                            <input type="number" name="settings[shipping_fee]" value="{{ $settings['shipping_fee']->value ?? 30000 }}" class="w-full bg-transparent border-none focus:ring-0 px-6 py-4 font-black text-2xl text-slate-800">
+                            <input type="number" name="settings[shipping_fee]" value="{{ $settings['shipping_fee']->value ?? 30000 }}" class="w-full bg-transparent border-none focus:ring-0 px-6 py-4 font-bold text-2xl text-slate-800">
                             <span class="pr-8 text-slate-400 font-bold uppercase text-sm">VNĐ</span>
                         </div>
                     </div>
@@ -442,14 +442,14 @@
                             <div class="w-16 h-16 bg-green-50 text-green-500 rounded-3xl flex items-center justify-center">
                                 <span class="material-symbols-outlined text-4xl">redeem</span>
                             </div>
-                            <span class="bg-green-100 text-green-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">Khuyến mãi</span>
+                            <span class="bg-green-100 text-green-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">Khuyến mãi</span>
                         </div>
                         <div class="space-y-2">
-                            <h4 class="font-black text-slate-800 text-xl tracking-tight">Miễn phí từ mức</h4>
+                            <h4 class="font-bold text-slate-800 text-xl tracking-tight">Miễn phí từ mức</h4>
                             <p class="text-sm text-slate-400 font-medium">Đơn hàng đạt giá trị này sẽ không tính phí vận chuyển.</p>
                         </div>
                         <div class="flex items-center gap-4 bg-slate-50 p-2 rounded-3xl border border-slate-100">
-                            <input type="number" name="settings[free_shipping_threshold]" value="{{ $settings['free_shipping_threshold']->value ?? 500000 }}" class="w-full bg-transparent border-none focus:ring-0 px-6 py-4 font-black text-2xl text-slate-800">
+                            <input type="number" name="settings[free_shipping_threshold]" value="{{ $settings['free_shipping_threshold']->value ?? 500000 }}" class="w-full bg-transparent border-none focus:ring-0 px-6 py-4 font-bold text-2xl text-slate-800">
                             <span class="pr-8 text-slate-400 font-bold uppercase text-sm">VNĐ</span>
                         </div>
                     </div>
@@ -613,11 +613,11 @@
         bodyDiv.innerHTML = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-1">Đường dẫn (URL)</label>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1 mb-1">Đường dẫn (URL)</label>
                     <input type="text" value="${item.url || ''}" data-field="url" class="menu-field w-full bg-white border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-primary/20 focus:border-primary transition-all text-slate-700">
                 </div>
                 <div>
-                    <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-1">Tên hiển thị</label>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1 mb-1">Tên hiển thị</label>
                     <input type="text" value="${item.title || ''}" data-field="title" class="menu-field w-full bg-white border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-primary/20 focus:border-primary transition-all text-slate-700">
                 </div>
             </div>
@@ -884,18 +884,18 @@
 
             card.innerHTML = `
                 <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cột ${ci + 1}</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cột ${ci + 1}</span>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-1">Tiêu đề</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1 mb-1">Tiêu đề</label>
                     <input type="text" value="${escapeHtml(col.title)}" data-col="${ci}" data-field="title" class="footer-col-field w-full bg-white border-slate-200 rounded-lg px-3 py-2 text-sm font-bold focus:ring-primary/20 focus:border-primary">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-1">Mô tả</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1 mb-1">Mô tả</label>
                     <textarea data-col="${ci}" data-field="description" rows="2" class="footer-col-field w-full bg-white border-slate-200 rounded-lg px-3 py-2 text-xs focus:ring-primary/20 focus:border-primary resize-none" placeholder="Mô tả ngắn (tuỳ chọn)">${escapeHtml(col.description || '')}</textarea>
                 </div>
                 <div class="space-y-2">
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Liên kết</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Liên kết</label>
                     <div class="space-y-2 footer-links-list" data-col="${ci}">
                         ${linksHtml}
                     </div>

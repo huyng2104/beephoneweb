@@ -397,14 +397,14 @@
                                     <span class="material-symbols-outlined text-[14px]">close</span>
                                 </button>
                             </div>
-                            <span class="font-black text-green-600">-{{ number_format($discount, 0, ',', '.') }}₫</span>
+                            <span class="font-bold text-green-600">-{{ number_format($discount, 0, ',', '.') }}₫</span>
                         </div>
                     @endif
 
                     <div class="flex justify-between items-end">
                         <span class="text-lg font-bold text-[#181611] dark:text-white">Tổng cộng</span>
                         <div class="text-right">
-                            <span class="text-3xl font-black text-red-500">{{ number_format($finalTotal, 0, ',', '.') }}₫</span>
+                            <span class="text-3xl font-bold text-red-500">{{ number_format($finalTotal, 0, ',', '.') }}₫</span>
                             <p class="text-[10px] text-gray-400 uppercase font-bold mt-1">Đã bao gồm VAT</p>
                         </div>
                     </div>

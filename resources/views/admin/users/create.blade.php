@@ -10,7 +10,7 @@
             <form action="{{ route('admin.users.store') }}" method="post" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-8">
-                    <h1 class="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Thêm người dùng
+                    <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Thêm người dùng
                         mới</h1>
                     <p class="text-slate-500 mt-1">Điền đầy đủ các thông tin bên dưới để tạo tài khoản truy cập hệ
                         thống.</p>

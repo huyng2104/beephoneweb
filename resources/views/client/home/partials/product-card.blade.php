@@ -4,6 +4,7 @@
     
     // Chỉ lấy biến thể đang active
     $activeVariants = $product->variants ? $product->variants->where('status', 'active') : collect();
+    $totalStock = $activeVariants->sum('stock');
 
     // Logic tìm giá chuẩn cho biến thể
     $finalPrice = $product->price ?? 0;
@@ -56,13 +57,16 @@
     <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" class="flex-1">
         <h3 class="font-bold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors text-gray-800 dark:text-gray-100" title="{{ $product->name }}">{{ $product->name }}</h3>
         
-        <div class="flex items-center gap-2 mb-4">
-            <div class="flex text-yellow-400">
-                @for($i=0; $i<5; $i++)
-                    <span class="material-symbols-outlined text-sm">{{ $i < 4 ? 'star' : 'star_half' }}</span>
-                @endfor
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <div class="flex text-yellow-400">
+                    @for($i=0; $i<5; $i++)
+                        <span class="material-symbols-outlined text-sm">{{ $i < 4 ? 'star' : 'star_half' }}</span>
+                    @endfor
+                </div>
+                <span class="text-[10px] text-gray-400 font-bold">(128)</span>
             </div>
-            <span class="text-[10px] text-gray-400 font-bold">(128)</span>
+            <span class="text-[10px] text-gray-500 font-bold">Kho: {{ $totalStock }}</span>
         </div>
     </a>
     
@@ -72,7 +76,7 @@
                 <span class="text-[10px] text-gray-400 font-bold leading-none mb-1 uppercase tracking-wider">Từ</span> 
             @endif
             <div class="flex items-center gap-2">
-                <span class="text-xl font-black text-red-500">{{ number_format($displayPrice, 0, ',', '.') }}₫</span>
+                <span class="text-xl font-bold text-red-500">{{ number_format($displayPrice, 0, ',', '.') }}₫</span>
                 @if($hasSale)
                     <span class="text-xs text-gray-400 line-through">{{ number_format($finalPrice, 0, ',', '.') }}₫</span>
                 @endif
@@ -80,10 +84,10 @@
         </div>
         
         @if($isVariable)
-            <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" 
-               class="bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-all shrink-0 shadow-sm" title="Chọn phiên bản">
-                <span class="material-symbols-outlined">tune</span>
-            </a>
+            <button type="button" class="btn-add-cart-quick-variable bg-black dark:bg-primary text-white dark:text-black w-10 h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-all shrink-0 shadow-md" 
+                    data-product-id="{{ $product->id }}" title="Chọn phiên bản">
+                <span class="material-symbols-outlined">add_shopping_cart</span>
+            </button>
         @else
             @php
                 $simpleVarId = $activeVariants->first()->id ?? '';

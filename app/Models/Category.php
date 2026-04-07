@@ -39,9 +39,10 @@ class Category extends Model
             ->withTimestamps();
     }
 
-    public function products(): HasMany
+    public function products(): BelongsToMany
     {
-        return $this->hasMany(Product::class);
+        return $this->belongsToMany(Product::class, 'product_categories', 'category_id', 'product_id')
+                    ->withTimestamps();
     }
 
     public function getActivitylogOptions(): LogOptions

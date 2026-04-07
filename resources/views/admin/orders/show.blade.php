@@ -51,7 +51,7 @@
                     <span class="material-symbols-outlined text-emerald-500 text-[20px] bg-emerald-50 dark:bg-emerald-900/30 p-1.5 rounded-lg">payments</span>
                     <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Tổng doanh thu</p>
                 </div>
-                <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400 group-hover:scale-105 origin-left transition-transform duration-300">{{ number_format($order->total_amount) }} <span class="text-base font-semibold">₫</span></p>
+                <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 group-hover:scale-105 origin-left transition-transform duration-300">{{ number_format($order->total_amount) }} <span class="text-base font-semibold">₫</span></p>
             </div>
         </div>
 
@@ -87,7 +87,7 @@
                     <span class="material-symbols-outlined text-purple-500 text-[20px] bg-purple-50 dark:bg-purple-900/30 p-1.5 rounded-lg">account_balance_wallet</span>
                     <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Tổng hoàn tiền</p>
                 </div>
-                <p class="text-xl font-black text-purple-600 dark:text-purple-400 group-hover:scale-105 origin-left transition-transform duration-300">{{ $order->refund_amount ? number_format($order->refund_amount) . ' ₫' : '0 ₫' }}</p>
+                <p class="text-xl font-bold text-purple-600 dark:text-purple-400 group-hover:scale-105 origin-left transition-transform duration-300">{{ $order->refund_amount ? number_format($order->refund_amount) . ' ₫' : '0 ₫' }}</p>
             </div>
         </div>
     </div>
@@ -389,8 +389,8 @@
                     </div>
                     @endif
                     <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-800">
-                        <span class="text-slate-900 dark:text-white font-black uppercase tracking-wider">Tổng thanh toán:</span>
-                        <span class="text-xl font-black text-primary">{{ number_format($order->total_amount) }} ₫</span>
+                        <span class="text-slate-900 dark:text-white font-bold uppercase tracking-wider">Tổng thanh toán:</span>
+                        <span class="text-xl font-bold text-primary">{{ number_format($order->total_amount) }} ₫</span>
                     </div>
                 </div>
             </div>

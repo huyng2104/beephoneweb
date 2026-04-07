@@ -7,7 +7,7 @@
 <main class="max-w-[1320px] mx-auto px-4 lg:px-10 py-10">
 
 <div class="mb-8 text-center max-w-3xl mx-auto">
-    <h1 class="text-4xl lg:text-5xl font-black mb-4">
+    <h1 class="text-4xl lg:text-5xl font-bold mb-4">
         Chúng tôi có thể giúp gì cho bạn?
     </h1>
     <p class="text-gray-500 text-lg">
@@ -63,7 +63,7 @@
 <div class="grid lg:grid-cols-10 gap-6">
 
     <div class="lg:col-span-6 bg-white rounded-2xl shadow-md border p-8">
-        <h3 class="text-[22px] font-black mb-4">Gửi yêu cầu hỗ trợ</h3>
+        <h3 class="text-[22px] font-bold mb-4">Gửi yêu cầu hỗ trợ</h3>
 
         @if(session('success'))
             <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">{{ session('success') }}</div>

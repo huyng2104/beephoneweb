@@ -12,7 +12,7 @@
             <div class="flex flex-wrap justify-between items-end gap-4 mb-8">
                 <div class="flex flex-col gap-2">
                     <div class="flex items-center gap-3">
-                        <h1 class="text-slate-900 dark:text-white text-3xl font-black tracking-tight">{{ $voucher->name }}
+                        <h1 class="text-slate-900 dark:text-white text-3xl font-bold tracking-tight">{{ $voucher->name }}
                         </h1>
                         @php
                             $color = match ($voucher->voucher_status) {
@@ -184,7 +184,7 @@
                                     <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">
                                         Số lượt đã dùng
                                     </p>
-                                    <p class="text-lg font-black text-slate-900">
+                                    <p class="text-lg font-bold text-slate-900">
                                         {{ number_format($voucher->used_count, 0, ',', '.') }} / {{ $voucher->usage_limit == null ? '∞' : number_format($voucher->usage_limit, 0, ',', '.') }}
                                     </p>
                                 </div>
@@ -196,12 +196,12 @@
                                     <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100">
                                         <p class="text-xs font-medium text-emerald-600 uppercase tracking-wider">Doanh
                                             thu mang lại</p>
-                                        <p class="text-xl font-black text-emerald-700 mt-1">452.500.000đ</p>
+                                        <p class="text-xl font-bold text-emerald-700 mt-1">452.500.000đ</p>
                                     </div>
                                     <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
                                         <p class="text-xs font-medium text-blue-600 uppercase tracking-wider">Tổng tiền
                                             đã giảm</p>
-                                        <p class="text-xl font-black text-blue-700 mt-1">45.250.000đ</p>
+                                        <p class="text-xl font-bold text-blue-700 mt-1">45.250.000đ</p>
                                     </div>
                                 </div> --}}
                             </div>

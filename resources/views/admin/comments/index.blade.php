@@ -35,14 +35,14 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-white">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">ID</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">Loai</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">User</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">Product</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">Anh</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">Noi dung</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase">Thoi gian</th>
-                            <th class="px-6 py-4 text-right text-xs font-black text-gray-500 uppercase">Action</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">ID</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Loai</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">User</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Product</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Anh</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Noi dung</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Thoi gian</th>
+                            <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase">Action</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-100">
@@ -69,7 +69,7 @@
                                     <div class="flex items-center gap-2">
                                         <span>{{ $comment->user?->name ?? $comment->guest_name ?? 'Guest' }}</span>
                                         @if($comment->user && in_array($comment->user->role?->name, ['admin', 'staff'], true))
-                                            <span class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-[11px] font-black text-yellow-800 border border-yellow-200">
+                                            <span class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-[11px] font-bold text-yellow-800 border border-yellow-200">
                                                 Admin
                                             </span>
                                         @endif

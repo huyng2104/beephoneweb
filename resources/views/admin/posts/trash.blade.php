@@ -119,18 +119,18 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-surface-container-low border-b border-outline-variant">
-                                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-secondary">
+                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-secondary">
                                         Hình ảnh</th>
-                                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-secondary">
+                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-secondary">
                                         Tiêu đề bài viết</th>
-                                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-secondary">
+                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-secondary">
                                         Danh mục</th>
-                                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-secondary">
+                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-secondary">
                                         Ngày xóa</th>
-                                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-secondary">
+                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-secondary">
                                         Tác giả</th>
                                     <th
-                                        class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-secondary text-right">
+                                        class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-secondary text-right">
                                         Thao tác</th>
                                 </tr>
                             </thead>
@@ -160,7 +160,7 @@
 
                                                 @if ($post->category)
                                                     <span
-                                                        class="px-2.5 py-1 rounded-full bg-primary-container text-on-primary-container text-[10px] font-black uppercase">
+                                                        class="px-2.5 py-1 rounded-full bg-primary-container text-on-primary-container text-[10px] font-bold uppercase">
                                                         {{ $post->category->name }}
                                                     </span>
                                                 @endif

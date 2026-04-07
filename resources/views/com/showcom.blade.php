@@ -48,7 +48,7 @@
                                         <span class="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200">{{ $product->status ?? 'Khong ro' }}</span>
                                     @endif
                                 </div>
-                                <h1 class="text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">{{ $product->name }}</h1>
+                                <h1 class="text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl">{{ $product->name }}</h1>
                             </div>
                         </div>
                         <div class="flex flex-wrap items-center gap-3">
@@ -67,15 +67,15 @@
                 <div class="grid gap-4 border-b border-white/10 bg-black/10 px-6 py-5 text-sm text-slate-300 sm:grid-cols-3 sm:px-8">
                     <div class="rounded-xl border border-white/10 bg-black/10 px-4 py-3 shadow-sm">
                         <div class="text-xs font-bold uppercase tracking-wide text-slate-400">So comment</div>
-                        <div class="mt-1 text-2xl font-black text-white">{{ $comments->count() }}</div>
+                        <div class="mt-1 text-2xl font-bold text-white">{{ $comments->count() }}</div>
                     </div>
                     <div class="rounded-xl border border-white/10 bg-black/10 px-4 py-3 shadow-sm">
                         <div class="text-xs font-bold uppercase tracking-wide text-slate-400">Danh gia</div>
-                        <div class="mt-1 text-2xl font-black text-white">{{ number_format($comments->whereNotNull('rating')->avg('rating') ?? 0, 1) }}</div>
+                        <div class="mt-1 text-2xl font-bold text-white">{{ number_format($comments->whereNotNull('rating')->avg('rating') ?? 0, 1) }}</div>
                     </div>
                     <div class="rounded-xl border border-white/10 bg-black/10 px-4 py-3 shadow-sm">
                         <div class="text-xs font-bold uppercase tracking-wide text-slate-400">Tra loi</div>
-                        <div class="mt-1 text-2xl font-black text-white">{{ $comments->sum(fn($comment) => $comment->children->count()) }}</div>
+                        <div class="mt-1 text-2xl font-bold text-white">{{ $comments->sum(fn($comment) => $comment->children->count()) }}</div>
                     </div>
                 </div>
             </div>
@@ -84,7 +84,7 @@
                 <div class="grid gap-8 px-6 py-6 lg:grid-cols-[260px_minmax(0,1fr)_1px]">
                     <div class="flex flex-col justify-center">
                         <div class="flex items-end gap-2">
-                            <span class="text-6xl font-black leading-none">{{ number_format($averageRating, 1) }}</span>
+                            <span class="text-6xl font-bold leading-none">{{ number_format($averageRating, 1) }}</span>
                             <span class="pb-2 text-3xl font-bold text-slate-300">/5</span>
                         </div>
                          <div class="mt-4 flex items-center gap-0.5 text-primary">
@@ -93,7 +93,7 @@
                              @endfor
                          </div>
                          <p class="mt-2 text-lg font-medium text-slate-200">{{ $totalRatings }} luot danh gia</p>
-                        <button id="open-review-modal" type="button" class="mt-5 inline-flex h-12 w-44 items-center justify-center rounded-xl bg-primary px-6 text-base font-black text-slate-900 shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary/60">
+                        <button id="open-review-modal" type="button" class="mt-5 inline-flex h-12 w-44 items-center justify-center rounded-xl bg-primary px-6 text-base font-bold text-slate-900 shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary/60">
                             Viết đánh giá
                         </button>
                     </div>
@@ -125,7 +125,7 @@
 
                 <div id="review-modal-panel" class="relative w-full max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-[#141a1e] shadow-[0_20px_60px_-40px_rgba(0,0,0,0.9)] opacity-0 translate-y-3 scale-95 transition duration-200 ease-out">
                     <div class="flex items-center justify-between border-b border-white/10 px-6 py-4">
-                        <h3 class="text-lg font-black text-white">Danh gia & nhan xet</h3>
+                        <h3 class="text-lg font-bold text-white">Danh gia & nhan xet</h3>
                         <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-white/20 hover:bg-white/10" data-review-close>
                             <span class="material-symbols-outlined">close</span>
                         </button>
@@ -143,7 +143,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <div class="text-xs font-bold uppercase tracking-wide text-slate-400">San pham</div>
-                                    <div class="mt-1 line-clamp-2 text-base font-black text-white">{{ $product->name }}</div>
+                                    <div class="mt-1 line-clamp-2 text-base font-bold text-white">{{ $product->name }}</div>
                                 </div>
                             </div>
 
@@ -195,7 +195,7 @@
                                     </div>
                                 </div>
 
-                                <button type="submit" class="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-primary px-6 py-4 text-sm font-black text-slate-900 shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary/60">
+                                <button type="submit" class="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-primary px-6 py-4 text-sm font-bold text-slate-900 shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary/60">
                                     Gui danh gia
                                 </button>
                             </form>
@@ -208,7 +208,7 @@
                 <div class="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#141a1e] shadow-[0_16px_45px_-30px_rgba(0,0,0,0.75)]">
                     <div class="border-b border-white/10 px-6 py-4 sm:px-8">
                         <div class="flex flex-wrap items-center justify-between gap-3">
-                            <h2 class="flex items-center gap-2 text-xl font-black text-white">
+                            <h2 class="flex items-center gap-2 text-xl font-bold text-white">
                                 <span class="material-symbols-outlined text-primary">chat</span>
                                 Danh sach comment
                             </h2>

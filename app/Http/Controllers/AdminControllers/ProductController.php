@@ -153,7 +153,7 @@ class ProductController extends Controller
                 $thumbnailPath = $request->file('thumbnail')->store('products', 'public');
             }
 
-            $sku = $request->sku ?: strtoupper(Str::slug($request->name, ''));
+            $sku = $request->sku ?: strtoupper(Str::random(12));
 
             // Lưu Sản phẩm chính
             $product = Product::create([
@@ -213,7 +213,7 @@ class ProductController extends Controller
                     }
 
                     $variant = $product->variants()->create([
-                        'sku' => !empty($varData['sku']) ? $varData['sku'] : ($sku . '-' . strtoupper(Str::random(4))),
+                        'sku' => !empty($varData['sku']) ? $varData['sku'] : strtoupper(Str::random(12)),
                         'price' => $varData['price'] ?? 0,
                         'sale_price' => $varData['sale_price'] ?? null,
                         'stock' => $varData['stock'] ?? 0,
@@ -418,7 +418,7 @@ class ProductController extends Controller
                 } else {
                     // Nếu chưa có biến thể nào thì tạo mới
                     $firstVariant = $product->variants()->create([
-                        'sku' => $request->sku ?? ($product->slug . '-' . Str::random(4)),
+                        'sku' => $request->sku ?: strtoupper(Str::random(12)),
                         'price' => $request->price ?? 0,
                         'sale_price' => $request->sale_price ?? null,
                         'stock' => $request->stock ?? 0,
@@ -503,7 +503,7 @@ class ProductController extends Controller
                         }
 
                         $newVariant = $product->variants()->create([
-                            'sku' => $varData['sku'] ?? ($request->sku ?? $product->slug) . '-' . Str::random(5),
+                            'sku' => !empty($varData['sku']) ? $varData['sku'] : strtoupper(Str::random(12)),
                             'price' => $varData['price'] ?? 0,
                             'sale_price' => $varData['sale_price'] ?? null,
                             'stock' => $varData['stock'] ?? 0,

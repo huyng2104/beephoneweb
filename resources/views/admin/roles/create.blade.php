@@ -7,7 +7,7 @@
 
     <div class="py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h2 class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary text-3xl">security</span>
                 Thêm vai trò mới
             </h2>

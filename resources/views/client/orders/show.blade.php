@@ -170,7 +170,7 @@
                 <h2 class="text-lg font-bold uppercase tracking-tight text-[#181611] dark:text-white flex items-center gap-2">
                     <span class="material-symbols-outlined text-[#f4c025]">inventory_2</span> Sản phẩm đã mua
                 </h2>
-                <span class="bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 px-3 py-1 rounded-full text-xs font-black text-[#181611] dark:text-[#f4c025]">
+                <span class="bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 px-3 py-1 rounded-full text-xs font-bold text-[#181611] dark:text-[#f4c025]">
                     {{ $order->items->count() }} MẶT HÀNG
                 </span>
             </div>

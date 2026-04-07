@@ -36,9 +36,9 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-red-50/50 border-b border-red-100">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase">Tên giá trị đã xóa</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase">Ngày xóa</th>
-                            <th class="px-6 py-4 text-right text-xs font-black text-gray-700 uppercase">Thao tác</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase">Tên giá trị đã xóa</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase">Ngày xóa</th>
+                            <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">

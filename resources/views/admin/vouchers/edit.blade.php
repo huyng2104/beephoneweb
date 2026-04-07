@@ -4,7 +4,7 @@
         <div class="flex flex-wrap justify-between items-end gap-4 mb-0">
             <div class="flex flex-col gap-2">
                 <div class="flex items-center gap-3">
-                    <h1 class="text-slate-900 dark:text-white text-3xl font-black tracking-tight">{{ $voucher->name }}
+                    <h1 class="text-slate-900 dark:text-white text-3xl font-bold tracking-tight">{{ $voucher->name }}
                     </h1>
                     @php
                         $color = match ($voucher->voucher_status) {

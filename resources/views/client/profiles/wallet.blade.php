@@ -315,11 +315,11 @@
                                     <td class="px-6 py-4 text-right whitespace-nowrap">
                                         @if ($tx->status === 'completed')
                                             @if ($tx->type === 'deposit' || $tx->type === 'refund')
-                                                <p class="text-base font-black text-green-600 dark:text-green-500">
+                                                <p class="text-base font-bold text-green-600 dark:text-green-500">
                                                     +{{ number_format($tx->amount) }}đ
                                                 </p>
                                             @else
-                                                <p class="text-base font-black text-red-600 dark:text-red-500">
+                                                <p class="text-base font-bold text-red-600 dark:text-red-500">
                                                     -{{ number_format($tx->amount) }}đ
                                                 </p>
                                             @endif

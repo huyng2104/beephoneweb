@@ -131,7 +131,7 @@
 <!-- Section 1 -->
 <section class="bg-surface-container-low p-8 rounded-xl">
 <div class="flex items-start gap-6">
-<span class="text-4xl font-black text-primary/20 select-none">01</span>
+<span class="text-4xl font-bold text-primary/20 select-none">01</span>
 <div>
 <h2 class="text-2xl font-bold text-on-surface mb-4">Quy định chung</h2>
 <div class="space-y-4 text-on-surface-variant leading-relaxed">

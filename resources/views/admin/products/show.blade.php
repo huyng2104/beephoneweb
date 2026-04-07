@@ -14,7 +14,7 @@
                     <span class="material-symbols-outlined text-xs">chevron_right</span>
                     <span class="text-slate-900 font-medium">Chi tiết sản phẩm</span>
                 </div>
-                <h1 class="text-3xl font-black tracking-tight text-slate-900">Chi tiết: {{ $product->name }}</h1>
+                <h1 class="text-3xl font-bold tracking-tight text-slate-900">Chi tiết: {{ $product->name }}</h1>
             </div>
             <div class="flex items-center gap-3">
                 <a href="{{ route('client.product.detail', $product->id) }}" target="_blank" class="px-5 py-2.5 rounded-lg border border-slate-300 font-bold text-sm bg-white hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm text-slate-700">
@@ -94,7 +94,7 @@
                 @if($product->type == 'variable')
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                         <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                            <h4 class="font-black text-sm uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                            <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700 flex items-center gap-2">
                                  <span class="material-symbols-outlined text-primary">inventory_2</span>
                                  Cài đặt phiên bản
                             </h4>
@@ -114,14 +114,14 @@
                                                     @endforeach
                                                 </strong>
                                                 @if($variant->status == 'inactive')
-                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-600 text-[10px] font-black uppercase rounded-full border border-red-200">
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-600 text-[10px] font-bold uppercase rounded-full border border-red-200">
                                                         <span class="material-symbols-outlined text-[12px]">visibility_off</span> Ẩn
                                                     </span>
                                                 @endif
                                             </div>
                                             <div class="flex items-center gap-4">
                                                 <div class="text-right">
-                                                    <span class="text-xs font-black text-red-600 block">{{ number_format($variant->sale_price ?: $variant->price, 0, ',', '.') }}₫</span>
+                                                    <span class="text-xs font-bold text-red-600 block">{{ number_format($variant->sale_price ?: $variant->price, 0, ',', '.') }}₫</span>
                                                     <span class="text-[10px] font-bold text-slate-400 capitalize">Tồn: {{ $variant->stock }}</span>
                                                 </div>
                                                 <span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-all">expand_more</span>
@@ -145,13 +145,13 @@
                                             {{-- Row 2: SKU + Stock --}}
                                             <div class="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 px-1">Mã SP (SKU)</label>
+                                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 px-1">Mã SP (SKU)</label>
                                                     <div class="p-2.5 bg-slate-50 rounded-lg text-sm font-bold text-slate-800 border border-slate-100 italic-none">
                                                         {{ $variant->sku }}
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 px-1">Tồn kho</label>
+                                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 px-1">Tồn kho</label>
                                                     <div class="p-2.5 bg-slate-50 rounded-lg text-sm font-bold text-slate-800 border border-slate-100">
                                                         {{ $variant->stock }}
                                                     </div>
@@ -161,13 +161,13 @@
                                             {{-- Row 3: Price + Sale --}}
                                             <div class="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 px-1">Giá thường (₫)</label>
+                                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 px-1">Giá thường (₫)</label>
                                                     <div class="p-2.5 bg-slate-50 rounded-lg text-sm font-bold text-slate-500 {{ $variant->sale_price ? 'line-through' : '' }} border border-slate-100">
                                                         {{ number_format($variant->price, 0, ',', '.') }}₫
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 px-1">Giá KM (₫)</label>
+                                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 px-1">Giá KM (₫)</label>
                                                     <div class="p-2.5 bg-slate-50 rounded-lg text-sm font-bold text-red-600 border border-slate-100">
                                                         {{ $variant->sale_price ? number_format((int)$variant->sale_price, 0, ',', '.') . '₫' : 'Không có' }}
                                                     </div>
@@ -176,14 +176,14 @@
 
                                             {{-- Row 4: Specs --}}
                                             <div class="border-t border-slate-100 pt-4">
-                                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3 px-1">
+                                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">
                                                     <span class="material-symbols-outlined text-sm align-middle mr-1">memory</span> Thông số kỹ thuật
                                                 </label>
                                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                     @forelse($variant->specifications as $spec)
                                                         <div class="flex items-center gap-2 p-2 bg-slate-50/50 rounded-md border border-slate-100">
                                                             <span class="text-[11px] font-bold text-slate-500 w-1/3 border-r border-slate-200 pr-2">{{ $spec->spec_key }}</span>
-                                                            <span class="text-[11px] font-black text-slate-800 flex-1 pl-1">{{ $spec->spec_value }}</span>
+                                                            <span class="text-[11px] font-bold text-slate-800 flex-1 pl-1">{{ $spec->spec_value }}</span>
                                                         </div>
                                                     @empty
                                                         <div class="col-span-2 text-[11px] text-slate-300 italic py-2">Chưa cấu hình thông số kĩ thuật.</div>
@@ -203,7 +203,7 @@
                     {{-- Card 1: Cấu hình chung --}}
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                         <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                            <h4 class="font-black text-sm uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                            <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700 flex items-center gap-2">
                                 <span class="material-symbols-outlined text-primary">settings_applications</span>
                                 Cấu hình chung
                             </h4>
@@ -211,28 +211,28 @@
                         <div class="p-6 space-y-6">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 px-1">Mã SP (SKU)</label>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Mã SP (SKU)</label>
                                     <div class="p-3 bg-slate-50 rounded-xl text-sm font-bold text-slate-800 border border-slate-100 flex items-center gap-2">
                                         <span class="material-symbols-outlined text-slate-400 text-lg">barcode</span>
                                         {{ $mainVariant->sku }}
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 px-1">Tồn kho</label>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Tồn kho</label>
                                     <div class="p-3 bg-slate-50 rounded-xl text-sm font-bold text-slate-800 border border-slate-100 flex items-center gap-2">
                                         <span class="material-symbols-outlined text-slate-400 text-lg">inventory_2</span>
                                         {{ $mainVariant->stock }} sản phẩm
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 px-1">Giá bán thường</label>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Giá bán thường</label>
                                     <div class="p-3 bg-slate-50 rounded-xl text-sm font-bold text-slate-500 {{ $mainVariant->sale_price ? 'line-through' : '' }} border border-slate-100 flex items-center gap-2">
                                         <span class="material-symbols-outlined text-slate-400 text-lg">payments</span>
                                         {{ number_format($mainVariant->price, 0, ',', '.') }}₫
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 px-1">Giá khuyến mãi</label>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Giá khuyến mãi</label>
                                     <div class="p-3 bg-rose-50 rounded-xl text-sm font-bold text-red-600 border border-rose-100 flex items-center gap-2">
                                         <span class="material-symbols-outlined text-rose-500 text-lg">local_offer</span>
                                         {{ $mainVariant->sale_price ? number_format((int)$mainVariant->sale_price, 0, ',', '.') . '₫' : 'Chưa thiết lập' }}
@@ -245,7 +245,7 @@
                     {{-- Card 2: Thông số kỹ thuật --}}
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                         <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                            <h4 class="font-black text-sm uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                            <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700 flex items-center gap-2">
                                 <span class="material-symbols-outlined text-primary">analytics</span>
                                 Thông số kỹ thuật
                             </h4>
@@ -255,7 +255,7 @@
                                 @forelse($mainVariant->specifications as $spec)
                                     <div class="flex items-center gap-4 p-3 bg-slate-50/30 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
                                         <div class="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-tight">{{ $spec->spec_key }}</div>
-                                        <div class="flex-1 text-sm font-black text-slate-800">{{ $spec->spec_value }}</div>
+                                        <div class="flex-1 text-sm font-bold text-slate-800">{{ $spec->spec_value }}</div>
                                     </div>
                                 @empty
                                     <div class="py-8 text-center text-slate-300 italic font-bold">Chưa có thông số kỹ thuật nào được nhập.</div>
@@ -273,7 +273,7 @@
                 {{-- Card: Publishing Status --}}
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                        <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Đăng</h4>
+                        <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Đăng</h4>
                     </div>
                     <div class="p-5 space-y-4">
                         <div class="flex items-center justify-between text-sm">
@@ -294,7 +294,7 @@
                 {{-- Card: Categories --}}
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                        <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Danh mục</h4>
+                        <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Danh mục</h4>
                     </div>
                     <div class="p-5">
                         <div class="flex flex-wrap gap-2">
@@ -312,7 +312,7 @@
                 {{-- Card: Brand --}}
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                        <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Thương hiệu</h4>
+                        <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Thương hiệu</h4>
                     </div>
                     <div class="p-5">
                         <div class="p-2.5 bg-slate-50 rounded-lg text-sm font-bold text-slate-700 border border-slate-100">
@@ -324,7 +324,7 @@
                 {{-- Card: Thumbnail --}}
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                        <h4 class="font-black text-sm uppercase text-slate-700">Ảnh đại diện</h4>
+                        <h4 class="font-bold text-sm uppercase text-slate-700">Ảnh đại diện</h4>
                     </div>
                     <div class="p-5">
                         <div class="rounded-xl overflow-hidden border border-slate-200 shadow-inner group relative aspect-square bg-slate-50 flex items-center justify-center p-2">
@@ -340,7 +340,7 @@
                 {{-- Album hình ảnh --}}
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                        <h4 class="font-black text-sm uppercase text-slate-700">Album hình ảnh</h4>
+                        <h4 class="font-bold text-sm uppercase text-slate-700">Album hình ảnh</h4>
                     </div>
                     <div class="p-5">
                         @if($product->images->count() > 0)
@@ -358,7 +358,7 @@
                 </div>
 
                 <div class="pt-4">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Slug sản phẩm</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Slug sản phẩm</p>
                     <code class="block p-3 bg-slate-100 rounded-lg text-[11px] font-mono text-slate-500 break-all border border-slate-200">{{ $product->slug }}</code>
                 </div>
 

@@ -87,7 +87,7 @@
                                         Đang xuất bản
                                     </span>
                                 </div>
-                                <h1 class="text-3xl lg:text-5xl font-black text-slate-900 dark:text-white leading-tight">
+                                <h1 class="text-3xl lg:text-5xl font-bold text-slate-900 dark:text-white leading-tight">
                                     {{ $post->title }}</h1>
                                 <div
                                     class="flex flex-wrap items-center gap-6 py-6 border-y border-slate-100 dark:border-slate-800">

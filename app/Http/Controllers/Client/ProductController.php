@@ -130,6 +130,12 @@ class ProductController extends Controller
             });
         }
 
+        if ($request->has('categories') && is_array($request->categories)) {
+            $query->whereHas('categories', function ($q) use ($request) {
+                $q->whereIn('category_id', $request->categories);
+            });
+        }
+
         // 3. Lọc theo Nổi bật
         if ($request->has('featured') && $request->featured == 1) {
             $query->where('is_featured', true);
@@ -157,6 +163,19 @@ class ProductController extends Controller
                      else { $variantQ->whereBetween($variantPriceColumn, [$minPrice, $maxPrice]); }
                 });
             });
+        }
+
+        // 5.5 LỌC THEO TÌNH TRẠNG KHO
+        if ($request->has('stock_status') && in_array($request->stock_status, ['in-stock', 'out-of-stock'])) {
+            if ($request->stock_status == 'in-stock') {
+                $query->whereHas('variants', function($q) {
+                    $q->where('status', 'active')->where('stock', '>', 0);
+                });
+            } else {
+                $query->whereDoesntHave('variants', function($q) {
+                    $q->where('status', 'active')->where('stock', '>', 0);
+                });
+            }
         }
 
         // 6. Sắp xếp (Sorting)
@@ -187,11 +206,13 @@ class ProductController extends Controller
 
         // 8. Lấy danh sách Filters
         $brands = \App\Models\Brand::where('is_active', 1)->get();
+        $categories = \App\Models\Category::where('is_active', 1)->get();
+        
         $currentCategory = null;
         if($request->has('category')){
              $currentCategory = \App\Models\Category::where('id', $request->category)->orWhere('slug', $request->category)->first();
         }
 
-        return view('client.products-list', compact('products', 'brands', 'currentCategory', 'sort'));
+        return view('client.products-list', compact('products', 'brands', 'categories', 'currentCategory', 'sort'));
     }
 }

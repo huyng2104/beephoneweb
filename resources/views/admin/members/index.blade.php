@@ -11,7 +11,7 @@
             <!-- Breadcrumbs & Actions -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Quản lý thành viên</h2>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Quản lý thành viên</h2>
                     <p class="text-slate-500 text-sm mt-1">Xem và quản lý tất cả tài khoản thành viên trên hệ thống
                     </p>
                 </div>
@@ -27,22 +27,22 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng người dùng</p>
-                    <p class="text-2xl font-black mt-1">{{ number_format($totalUsers) }}</p>
+                    <p class="text-2xl font-bold mt-1">{{ number_format($totalUsers) }}</p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Mới (7 ngày qua)</p>
-                    <p class="text-2xl font-black mt-1 text-blue-500">+{{ number_format($newUsers) }}</p>
+                    <p class="text-2xl font-bold mt-1 text-blue-500">+{{ number_format($newUsers) }}</p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Đang hoạt động</p>
-                    <p class="text-2xl font-black mt-1 text-green-500">{{ number_format($activeUsers) }}</p>
+                    <p class="text-2xl font-bold mt-1 text-green-500">{{ number_format($activeUsers) }}</p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Bị khóa</p>
-                    <p class="text-2xl font-black mt-1 text-red-500">{{ number_format($bannedUsers) }}</p>
+                    <p class="text-2xl font-bold mt-1 text-red-500">{{ number_format($bannedUsers) }}</p>
                 </div>
             </div>
             <!-- Filters & Table -->

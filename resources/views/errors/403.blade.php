@@ -62,7 +62,7 @@
             </div>
             <!-- Error Code & Message -->
             <div class="space-y-4">
-                <h1 class="text-primary text-8xl font-black tracking-tighter">403</h1>
+                <h1 class="text-primary text-8xl font-bold tracking-tighter">403</h1>
                 <h2 class="text-slate-900 dark:text-slate-100 text-3xl md:text-4xl font-bold leading-tight">Truy cập bị
                     từ chối</h2>
                 <p class="text-slate-600 dark:text-slate-400 text-lg max-w-md mx-auto">

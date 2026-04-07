@@ -23,28 +23,28 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng tiền chờ duyệt</p>
-                    <p class="text-2xl font-black mt-1 text-orange-500">
+                    <p class="text-2xl font-bold mt-1 text-orange-500">
                         {{ number_format($totalPendingAmount ?? 0) }}đ
                     </p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Đơn chờ xử lý</p>
-                    <p class="text-2xl font-black mt-1 text-slate-900 dark:text-slate-100">
+                    <p class="text-2xl font-bold mt-1 text-slate-900 dark:text-slate-100">
                         {{ number_format($pendingCount ?? 0) }}
                     </p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng tiền đã nhận</p>
-                    <p class="text-2xl font-black mt-1 text-green-500">
+                    <p class="text-2xl font-bold mt-1 text-green-500">
                         {{ number_format($totalCompletedAmount ?? 0) }}đ
                     </p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Đơn bị từ chối</p>
-                    <p class="text-2xl font-black mt-1 text-red-500">
+                    <p class="text-2xl font-bold mt-1 text-red-500">
                         {{ number_format($rejectedCount ?? 0) }}
                     </p>
                 </div>
@@ -134,7 +134,7 @@
                                     </td>
 
                                     <td class="px-6 py-4">
-                                        <p class="text-sm font-black text-slate-900 dark:text-slate-100">
+                                        <p class="text-sm font-bold text-slate-900 dark:text-slate-100">
                                             {{ number_format($withdrawal->amount) }}đ
                                         </p>
                                     </td>
@@ -288,7 +288,7 @@
 
                             <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">Số tiền yêu cầu rút
                             </p>
-                            <p class="text-4xl font-black text-slate-900 dark:text-slate-100">
+                            <p class="text-4xl font-bold text-slate-900 dark:text-slate-100">
                                 {{ number_format($withdrawal->amount) }}₫</p>
                             <p class="text-xs text-slate-500 font-medium mt-2">Tạo lúc:
                                 {{ $withdrawal->created_at->format('d/m/Y H:i') }}</p>

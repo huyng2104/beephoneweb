@@ -30,7 +30,7 @@
             </div>
             <div class="min-w-0">
                 <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tổng doanh thu</p>
-                <p class="text-lg font-black text-emerald-600 mt-0.5 truncate">{{ number_format($stats['total_revenue'], 0, ',', '.') }}₫</p>
+                <p class="text-lg font-bold text-emerald-600 mt-0.5 truncate">{{ number_format($stats['total_revenue'], 0, ',', '.') }}₫</p>
                 <p class="text-[11px] text-slate-400 mt-0.5">Đơn đã hoàn thành</p>
             </div>
         </a>
@@ -43,7 +43,7 @@
             </div>
             <div class="min-w-0">
                 <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Đơn hàng mới</p>
-                <p class="text-2xl font-black text-amber-500 mt-0.5">{{ $stats['new_orders'] }}</p>
+                <p class="text-2xl font-bold text-amber-500 mt-0.5">{{ $stats['new_orders'] }}</p>
                 <p class="text-[11px] text-slate-400 mt-0.5">Chờ xử lý</p>
             </div>
         </a>
@@ -56,7 +56,7 @@
             </div>
             <div class="min-w-0">
                 <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Đang giao hàng</p>
-                <p class="text-2xl font-black text-indigo-500 mt-0.5">{{ $stats['shipping'] }}</p>
+                <p class="text-2xl font-bold text-indigo-500 mt-0.5">{{ $stats['shipping'] }}</p>
                 <p class="text-[11px] text-slate-400 mt-0.5">Đang vận chuyển</p>
             </div>
         </a>
@@ -69,7 +69,7 @@
             </div>
             <div class="min-w-0">
                 <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Đã hủy đơn</p>
-                <p class="text-2xl font-black text-red-500 mt-0.5">{{ $stats['cancelled'] }}</p>
+                <p class="text-2xl font-bold text-red-500 mt-0.5">{{ $stats['cancelled'] }}</p>
                 <p class="text-[11px] text-slate-400 mt-0.5">Tổng số đơn đã hủy</p>
             </div>
         </a>

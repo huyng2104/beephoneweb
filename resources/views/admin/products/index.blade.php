@@ -11,7 +11,7 @@
             <!-- Header Area -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">Quản lý sản phẩm</h2>
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Quản lý sản phẩm</h2>
                     <p class="text-slate-500 text-sm mt-1">Xem và quản lý tất cả các sản phẩm Bee Phone trên hệ thống</p>
                 </div>
                 <div class="flex items-center gap-3">
@@ -37,25 +37,25 @@
             <!-- Stats Bar (Exact match to screenshot) -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">TỔNG SẢN PHẨM</p>
-                    <p class="text-3xl font-black mt-2 text-slate-900 leading-none">{{ number_format($totalProducts) }}</p>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">TỔNG SẢN PHẨM</p>
+                    <p class="text-3xl font-bold mt-2 text-slate-900 leading-none">{{ number_format($totalProducts) }}</p>
                 </div>
 
                 <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">ĐANG HIỂN THỊ</p>
-                    <p class="text-3xl font-black mt-2 text-emerald-500 leading-none">{{ number_format($activeProducts) }}</p>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">ĐANG HIỂN THỊ</p>
+                    <p class="text-3xl font-bold mt-2 text-emerald-500 leading-none">{{ number_format($activeProducts) }}</p>
                 </div>
 
                 <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">SẮP HẾT HÀNG</p>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">SẮP HẾT HÀNG</p>
                     <div class="flex items-end gap-2">
-                        <p class="text-3xl font-black mt-2 text-amber-500 leading-none">{{ number_format($lowStockCount) }}</p>
+                        <p class="text-3xl font-bold mt-2 text-amber-500 leading-none">{{ number_format($lowStockCount) }}</p>
                     </div>
                 </div>
 
                 <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">BỊ HẾT HÀNG</p>
-                    <p class="text-3xl font-black mt-2 text-rose-500 leading-none">{{ number_format($outOfStockProducts) }}</p>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">BỊ HẾT HÀNG</p>
+                    <p class="text-3xl font-bold mt-2 text-rose-500 leading-none">{{ number_format($outOfStockProducts) }}</p>
                 </div>
             </div>
 
@@ -123,7 +123,7 @@
                 <!-- Table Content -->
                 <div class="overflow-x-auto overflow-y-hidden">
                     <table class="w-full text-left">
-                        <thead class="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                        <thead class="bg-slate-50/50 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
                             <tr>
                                 <th class="px-6 py-5 w-12 text-center">STT</th>
                                 <th class="px-6 py-5">SẢN PHẨM</th>
@@ -175,12 +175,12 @@
                                     <td class="px-6 py-5">
                                         <div class="flex flex-wrap gap-1 max-w-[150px]">
                                             @forelse($product->categories->take(2) as $cat)
-                                                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-lg text-[9px] font-black uppercase tracking-wider">{{ $cat->name }}</span>
+                                                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-wider">{{ $cat->name }}</span>
                                             @empty
                                                 <span class="text-slate-300 italic text-[10px]">---</span>
                                             @endforelse
                                             @if($product->categories->count() > 2)
-                                                <span class="text-[10px] font-black text-slate-300 ml-1">+{{ $product->categories->count() - 2 }}</span>
+                                                <span class="text-[10px] font-bold text-slate-300 ml-1">+{{ $product->categories->count() - 2 }}</span>
                                             @endif
                                         </div>
                                     </td>
@@ -199,7 +199,7 @@
                                         @php
                                             $totalStock = $product->type == 'variable' ? $product->variants->sum('stock') : ($product->variants->first()->stock ?? 0);
                                         @endphp
-                                        <span class="text-sm font-black {{ $totalStock <= 5 ? 'text-rose-500' : 'text-slate-700' }}">{{ number_format($totalStock) }}</span>
+                                        <span class="text-sm font-bold {{ $totalStock <= 5 ? 'text-rose-500' : 'text-slate-700' }}">{{ number_format($totalStock) }}</span>
                                     </td>
                                     <td class="px-6 py-5 text-right">
                                         <div class="flex flex-col items-end">
@@ -208,16 +208,16 @@
                                                     $minPrice = $product->variants->count() > 0 ? $product->variants->min(function($v) { return $v->sale_price ?: $v->price; }) : 0;
                                                 @endphp
                                                 <span class="text-[10px] font-bold text-emerald-600 italic">Giá từ:</span>
-                                                <span class="text-sm font-black text-slate-900 tracking-tight">{{ number_format($minPrice, 0, ',', '.') }}₫</span>
+                                                <span class="text-sm font-bold text-slate-900 tracking-tight">{{ number_format($minPrice, 0, ',', '.') }}₫</span>
                                             @else
                                                 @php $mainVar = $product->variants->first(); @endphp
                                                 @if($mainVar)
-                                                    <span class="text-sm font-black text-slate-900 tracking-tight">{{ number_format($mainVar->sale_price ?? $mainVar->price ?? 0, 0, ',', '.') }}₫</span>
+                                                    <span class="text-sm font-bold text-slate-900 tracking-tight">{{ number_format($mainVar->sale_price ?? $mainVar->price ?? 0, 0, ',', '.') }}₫</span>
                                                     @if($mainVar->sale_price)
                                                         <span class="text-[10px] font-bold text-slate-400 line-through tracking-tighter">{{ number_format($mainVar->price, 0, ',', '.') }}₫</span>
                                                     @endif
                                                 @else
-                                                    <span class="text-sm font-black text-slate-900 tracking-tight">0₫</span>
+                                                    <span class="text-sm font-bold text-slate-900 tracking-tight">0₫</span>
                                                 @endif
                                             @endif
                                         </div>

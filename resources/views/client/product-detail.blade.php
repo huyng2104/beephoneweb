@@ -140,7 +140,7 @@
                     </div>
 
                     <div class="flex items-baseline gap-4 mt-6 p-4 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
-                        <span id="main-price" class="text-3xl font-black text-red-500 dark:text-red-400 transition-opacity duration-200">
+                        <span id="main-price" class="text-3xl font-bold text-red-500 dark:text-red-400 transition-opacity duration-200">
                             Đang cập nhật...
                         </span>
                         <span id="old-price" class="text-lg text-gray-400 line-through transition-opacity duration-200"></span>
@@ -211,7 +211,16 @@
                             <button type="button" id="btn-plus" class="px-4 py-2 hover:bg-primary hover:text-black font-bold text-lg transition-colors">+</button>
                         </div>
                     </div>
-                    <p class="text-xs text-right text-gray-500 dark:text-gray-400 mt-3">Trong kho còn: <span id="stock-text" class="font-bold text-primary">0</span> máy</p>
+                    <div class="flex items-center justify-between mt-3">
+                        <span class="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">inventory_2</span>
+                            Kho hàng
+                        </span>
+                        <span id="stock-display" class="text-xs font-bold flex items-center gap-1 transition-all">
+                            <span id="stock-dot" class="inline-block w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                            <span id="stock-text" class="text-gray-400">Đang tải...</span>
+                        </span>
+                    </div>
                 </div>
 
                 <div class="flex flex-col gap-3 mt-2">
@@ -279,7 +288,7 @@
     {{-- SẢN PHẨM LIÊN QUAN --}}
     @if($relatedProducts->isNotEmpty())
     <div class="mt-20">
-        <h2 class="text-2xl font-black mb-8 pb-3 border-b-4 border-primary inline-block uppercase text-[#181611] dark:text-white">
+        <h2 class="text-2xl font-bold mb-8 pb-3 border-b-4 border-primary inline-block uppercase text-[#181611] dark:text-white">
             Sản phẩm liên quan
         </h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -297,7 +306,7 @@
             <div class="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_1px]">
                 <div class="flex flex-col justify-center">
                     <div class="flex items-end gap-2">
-                        <span class="text-6xl font-black leading-none">{{ number_format($averageRating, 1) }}</span>
+                        <span class="text-6xl font-bold leading-none">{{ number_format($averageRating, 1) }}</span>
                         <span class="pb-2 text-3xl font-bold text-slate-300">/5</span>
                     </div>
                     <div class="mt-4 flex items-center gap-0.5 text-primary">
@@ -307,7 +316,7 @@
                     </div>
                     <p class="mt-2 text-lg font-medium text-slate-200">{{ $totalRatings }} luot danh gia</p>
 
-                    <button id="open-review-modal" type="button" class="mt-5 inline-flex h-12 w-44 items-center justify-center rounded-xl bg-primary px-6 text-base font-black text-black shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary/60">
+                    <button id="open-review-modal" type="button" class="mt-5 inline-flex h-12 w-44 items-center justify-center rounded-xl bg-primary px-6 text-base font-bold text-black shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary/60">
                         Viết đánh giá
                     </button>
                 </div>
@@ -351,7 +360,7 @@
 
     <div id="review-modal-panel" class="relative w-full max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-[#141a1e] shadow-[0_20px_60px_-40px_rgba(0,0,0,0.9)] opacity-0 translate-y-3 scale-95 transition duration-200 ease-out">
         <div class="flex items-center justify-between border-b border-white/10 px-6 py-4">
-            <h3 class="text-lg font-black text-white">Danh gia & nhan xet</h3>
+            <h3 class="text-lg font-bold text-white">Danh gia & nhan xet</h3>
             <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-white/20 hover:bg-white/10" data-review-close>
                 <span class="material-symbols-outlined">close</span>
             </button>
@@ -369,7 +378,7 @@
                     </div>
                     <div class="min-w-0">
                         <div class="text-xs font-bold uppercase tracking-wide text-slate-400">San pham</div>
-                        <div class="mt-1 line-clamp-2 text-base font-black text-white">{{ $product->name }}</div>
+                        <div class="mt-1 line-clamp-2 text-base font-bold text-white">{{ $product->name }}</div>
                     </div>
                 </div>
 
@@ -421,7 +430,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-primary px-6 py-4 text-sm font-black text-black shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary/60">
+                    <button type="submit" class="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-primary px-6 py-4 text-sm font-bold text-black shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary/60">
                         Gui danh gia
                     </button>
                 </form>
@@ -506,16 +515,34 @@
             if (skuEl) skuEl.textContent = sku || '{{ $product->sku }}';
 
             currentMaxStock = stock;
-            stockTextEl.textContent = stock;
             
-            if(stock > 0) {
+            const stockDotEl = document.getElementById('stock-dot');
+
+            if(stock > 10) {
+                // Còn nhiều hàng
                 stockStatusEl.textContent = 'Còn hàng';
                 stockStatusEl.className = 'text-xs text-green-600 bg-green-100 dark:bg-green-500/20 dark:text-green-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
+                stockTextEl.textContent = stock + ' máy';
+                stockTextEl.className = 'text-green-600 dark:text-green-400';
+                if (stockDotEl) { stockDotEl.className = 'inline-block w-1.5 h-1.5 rounded-full bg-green-500'; }
+                btnBuyNow.classList.remove('btn-disabled');
+                btnAddCart.classList.remove('btn-disabled');
+            } else if (stock > 0) {
+                // Sắp hết hàng
+                stockStatusEl.textContent = 'Còn hàng';
+                stockStatusEl.className = 'text-xs text-green-600 bg-green-100 dark:bg-green-500/20 dark:text-green-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
+                stockTextEl.textContent = 'Còn ' + stock + ' máy (sắp hết)';
+                stockTextEl.className = 'text-amber-600 dark:text-amber-400';
+                if (stockDotEl) { stockDotEl.className = 'inline-block w-1.5 h-1.5 rounded-full bg-amber-500'; }
                 btnBuyNow.classList.remove('btn-disabled');
                 btnAddCart.classList.remove('btn-disabled');
             } else {
+                // Hết hàng
                 stockStatusEl.textContent = 'Hết hàng';
                 stockStatusEl.className = 'text-xs text-red-600 bg-red-100 dark:bg-red-500/20 dark:text-red-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
+                stockTextEl.textContent = 'Hết hàng';
+                stockTextEl.className = 'text-red-600 dark:text-red-400';
+                if (stockDotEl) { stockDotEl.className = 'inline-block w-1.5 h-1.5 rounded-full bg-red-500'; }
                 btnBuyNow.classList.add('btn-disabled');
                 btnAddCart.classList.add('btn-disabled');
             }
@@ -579,17 +606,48 @@
                     selectButton(this, group);
                     selectedAttributes[groupName] = valId;
                     
+                    autoSelectMatching(groupName);
+                    
                     updateAvailability();
                     findMatchingVariant();
                 });
             });
+
+            function autoSelectMatching(clickedGroupName) {
+                const selectedIdsArr = Object.values(selectedAttributes);
+                const currentMatch = variantsList.find(variant => {
+                    return selectedIdsArr.every(attrId => variant.attributes.includes(attrId));
+                });
+
+                if (!currentMatch) {
+                    const clickedValId = selectedAttributes[clickedGroupName];
+                    const newMatch = variantsList.find(v => v.stock > 0 && v.attributes.includes(clickedValId)) 
+                                  || variantsList.find(v => v.attributes.includes(clickedValId));
+                    if (newMatch) {
+                        const groups = document.querySelectorAll('.attr-group');
+                        groups.forEach(g => {
+                            const gName = g.getAttribute('data-name');
+                            if (gName !== clickedGroupName) {
+                                const btns = g.querySelectorAll('.attr-btn');
+                                btns.forEach(b => {
+                                    const bValId = parseInt(b.getAttribute('data-id'));
+                                    if (newMatch.attributes.includes(bValId)) {
+                                        selectButton(b, g);
+                                        selectedAttributes[gName] = bValId;
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+            }
 
             function deselectButtonInGroup(group) {
                 group.querySelectorAll('.attr-btn').forEach(b => {
                     b.classList.remove('border-primary', 'bg-primary/10', 'border-2', 'ring-2', 'ring-primary');
                     b.classList.add('border-gray-200', 'dark:border-white/10', 'border', 'bg-transparent');
                     b.querySelector('.check-icon').classList.add('hidden');
-                    b.querySelector('.attr-text').classList.remove('text-[#181611]', 'dark:text-white', 'font-black');
+                    b.querySelector('.attr-text').classList.remove('text-[#181611]', 'dark:text-white', 'font-bold');
                     b.querySelector('.attr-text').classList.add('text-gray-600', 'dark:text-gray-300');
                 });
             }
@@ -601,7 +659,7 @@
                 btn.classList.add('border-primary', 'bg-primary/10', 'border-2', 'ring-2', 'ring-primary');
                 btn.querySelector('.check-icon').classList.remove('hidden');
                 btn.querySelector('.attr-text').classList.remove('text-gray-600', 'dark:text-gray-300');
-                btn.querySelector('.attr-text').classList.add('text-[#181611]', 'dark:text-white', 'font-black');
+                btn.querySelector('.attr-text').classList.add('text-[#181611]', 'dark:text-white', 'font-bold');
             }
 
             function updateAvailability() {
@@ -634,8 +692,9 @@
                             const strikeEl = btn.querySelector('.strike-line');
                             if (strikeEl) strikeEl.remove();
                         } else {
-                            // Khóa nút: mờ, không click được, gạch ngang
-                            btn.classList.add('opacity-40', 'grayscale', 'pointer-events-none', 'cursor-not-allowed');
+                            // Khóa nút: mờ, nhưng VẪN CHO PHÉP CLICK để đổi tổ hợp
+                            btn.classList.add('opacity-40', 'grayscale');
+                            btn.classList.remove('pointer-events-none', 'cursor-not-allowed');
                             // Thêm gạch ngang nếu chưa có
                             if (!btn.querySelector('.strike-line')) {
                                 const strike = document.createElement('span');
@@ -673,7 +732,10 @@
                     // Cần chọn thêm để xác định chính xác biến thể
                     stockStatusEl.textContent = 'Chọn thêm cấu hình';
                     stockStatusEl.className = 'text-xs text-amber-600 bg-amber-100 dark:bg-amber-500/20 dark:text-amber-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
-                    stockTextEl.textContent = '-';
+                    stockTextEl.textContent = 'Chọn cấu hình';
+                    stockTextEl.className = 'text-amber-600 dark:text-amber-400';
+                    const _dot1 = document.getElementById('stock-dot');
+                    if (_dot1) _dot1.className = 'inline-block w-1.5 h-1.5 rounded-full bg-amber-500';
                     btnBuyNow.classList.add('btn-disabled');
                     btnAddCart.classList.add('btn-disabled');
 
@@ -696,7 +758,10 @@
                         stockStatusEl.className = 'text-xs text-red-600 bg-red-100 dark:bg-red-500/20 dark:text-red-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
                         priceEl.textContent = 'Liên hệ';
                         oldPriceEl.textContent = '';
-                        stockTextEl.textContent = 0;
+                        stockTextEl.textContent = 'Không có';
+                        stockTextEl.className = 'text-red-600 dark:text-red-400';
+                        const _dot2 = document.getElementById('stock-dot');
+                        if (_dot2) _dot2.className = 'inline-block w-1.5 h-1.5 rounded-full bg-red-500';
                         
                         btnBuyNow.classList.add('btn-disabled');
                         btnAddCart.classList.add('btn-disabled');

@@ -82,7 +82,7 @@ font-weight: 500;
                 <div class="space-y-6">
                     <div class="flex flex-wrap justify-between items-end gap-3">
                         <div class="flex min-w-72 flex-col gap-1">
-                            <p class="text-[#181611] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">
+                            <p class="text-[#181611] dark:text-white text-4xl font-bold leading-tight tracking-[-0.033em]">
                                 Quản lý Bài viết</p>
                             <p class="text-[#8a8060] dark:text-[#b5ae98] text-base font-normal leading-normal">Quản lý nội
                                 dung Blog, Tin tức và Đánh giá công nghệ Bee Phone</p>
@@ -327,7 +327,7 @@ font-weight: 500;
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-[#8a8060] uppercase tracking-wider">Tổng bài viết</p>
-                                <p class="text-2xl font-black text-[#181611] dark:text-white">
+                                <p class="text-2xl font-bold text-[#181611] dark:text-white">
                                     {{ number_format($totalPosts) }}</p>
                             </div>
                         </div>
@@ -339,7 +339,7 @@ font-weight: 500;
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-[#8a8060] uppercase tracking-wider">Lượt xem tháng này</p>
-                                <p class="text-2xl font-black text-[#181611] dark:text-white">
+                                <p class="text-2xl font-bold text-[#181611] dark:text-white">
                                     {{ number_format($viewsThisMonth) }}</p>
                             </div>
                         </div>
@@ -350,7 +350,7 @@ font-weight: 500;
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-[#8a8060] uppercase tracking-wider">Danh mục hoạt động</p>
-                                <p class="text-2xl font-black text-[#181611] dark:text-white">{{ $totalCategories }}</p>
+                                <p class="text-2xl font-bold text-[#181611] dark:text-white">{{ $totalCategories }}</p>
                             </div>
                         </div>
                     </div>

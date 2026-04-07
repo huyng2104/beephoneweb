@@ -13,7 +13,7 @@
             <div class="bg-white w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 relative z-10 shadow-[0_0_30px_rgba(255,255,255,0.5)] animate-bounce-in">
                 <span class="material-symbols-outlined text-green-500 text-4xl font-bold">check_circle</span>
             </div>
-            <h1 class="text-2xl font-black text-[#181611] relative z-10 uppercase tracking-tight ai-sparkle-text">Đặt hàng thành công!</h1>
+            <h1 class="text-2xl font-bold text-[#181611] relative z-10 uppercase tracking-tight ai-sparkle-text">Đặt hàng thành công!</h1>
             <p class="text-[#181611]/80 mt-1 font-bold relative z-10">Cảm ơn bạn đã tin tưởng Bee Phone</p>
         </div>
         
@@ -110,7 +110,7 @@
         @if(!empty($order) && $order->items && $order->items->count())
             <div class="bg-white dark:bg-[#1a1a1a] p-8 rounded-[2rem] shadow-xl border border-gray-100 dark:border-white/5">
                 <div class="flex items-center justify-between gap-4 flex-wrap">
-                    <h2 class="text-2xl font-black text-[#181611] dark:text-white">Đánh giá sản phẩm</h2>
+                    <h2 class="text-2xl font-bold text-[#181611] dark:text-white">Đánh giá sản phẩm</h2>
                     <div class="text-xs font-bold uppercase tracking-widest text-gray-400">
                         Mã đơn: {{ $order->order_code }}
                     </div>
@@ -136,10 +136,10 @@
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-start justify-between gap-3 flex-wrap">
                                             <div class="min-w-0">
-                                                <p class="font-black text-[#181611] dark:text-white line-clamp-2">{{ $item->product_name ?? $p->name }}</p>
+                                                <p class="font-bold text-[#181611] dark:text-white line-clamp-2">{{ $item->product_name ?? $p->name }}</p>
                                                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Số lượng: {{ $item->quantity }}</p>
                                             </div>
-                                            <a href="{{ route('client.product.detail', ['id' => $productParam]) }}#comments" class="text-sm font-black text-primary hover:underline">
+                                            <a href="{{ route('client.product.detail', ['id' => $productParam]) }}#comments" class="text-sm font-bold text-primary hover:underline">
                                                 Xem sản phẩm
                                             </a>
                                         </div>
@@ -173,7 +173,7 @@
                                                 </div>
                                                 <div>
                                                     <label class="block text-xs font-bold text-gray-500 dark:text-gray-400">Ảnh (tuỳ chọn)</label>
-                                                    <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" class="mt-1 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 px-4 py-3 text-sm text-gray-600 dark:text-gray-300 file:mr-4 file:rounded-lg file:border-0 file:bg-primary/20 file:px-4 file:py-2 file:text-xs file:font-black file:text-[#181611] hover:file:bg-primary/30">
+                                                    <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" class="mt-1 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 px-4 py-3 text-sm text-gray-600 dark:text-gray-300 file:mr-4 file:rounded-lg file:border-0 file:bg-primary/20 file:px-4 file:py-2 file:text-xs file:font-bold file:text-[#181611] hover:file:bg-primary/30">
                                                 </div>
                                             </div>
 
@@ -182,7 +182,7 @@
                                                 <textarea name="content" rows="3" required class="mt-1 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 px-4 py-3 text-sm text-[#181611] dark:text-white" placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
                                             </div>
 
-                                            <button type="submit" class="btn-shine inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-black text-black hover:brightness-105 active:scale-95 transition-all shadow-[0_14px_30px_-14px_rgba(244,192,37,0.45)]">
+                                            <button type="submit" class="btn-shine inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-bold text-black hover:brightness-105 active:scale-95 transition-all shadow-[0_14px_30px_-14px_rgba(244,192,37,0.45)]">
                                                 GỬI ĐÁNH GIÁ
                                             </button>
                                         </form>
