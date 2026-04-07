@@ -209,7 +209,7 @@
                                         </div>
                                         <div class="flex-1">
                                             <span class="font-semibold text-slate-900 dark:text-white block">{{ $baseName }}</span>
-                                            <span class="text-xs text-slate-500 block mt-0.5">SKU: {{ $productSku }}</span>
+                                            {{-- <span class="text-xs text-slate-500 block mt-0.5">SKU: {{ $productSku }}</span> --}}
                                         </div>
                                     </div>
                                 </td>

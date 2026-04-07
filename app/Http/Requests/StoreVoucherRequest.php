@@ -14,6 +14,15 @@ class StoreVoucherRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        if ($this->has('code')) {
+            $this->merge([
+                'code' => str_replace(' ', '', $this->code),
+            ]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -21,9 +30,9 @@ class StoreVoucherRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:vouchers,code,' .$this->route('voucher'),
+            'code' => 'required|string|max:50|unique:vouchers,code,' . $this->route('voucher'),
             'discount_type' => 'required|in:percent,fixed',
             'discount_value' => 'required|numeric|min:0',
             'max_discount' => 'nullable|numeric|min:0',
@@ -34,9 +43,23 @@ class StoreVoucherRequest extends FormRequest
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
             'status' => 'boolean',
-            'points_required' => 'nullable'
+            'points_required' => 'nullable|integer|min:0',
+            'brands' => 'nullable|array',
+            'brands.*' => 'exists:brands,id',
+            'categories' => 'nullable|array',
+            'categories.*' => 'exists:categories,id',
+            'products' => 'nullable|array',
+            'products.*' => 'exists:products,id',
         ];
+
+        // Nếu loại giảm giá là phần trăm thì tối đa là 100
+        if ($this->discount_type === 'percent') {
+            $rules['discount_value'] .= '|max:100';
+        }
+
+        return $rules;
     }
+
     public function messages()
     {
         return [
@@ -50,6 +73,7 @@ class StoreVoucherRequest extends FormRequest
             'discount_value.required' => 'Giá trị giảm không được để trống.',
             'discount_value.numeric' => 'Giá trị giảm phải là số.',
             'discount_value.min' => 'Giá trị giảm phải lớn hơn hoặc bằng 0.',
+            'discount_value.max' => 'Giảm giá theo phần trăm tối đa là 100%.',
             'max_discount.numeric' => 'Giảm tối đa phải là số.',
             'max_discount.min' => 'Giảm tối đa phải lớn hơn hoặc bằng 0.',
             'min_order_value.numeric' => 'Giá trị đơn tối thiểu phải là số.',
@@ -63,6 +87,11 @@ class StoreVoucherRequest extends FormRequest
             'end_date.date' => 'Ngày kết thúc không đúng định dạng.',
             'end_date.after' => 'Ngày kết thúc phải sau ngày bắt đầu.',
             'status.boolean' => 'Trạng thái không hợp lệ.',
+            'points_required.integer' => 'Điểm yêu cầu phải là số nguyên.',
+            'points_required.min' => 'Điểm yêu cầu không được âm.',
+            'brands.array' => 'Định dạng thương hiệu không hợp lệ.',
+            'categories.array' => 'Định dạng danh mục không hợp lệ.',
+            'products.array' => 'Định dạng sản phẩm không hợp lệ.',
         ];
     }
 }

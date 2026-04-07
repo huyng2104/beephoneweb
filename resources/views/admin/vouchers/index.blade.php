@@ -30,56 +30,66 @@
                 <div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db]">
                     <p class="text-[#8a8060] text-sm font-medium">Tổng mã đang chạy</p>
                     <p class="text-[#181611] dark:text-white text-3xl font-bold">{{ number_format($totalActive) }}</p>
-                    <div
-                        class="flex items-center gap-1 text-[#078812] text-xs font-bold bg-[#078812]/10 px-2 py-0.5 rounded w-fit">
-                        <span class="material-symbols-outlined text-sm">trending_up</span>
-                        <span>+0%</span>
-                    </div>
                 </div>
 
                 <div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db]">
                     <p class="text-[#8a8060] text-sm font-medium">Lượt sử dụng (30 ngày)</p>
                     <p class="text-[#181611] dark:text-white text-3xl font-bold">{{ number_format($totalUsage30Days) }}</p>
-                    <div
-                        class="flex items-center gap-1 text-[#078812] text-xs font-bold bg-[#078812]/10 px-2 py-0.5 rounded w-fit">
-                        <span class="material-symbols-outlined text-sm">trending_up</span>
-                        <span>+0%</span>
+                    <div class="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded w-fit {{ $usageTrend >= 0 ? 'text-[#078812] bg-[#078812]/10' : 'text-[#e71408] bg-[#e71408]/10' }}">
+                        <span class="material-symbols-outlined text-sm">{{ $usageTrend >= 0 ? 'trending_up' : 'trending_down' }}</span>
+                        <span>{{ $usageTrend > 0 ? '+' : '' }}{{ number_format($usageTrend, 1) }}%</span>
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db]">
                     <p class="text-[#8a8060] text-sm font-medium">Tiết kiệm cho khách</p>
-                    {{-- Đổi ra đơn vị Triệu (M) --}}
                     <p class="text-[#181611] dark:text-white text-3xl font-bold">
-                        {{ number_format($totalSaved / 1000000, 1) }}M
+                        {{ $totalSaved >= 1000000 ? number_format($totalSaved / 1000000, 1) . 'M' : number_format($totalSaved, 0, ',', '.') . 'đ' }}
                     </p>
-                    <div
-                        class="flex items-center gap-1 text-[#e71408] text-xs font-bold bg-[#e71408]/10 px-2 py-0.5 rounded w-fit">
-                        <span class="material-symbols-outlined text-sm">trending_down</span>
-                        <span>-0%</span>
+                    <div class="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded w-fit {{ $savedTrend >= 0 ? 'text-[#078812] bg-[#078812]/10' : 'text-[#e71408] bg-[#e71408]/10' }}">
+                        <span class="material-symbols-outlined text-sm">{{ $savedTrend >= 0 ? 'trending_up' : 'trending_down' }}</span>
+                        <span>{{ $savedTrend > 0 ? '+' : '' }}{{ number_format($savedTrend, 1) }}%</span>
                     </div>
                 </div>
             </div>
 
-            <div class="flex flex-col gap-4 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db]">
-                <div class="flex justify-between items-start">
-                    <p class="text-[#181611] dark:text-white text-sm font-bold">Lượt dùng theo ngày</p>
-                    <p class="text-[#8a8060] text-xs">7 ngày qua</p>
-                    <p class="text-[#8a8060] text-xs">Tối đa 10/cột</p>
+            <div class="flex flex-col gap-4 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db] shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h3 class="text-[#181611] dark:text-white text-base font-black tracking-tight">Xu hướng sử dụng</h3>
+                        <p class="text-[#8a8060] text-xs font-medium mt-1">Lượt dùng 7 ngày gần nhất</p>
+                    </div>
+                    <div class="p-2 bg-primary/10 rounded-lg">
+                        <span class="material-symbols-outlined text-primary text-xl">bar_chart</span>
+                    </div>
                 </div>
 
-                <div class="flex items-end justify-between h-32 gap-2 px-1">
+                <div class="flex-1 flex items-end justify-between gap-2 pt-6 relative group z-0">
+                    <!-- Background Grid Lines -->
+                    <div class="absolute inset-x-0 top-0 bottom-6 flex flex-col justify-between pointer-events-none opacity-40 z-[-1]">
+                        <div class="border-b border-dashed border-[#8a8060]/30 w-full"></div>
+                        <div class="border-b border-dashed border-[#8a8060]/30 w-full"></div>
+                        <div class="border-b border-dashed border-[#8a8060]/30 w-full"></div>
+                    </div>
+
                     @foreach ($chartData as $data)
-                        <div class="bg-primary/20 hover:bg-primary transition-colors w-full rounded-t cursor-pointer"
-                            style="height: {{ $data['height'] }}%;"
-                            title="{{ $data['day_full'] }}: {{ $data['count'] }} lượt dùng">
+                        <div class="relative flex flex-col items-center flex-1 h-32 group/bar">
+                            <!-- Custom Tooltip -->
+                            <div class="absolute -top-10 bg-gray-800 dark:bg-gray-700 shadow-xl text-white text-[10px] font-bold px-2.5 py-1.5 rounded opacity-0 group-hover/bar:opacity-100 group-hover/bar:-translate-y-1 transition-all z-20 whitespace-nowrap pointer-events-none">
+                                {{ $data['count'] }} lượt
+                                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800 dark:border-t-gray-700"></div>
+                            </div>
+
+                            <!-- Bar Track & Fill -->
+                            <div class="w-full max-w-[28px] md:max-w-[32px] bg-[#f5f3f0] dark:bg-gray-800 rounded-t-md h-full flex items-end overflow-hidden cursor-pointer">
+                                <div class="w-full bg-gradient-to-t from-primary/80 to-primary group-hover/bar:brightness-110 border-t border-white/20 transition-all duration-300"
+                                    style="height: {{ $data['height'] }}%;">
+                                </div>
+                            </div>
+
+                            <!-- Label -->
+                            <span class="text-[10px] font-bold text-[#8a8060] mt-3 uppercase tracking-wider">{{ Str::limit($data['day_short'], 2, '') }}</span>
                         </div>
-                    @endforeach
-                </div>
-
-                <div class="flex justify-between text-[10px] text-[#8a8060] font-bold">
-                    @foreach ($chartData as $data)
-                        <span>{{ Str::limit($data['day_short'], 2, '') }}</span>
                     @endforeach
                 </div>
             </div>
@@ -87,45 +97,52 @@
         <!-- Table Section -->
         <div class="bg-white dark:bg-gray-900 border border-[#e6e3db] rounded-xl overflow-hidden flex flex-col">
             <div class="p-6 border-b border-[#e6e3db] flex flex-wrap justify-between items-center gap-4">
-                <h3 class="text-lg font-bold text-[#181611] dark:text-white">Danh sách mã giảm giá</h3>
+                <h3 class="text-lg font-bold text-[#181611] dark:text-white mb-2 md:mb-0">Danh sách mã giảm giá</h3>
+                
+                <form action="{{ url()->current() }}" method="GET" class="flex flex-wrap items-center gap-3 w-full md:w-auto">
 
-                <form action="{{ url()->current() }}" method="GET" class="flex flex-wrap items-center gap-2 mb-6">
-
-                    <div class="relative flex-grow max-w-xs">
+                    <div class="relative flex-grow min-w-[200px]">
                         <span
                             class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8060] text-lg pointer-events-none">
                             search
                         </span>
                         <input type="text" name="search" value="{{ request('search') }}"
+                            onchange="this.form.submit()"
                             class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-gray-800 border border-[#e6e3db] dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none transition-shadow"
                             placeholder="Tìm mã voucher, tên..." />
                     </div>
 
-                    <select name="status"
+                    <select name="status" onchange="this.form.submit()"
                         class="px-4 py-2 border rounded-lg text-sm focus:ring-primary outline-none cursor-pointer">
-                        <option value="">Tất cả </option>
+                        <option value="">Tất cả trạng thái</option>
                         <option value="paused" {{ request('status') == 'paused' ? 'selected' : '' }}>Tạm dừng</option>
                         <option value="out_of_usage" {{ request('status') == 'out_of_usage' ? 'selected' : '' }}>Hết lượt
                             dùng</option>
                         <option value="expired" {{ request('status') == 'expired' ? 'selected' : '' }}>Đã hết hạn</option>
-                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Đang hoạt động
-                        </option>
+                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Đang hoạt động</option>
                     </select>
-                    @if (request()->anyFilled(['search', 'status']))
+
+                    <select name="type" onchange="this.form.submit()"
+                        class="px-4 py-2 border rounded-lg text-sm focus:ring-primary outline-none cursor-pointer">
+                        <option value="">Tất cả phân loại</option>
+                        <option value="percent" {{ request('type') == 'percent' ? 'selected' : '' }}>Giảm theo %</option>
+                        <option value="fixed" {{ request('type') == 'fixed' ? 'selected' : '' }}>Giảm tiền mặt</option>
+                    </select>
+
+                    <select name="points" onchange="this.form.submit()"
+                        class="px-4 py-2 border rounded-lg text-sm focus:ring-primary outline-none cursor-pointer">
+                        <option value="">Tất cả điều kiện</option>
+                        <option value="free" {{ request('points') == 'free' ? 'selected' : '' }}>Miễn phí</option>
+                        <option value="points" {{ request('points') == 'points' ? 'selected' : '' }}>Đổi bằng điểm thưởng</option>
+                    </select>
+
+                    @if (request()->anyFilled(['search', 'status', 'type', 'points']))
                         <a href="{{ url()->current() }}"
                             class="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
                             <span class="material-symbols-outlined text-sm">close</span>
                             <span>Xóa lọc</span>
                         </a>
                     @endif
-                    <button type="submit"
-                        class="flex items-center gap-2 px-4 py-2 bg-[#181611] text-white border border-[#181611] rounded-lg text-sm font-medium hover:bg-black transition-colors">
-                        <span class="material-symbols-outlined text-sm">filter_list</span>
-                        <span>Lọc</span>
-                    </button>
-
-
-
                 </form>
             </div>
 
@@ -162,7 +179,7 @@
                                         @php
                                             $color = match ($voucher->voucher_status) {
                                                 'Tạm dừng' => 'yellow',
-                                                'Hết lượn dùng' => 'gray',
+                                                'Hết lượt dùng' => 'gray',
                                                 'Đã Hết hạn' => 'red',
                                                 default => 'green',
                                             };
