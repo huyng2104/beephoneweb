@@ -45,11 +45,8 @@
                 @error('category')<span class="text-red-600 dark:text-red-400 text-sm mt-1 block">{{ $message }}</span>@enderror
                 <small class="text-slate-500 dark:text-slate-400 text-xs mt-1.5 block">Chọn nhóm câu hỏi, ví dụ: Giao hàng, Bảo hành, Thanh toán, Đổi trả.</small>
             </div>
-
             <div>
-                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
-                    Câu Trả Lời <span class="text-red-500">*</span>
-                </label>
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Câu Trả Lời <span class="text-red-500">*</span></label>
                 <textarea name="answer" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent @error('answer') ring-2 ring-red-500 @enderror" rows="8" placeholder="Nhập câu trả lời chi tiết cho câu hỏi" required>{{ old('answer', $faq->answer) }}</textarea>
                 @error('answer')<span class="text-red-600 dark:text-red-400 text-sm mt-1 block">{{ $message }}</span>@enderror
             </div>
@@ -67,7 +64,9 @@
                     <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
                         Độ Ưu Tiên
                     </label>
-                <input type="number" name="sort_order" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="0" value="{{ old('sort_order', $faq->sort_order) }}">
+                    <input type="number" name="sort_order" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="0" value="{{ old('sort_order', $faq->sort_order) }}">
+                    <small class="text-slate-500 dark:text-slate-400 text-xs mt-1.5 block">Số càng nhỏ, FAQ càng ưu tiên hiển thị trước.</small>
+                </div>
                 <div class="flex items-end">
                     <label class="inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="is_active" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary dark:border-slate-600 dark:bg-slate-700" value="1" {{ $faq->is_active ? 'checked' : '' }}>
@@ -75,7 +74,6 @@
                     </label>
                 </div>
             </div>
-
             <div class="flex items-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
                 <button type="submit" class="flex items-center gap-2 px-6 py-2.5 bg-primary text-black text-sm font-bold hover:brightness-105 transition-all rounded-lg shadow-sm">
                     <span class="material-symbols-outlined text-[18px]">check</span>

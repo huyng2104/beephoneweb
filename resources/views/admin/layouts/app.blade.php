@@ -39,8 +39,9 @@
     @stack('styles')
     @stack('css')
 
-    {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
-    @vite(['resources/js/app.js'])
+    @if (file_exists(public_path('build/manifest.json')))
+        @vite(['resources/js/app.js'])
+    @endif
 </head>
 
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">

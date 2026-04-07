@@ -296,21 +296,6 @@ font-weight: 500;
                 </div>
             </div>
         </main>
-        <!-- Live Chat Widget -->
-        <div class="fixed bottom-6 right-6 z-[60] flex flex-col items-end gap-3 group">
-            <!-- Notification Label (Hidden by default, shown on hover or specific states) -->
-            <div
-                class="bg-white dark:bg-background-dark shadow-2xl rounded-xl py-3 px-5 border border-[#e6e3db] dark:border-white/10 animate-bounce transition-all duration-300 transform opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
-                <p class="text-sm font-bold text-[#181611] dark:text-white">Chat với nhân viên tư vấn 👋</p>
-            </div>
-            <!-- Chat Bubble -->
-            <button
-                class="size-16 bg-primary text-[#181611] rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform relative">
-                <span class="material-symbols-outlined text-3xl">chat</span>
-                <span
-                    class="absolute top-0 right-0 size-4 bg-red-500 border-2 border-white dark:border-background-dark rounded-full"></span>
-            </button>
-        </div>
         <!-- Footer -->
         <footer class="bg-white dark:bg-white/5 border-t border-[#f5f3f0] dark:border-white/10 mt-20">
             <div

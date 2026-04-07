@@ -34,52 +34,9 @@
         <button id="send-chat" class="w-10 h-10 bg-[#f4c025] rounded-full flex items-center justify-center text-[#181611] hover:brightness-105 transition-all">
             <span class="material-symbols-outlined text-sm">send</span>
         </button>
-        <button id="contact-staff-btn" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white hover:brightness-105 transition-all" title="Liên hệ nhân viên">
+        <button id="contact-staff-btn" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white hover:brightness-105 transition-all" title="Kết nối với nhân viên">
             <span class="material-symbols-outlined text-sm">person</span>
         </button>
-    </div>
-</div>
-
-<!-- Modal: Liên hệ nhân viên -->
-<div id="contact-staff-modal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md">
-        <div class="bg-blue-500 text-white p-4 flex justify-between items-center">
-            <h3 class="font-bold">Liên hệ nhân viên hỗ trợ</h3>
-            <button id="close-staff-modal" class="text-white hover:opacity-80">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-        </div>
-        
-        <form id="staff-contact-form" class="p-4 space-y-4">
-            <div>
-                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-1">Tên của bạn <span class="text-red-500">*</span></label>
-                <input type="text" id="staff_name" name="customer_name" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-1">Email <span class="text-red-500">*</span></label>
-                <input type="email" id="staff_email" name="customer_email" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-1">Tiêu đề vấn đề <span class="text-red-500">*</span></label>
-                <input type="text" id="staff_title" name="title" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ví dụ: Cần hỗ trợ bảo hành" required>
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-1">Mô tả vấn đề <span class="text-red-500">*</span></label>
-                <textarea id="staff_message" name="initial_message" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Mô tả chi tiết vấn đề của bạn..." required></textarea>
-            </div>
-
-            <div class="flex gap-2 pt-4">
-                <button type="submit" class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:brightness-110 transition-all">
-                    Gửi yêu cầu
-                </button>
-                <button type="button" id="cancel-staff-modal" class="flex-1 px-4 py-2 bg-slate-300 dark:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-semibold hover:opacity-80 transition-all">
-                    Hủy
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -165,6 +122,42 @@
             }
         }
 
+        function getCustomerName() {
+            return @json(optional(auth()->user())->name ?? 'Khách hàng');
+        }
+
+        function formatPriceVnd(value) {
+            const n = Number(value || 0);
+            return `${n.toLocaleString('vi-VN')}đ`;
+        }
+
+        function renderProductList(title, items) {
+            if (!Array.isArray(items) || items.length === 0) return '';
+
+            const cards = items.slice(0, 3).map(function(item) {
+                const thumbStyle = item.thumbnail
+                    ? `style="background-image:url('${escapeHtml(item.thumbnail)}')"`
+                    : '';
+                const url = item.url || '#';
+                return `
+                    <a href="${escapeHtml(url)}" class="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors">
+                        <div class="w-10 h-10 rounded bg-slate-100 dark:bg-slate-600 bg-cover bg-center shrink-0" ${thumbStyle}></div>
+                        <div class="min-w-0">
+                            <p class="text-xs text-slate-800 dark:text-white line-clamp-2">${escapeHtml(item.name || 'Sản phẩm')}</p>
+                            <p class="text-xs font-bold text-red-500">${formatPriceVnd(item.price)}</p>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+
+            return `
+                <div class="ml-10 mt-2">
+                    <p class="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">${escapeHtml(title)}</p>
+                    <div class="grid grid-cols-1 gap-1.5">${cards}</div>
+                </div>
+            `;
+        }
+
         function appendAdminReply(senderName, message, createdAt) {
             $('#chat-box').append(`
                 <div class="flex items-start gap-2">
@@ -225,6 +218,26 @@
             pollTicketMessages();
         }
 
+        function stopPolling() {
+            if (!pollingTimer) return;
+            clearInterval(pollingTimer);
+            pollingTimer = null;
+        }
+
+        function updateContactStaffButton() {
+            const hasTicket = !!getTicketId();
+            const $btn = $('#contact-staff-btn');
+            const $icon = $btn.find('.material-symbols-outlined');
+
+            if (hasTicket) {
+                $btn.attr('title', 'Quay lại chat với AI');
+                $icon.text('smart_toy');
+            } else {
+                $btn.attr('title', 'Kết nối với nhân viên');
+                $icon.text('support_agent');
+            }
+        }
+
         // Restore chat history
         if (sessionStorage.getItem('beephone_chat_history')) {
             $('#chat-box').html(sessionStorage.getItem('beephone_chat_history'));
@@ -233,15 +246,18 @@
 
         if (getTicketId()) {
             startPolling();
+            $('#chat-input').attr('placeholder', 'Nhập nội dung cho nhân viên...');
         }
+        updateContactStaffButton();
 
         function sendMessage() {
             const message = $('#chat-input').val().trim();
             if (message === '') return;
+            const ticketId = getTicketId();
 
             // Disable send button
             $('#send-chat').prop('disabled', true).css('opacity', '0.5');
-            $('#chat-input').prop('disabled', true).attr('placeholder', 'AI đang suy nghĩ...');
+            $('#chat-input').prop('disabled', true).attr('placeholder', ticketId ? 'Đang gửi tới nhân viên...' : 'AI đang suy nghĩ...');
 
             // Show user message
             $('#chat-box').append(`
@@ -254,6 +270,46 @@
             $('#chat-input').val('');
             scrollToBottom();
             saveChatHistory();
+
+            // Khi đã kết nối nhân viên thì không gọi AI nữa
+            if (ticketId) {
+                $.ajax({
+                    url: "{{ route('api.tickets.add-message') }}",
+                    type: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                    },
+                    data: {
+                        ticket_id: ticketId,
+                        sender_type: 'customer',
+                        sender_name: getCustomerName(),
+                        message: message
+                    },
+                    success: function() {
+                        pollTicketMessages();
+                        $('#send-chat').prop('disabled', false).css('opacity', '1');
+                        $('#chat-input').prop('disabled', false).attr('placeholder', 'Nhập nội dung cho nhân viên...').focus();
+                    },
+                    error: function(xhr) {
+                        let errorMsg = 'Lỗi gửi tin nhắn tới nhân viên!';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+
+                        $('#chat-box').append(`
+                            <div class="text-center text-xs text-red-500 mt-2 font-bold">
+                                ${errorMsg}
+                            </div>
+                        `);
+                        scrollToBottom();
+                        saveChatHistory();
+
+                        $('#send-chat').prop('disabled', false).css('opacity', '1');
+                        $('#chat-input').prop('disabled', false).attr('placeholder', 'Nhập nội dung cho nhân viên...').focus();
+                    }
+                });
+                return;
+            }
 
             // Show loading
             const loadingId = 'loading-' + Date.now();
@@ -299,6 +355,9 @@
                         });
                         replyHtml += '</div>';
                     }
+
+                    replyHtml += renderProductList('San pham phu hop', response.products);
+                    replyHtml += renderProductList('San pham ban chay', response.best_sellers);
 
                     $('#chat-box').append(replyHtml);
                     scrollToBottom();
@@ -360,31 +419,36 @@
             sendMessage();
         });
 
-        // ===== MODAL: Liên hệ nhân viên =====
+        // ===== KẾT NỐI NHÂN VIÊN TRỰC TIẾP =====
         $('#contact-staff-btn').click(function() {
-            $('#contact-staff-modal').removeClass('hidden').addClass('flex');
-        });
+            const existingTicketId = getTicketId();
+            if (existingTicketId) {
+                sessionStorage.removeItem(CHAT_TICKET_ID_KEY);
+                sessionStorage.removeItem(CHAT_LAST_MESSAGE_ID_KEY);
+                stopPolling();
+                updateContactStaffButton();
 
-        $('#close-staff-modal, #cancel-staff-modal').click(function() {
-            $('#contact-staff-modal').addClass('hidden').removeClass('flex');
-        });
-
-        // Close modal when clicking outside
-        $('#contact-staff-modal').click(function(e) {
-            if (e.target === this) {
-                $('#contact-staff-modal').addClass('hidden').removeClass('flex');
+                $('#chat-box').append(`
+                    <div class="flex items-start gap-2">
+                        <div class="w-8 h-8 rounded-full bg-[#f4c025] flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[#181611] text-sm">smart_toy</span>
+                        </div>
+                        <div class="bg-white dark:bg-slate-700 p-3 rounded-2xl rounded-tl-none shadow-sm text-slate-800 dark:text-white max-w-[80%]">
+                            Đã chuyển về chế độ chat với AI. Anh/chị có thể tiếp tục hỏi trợ lý BeePhone.
+                        </div>
+                    </div>
+                `);
+                $('#chat-input').attr('placeholder', 'Nhập câu hỏi...');
+                scrollToBottom();
+                saveChatHistory();
+                return;
             }
-        });
-
-        // Submit form: Tạo ticket
-        $('#staff-contact-form').submit(function(e) {
-            e.preventDefault();
 
             const formData = {
-                customer_name: $('#staff_name').val(),
-                customer_email: $('#staff_email').val(),
-                title: $('#staff_title').val(),
-                initial_message: $('#staff_message').val(),
+                customer_name: @json(optional(auth()->user())->name ?? 'Khách hàng'),
+                customer_email: @json(optional(auth()->user())->email ?? 'guest@beephone.vn'),
+                title: 'Yêu cầu kết nối với nhân viên',
+                initial_message: 'Khách hàng cần được kết nối trực tiếp với nhân viên hỗ trợ.',
             };
 
             $.ajax({
@@ -396,10 +460,9 @@
                 data: formData,
                 success: function(response) {
                     if (response.success) {
-                        // Lưu ticket id để đồng bộ phản hồi từ admin
                         setTicketId(response.ticket_id);
+                        updateContactStaffButton();
 
-                        // Gắn mốc message đầu tiên để chỉ lấy phản hồi mới sau này
                         $.ajax({
                             url: `/api/tickets/${response.ticket_id}/messages`,
                             type: 'GET',
@@ -415,23 +478,19 @@
                             }
                         });
 
-                        // Hiển thị thông báo thành công
                         $('#chat-box').append(`
                             <div class="flex items-start gap-2">
                                 <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0">
                                     <span class="material-symbols-outlined text-white text-sm">check_circle</span>
                                 </div>
                                 <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-2xl rounded-tl-none shadow-sm text-green-800 dark:text-green-200 max-w-[80%]">
-                                    <p class="font-semibold">Yêu cầu đã được gửi!</p>
+                                    <p class="font-semibold">Đã kết nối với nhân viên hỗ trợ!</p>
                                     <p class="text-xs mt-1">Mã ticket: <strong>${response.ticket_code}</strong></p>
-                                    <p class="text-xs mt-1">Nhân viên hỗ trợ sẽ liên hệ anh/chị sớm nhất. Cảm ơn!</p>
+                                    <p class="text-xs mt-1">Nhân viên sẽ phản hồi ngay trong khung chat này.</p>
                                 </div>
                             </div>
                         `);
 
-                        // Reset form và đóng modal
-                        $('#staff-contact-form')[0].reset();
-                        $('#contact-staff-modal').addClass('hidden').removeClass('flex');
                         scrollToBottom();
                         saveChatHistory();
                     }
