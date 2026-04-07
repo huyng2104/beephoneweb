@@ -44,14 +44,28 @@ class VoucherController extends Controller
         })->count();
         // 2. Lượt sử dụng 30 ngày qua
         $startDate30Days = now()->subDays(30);
+        $prevStartDate = now()->subDays(60);
+
         $totalUsage30Days = Order::whereNotNull('voucher_id')
             ->where('created_at', '>=', $startDate30Days)
             ->count();
+            
+        $prevUsage30Days = Order::whereNotNull('voucher_id')
+            ->whereBetween('created_at', [$prevStartDate, $startDate30Days])
+            ->count();
+            
+        $usageTrend = $prevUsage30Days > 0 ? (($totalUsage30Days - $prevUsage30Days) / $prevUsage30Days) * 100 : ($totalUsage30Days > 0 ? 100 : 0);
 
         // 3. Tổng tiền tiết kiệm cho khách (Giả sử bảng Order lưu số tiền giảm)
         $totalSaved = Order::whereNotNull('voucher_id')
             ->where('created_at', '>=', $startDate30Days)
             ->sum('discount_amount');
+            
+        $prevSaved = Order::whereNotNull('voucher_id')
+            ->whereBetween('created_at', [$prevStartDate, $startDate30Days])
+            ->sum('discount_amount');
+            
+        $savedTrend = $prevSaved > 0 ? (($totalSaved - $prevSaved) / $prevSaved) * 100 : ($totalSaved > 0 ? 100 : 0);
 
         // 4. Xử lý Biểu đồ 7 ngày qua
         // 4. Xử lý Biểu đồ 7 ngày qua
@@ -158,6 +172,22 @@ class VoucherController extends Controller
                     break;
             }
         }
+
+        if (request()->filled('type')) {
+            $query->where('discount_type', request('type'));
+        }
+
+        if (request()->filled('points')) {
+            $pointsFilter = request('points');
+            if ($pointsFilter == 'free') {
+                $query->where(function($q) {
+                    $q->whereNull('points_required')->orWhere('points_required', 0);
+                });
+            } elseif ($pointsFilter == 'points') {
+                $query->where('points_required', '>', 0);
+            }
+        }
+
         $vouchers = $query->paginate(10);
 
         return view('admin.vouchers.index', [
@@ -165,7 +195,9 @@ class VoucherController extends Controller
             'totalActive' => $totalActive,
             'totalUsage30Days' => $totalUsage30Days,
             'totalSaved' => $totalSaved,
-            'chartData' => $chartData
+            'chartData' => $chartData,
+            'usageTrend' => $usageTrend ?? 0,
+            'savedTrend' => $savedTrend ?? 0
         ]);
     }
 
@@ -192,7 +224,7 @@ class VoucherController extends Controller
     {
         $data = [
             'name' => $request->name,
-            'code' => str_replace(' ', '', $request->code),
+            'code' => $request->code,
             'discount_type' => $request->discount_type,
             'discount_value' => $request->discount_value,
             'max_discount' => $request->max_discount,
@@ -208,20 +240,18 @@ class VoucherController extends Controller
         $brandIds = $request->brands;
         $categoryIds = $request->categories;
         $productIds = $request->products;
+
         try {
-
             DB::transaction(function () use ($data, $brandIds, $categoryIds, $productIds) {
-
                 $voucher = Voucher::create($data);
-                $voucher->brands()->sync($brandIds);
-                $voucher->categories()->sync($categoryIds);
-                $voucher->products()->sync($productIds);
+                $voucher->brands()->sync($brandIds ?? []);
+                $voucher->categories()->sync($categoryIds ?? []);
+                $voucher->products()->sync($productIds ?? []);
             });
 
             return redirect()->route('admin.vouchers.index')->with('success', 'Voucher đã được tạo thành công');
         } catch (\Exception $e) {
-
-            return back()->with('error', 'Lỗi thêm mới!');
+            return back()->with('error', 'Lỗi thêm mới! ' . $e->getMessage())->withInput();
         }
     }
 

@@ -237,6 +237,9 @@
                                         <span class="text-sm text-red-500 italic block mt-1">Chưa có danh mục nào trong hệ
                                             thống!</span>
                                     @endif
+                                    @error('categories')
+                                        <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
+                                    @enderror
                                 </div>
 
                                 <div class="form-group">
@@ -256,6 +259,9 @@
                                         <span class="text-sm text-red-500 italic block mt-1">Chưa có sản phẩm nào trong hệ
                                             thống!</span>
                                     @endif
+                                    @error('products')
+                                        <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
+                                    @enderror
                                 </div>
 
                                 <div class="form-group">
@@ -275,6 +281,9 @@
                                         <span class="text-sm text-red-500 italic block mt-1">Chưa có thương hiệu nào trong
                                             hệ thống!</span>
                                     @endif
+                                    @error('brands')
+                                        <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
+                                    @enderror
                                 </div>
 
                             </div>

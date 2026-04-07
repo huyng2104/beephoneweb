@@ -117,7 +117,8 @@ class OrderItem extends Model
     {
         if (!$this->order) return 0;
         
-        $totalPrice = $this->order->total_price;
+        // Cột total_price đã bị xóa khỏi bảng orders, nên phải tính tổng line_total của các item
+        $totalPrice = $this->order->items->sum('line_total');
         if ($totalPrice <= 0) return 0; // Tránh chia cho 0
 
         $totalAmount = $this->order->total_amount;

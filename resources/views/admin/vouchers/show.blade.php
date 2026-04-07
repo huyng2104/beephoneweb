@@ -17,7 +17,7 @@
                         @php
                             $color = match ($voucher->voucher_status) {
                                 'Tạm dừng' => 'yellow',
-                                'Hết lượn dùng' => 'gray',
+                                'Hết lượt dùng' => 'gray',
                                 'Đã Hết hạn' => 'red',
                                 default => 'green',
                             };
@@ -63,7 +63,7 @@
                                 </div>
                                 <div>
                                     <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Mô tả</dt>
-                                    <dd class="text-sm text-slate-600 mt-1">{{ $voucher->description }}</dd>
+                                    <dd class="text-sm text-slate-600 mt-1">{{ $voucher->description ?: 'Không có mô tả' }}</dd>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 pt-2">
                                     <div>
@@ -76,14 +76,15 @@
                                         <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Giá trị giảm
                                         </dt>
                                         <dd class="text-sm font-bold text-emerald-600 mt-1">
-                                            {{ $voucher->discount_value }}{{ $voucher->discount_type == 'fixed' ? 'đ' : '%' }}
+                                            {{ $voucher->discount_type == 'fixed' ? number_format($voucher->discount_value, 0, ',', '.') . ' vnđ' : floatval($voucher->discount_value) . '%' }}
                                         </dd>
                                     </div>
                                 </div>
                                 <div>
                                     <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Đơn hàng
                                         tối thiểu</dt>
-                                    <dd class="text-sm font-semibold text-slate-900 mt-1">{{ $voucher->min_order_value }}
+                                    <dd class="text-sm font-semibold text-slate-900 mt-1">
+                                        {{ $voucher->min_order_value > 0 ? number_format($voucher->min_order_value, 0, ',', '.') . ' vnđ' : 'Không yêu cầu' }}
                                     </dd>
                                 </div>
                             </dl>
@@ -98,7 +99,7 @@
                                     <div>
                                         <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Bắt đầu</dt>
                                         <dd class="text-sm font-semibold text-slate-900 mt-1">
-                                            {{ \Carbon\Carbon::parse($voucher->start_date)->format('d/m/Y') }}
+                                            {{ $voucher->start_date ? \Carbon\Carbon::parse($voucher->start_date)->format('d/m/Y') : 'Không có' }}
                                         </dd>
                                     </div>
 
@@ -106,7 +107,7 @@
                                         <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Kết thúc
                                         </dt>
                                         <dd class="text-sm font-semibold text-slate-900 mt-1">
-                                            {{ \Carbon\Carbon::parse($voucher->end_date)->format('d/m/Y') }}
+                                            {{ $voucher->end_date ? \Carbon\Carbon::parse($voucher->end_date)->format('d/m/Y') : 'Không thời hạn' }}
                                         </dd>
                                     </div>
                                 </div>
@@ -114,18 +115,20 @@
                                     <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Tổng lượt
                                         phát hành</dt>
                                     <dd class="text-sm font-bold text-slate-900 mt-1">
-                                        {{ $voucher->usage_limit == null ? 'Không giới hạn' : $voucher->usage_limit }}</dd>
+                                        {{ $voucher->usage_limit == null ? 'Không giới hạn' : number_format($voucher->usage_limit, 0, ',', '.') }}
+                                    </dd>
                                 </div>
-                                {{-- <div>
-                                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Giới hạn
-                                        mỗi khách hàng</dt>
+                                <div>
+                                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Điểm đổi voucher</dt>
                                     <dd class="text-sm font-semibold text-slate-900 mt-1">
-                                        {{ $voucher->usage_limit_per_user }}</dd>
-                                </div> --}}
+                                        {{ $voucher->points_required > 0 ? number_format($voucher->points_required, 0, ',', '.') . ' điểm' : 'Miễn phí' }}
+                                    </dd>
+                                </div>
                                 <div>
                                     <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Giảm tối đa</dt>
                                     <dd class="text-sm font-semibold text-slate-900 mt-1">
-                                        {{ $voucher->max_discount == null ? 'Không giới hạn' : $voucher->max_discount }}</dd>
+                                        {{ $voucher->max_discount == null ? 'Không giới hạn' : number_format($voucher->max_discount, 0, ',', '.') . ' vnđ' }}
+                                    </dd>
                                 </div>
                                 <div>
                                     @if (!$voucher->categories->isEmpty())
@@ -182,12 +185,12 @@
                                         Số lượt đã dùng
                                     </p>
                                     <p class="text-lg font-black text-slate-900">
-                                        {{ $voucher->used_count }}/{{ $voucher->usage_limit }}
+                                        {{ number_format($voucher->used_count, 0, ',', '.') }} / {{ $voucher->usage_limit == null ? '∞' : number_format($voucher->usage_limit, 0, ',', '.') }}
                                     </p>
                                 </div>
 
                                 <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                    <div class="h-full bg-primary" style="width: {{ $voucher->usage_percent }}%;"></div>
+                                    <div class="h-full bg-primary" style="width: {{ $voucher->usage_limit ? min(100, ($voucher->used_count / $voucher->usage_limit) * 100) : 0 }}%;"></div>
                                 </div>
                                 {{-- <div class="grid grid-cols-1 gap-4">
                                     <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100">
