@@ -5,7 +5,11 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Bee Phone')</title>
+    <title>@yield('title', $site_settings['site_name']->value ?? 'Bee Phone')</title>
+
+    @if(isset($site_settings['site_favicon']) && $site_settings['site_favicon']->value)
+        <link rel="icon" type="image/x-icon" href="{{ asset($site_settings['site_favicon']->value) }}">
+    @endif
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />

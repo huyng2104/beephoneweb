@@ -63,5 +63,13 @@ class AppServiceProvider extends ServiceProvider
                 ->action('Xác minh email', $url)
                 ->line('Cảm ơn bạn đã đăng ký!');
         });
+
+        // Share settings globally
+        view()->composer('*', function ($view) {
+            $settings = cache()->remember('site_settings', 60, function () {
+                return \App\Models\Setting::all()->keyBy('key');
+            });
+            $view->with('site_settings', $settings);
+        });
     }
 }
