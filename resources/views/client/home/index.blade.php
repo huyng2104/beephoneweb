@@ -338,7 +338,7 @@
                 @foreach($news as $post)
                 <a href="{{ route('client.posts.show', $post->slug) }}" class="group">
                     <div class="aspect-video rounded-xl overflow-hidden mb-4">
-                        <img src="{{ $post->thumbnail ? asset('storage/' . $post->thumbnail) : 'https://placehold.co/600x400' }}" 
+                        <img src="{{ $post->thumbnail ? asset('uploads/posts/' . $post->thumbnail) : 'https://placehold.co/600x400' }}" 
                              alt="{{ $post->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                     </div>
                     <p class="text-xs text-primary font-bold uppercase mb-2">{{ $post->category->name ?? 'Tin tức' }}</p>
