@@ -1,3 +1,54 @@
+@php
+    $topBarSetting = \App\Models\Setting::where('key', 'header_top_bar')->first();
+    $topBarMessages = [];
+    if ($topBarSetting && $topBarSetting->value) {
+        $val = $topBarSetting->value;
+        if (is_array($val)) {
+            $topBarMessages = array_filter($val, fn($v) => trim($v) !== '');
+        } elseif (is_string($val) && trim($val) !== '') {
+            $topBarMessages = [$val];
+        }
+    }
+@endphp
+
+@if(count($topBarMessages) > 0)
+<div id="top-announcement-bar" class="bg-gradient-to-r from-[#181611] via-[#2a2518] to-[#181611] text-white text-center text-xs font-semibold py-2 px-10 relative overflow-hidden">
+    <div class="max-w-[1440px] mx-auto flex items-center justify-center gap-3">
+        <span class="material-symbols-outlined text-primary text-[16px] animate-pulse shrink-0">campaign</span>
+        <div id="top-bar-text" class="transition-all duration-500">
+            {{ $topBarMessages[0] }}
+        </div>
+        <button onclick="document.getElementById('top-announcement-bar').remove()" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors">
+            <span class="material-symbols-outlined text-[16px]">close</span>
+        </button>
+    </div>
+</div>
+
+@if(count($topBarMessages) > 1)
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messages = @json(array_values($topBarMessages));
+    const el = document.getElementById('top-bar-text');
+    if (!el || messages.length <= 1) return;
+    let idx = 0;
+    setInterval(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-8px)';
+        setTimeout(() => {
+            idx = (idx + 1) % messages.length;
+            el.textContent = messages[idx];
+            el.style.transform = 'translateY(8px)';
+            requestAnimationFrame(() => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            });
+        }, 300);
+    }, 4000);
+});
+</script>
+@endif
+@endif
+
 <header
     class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-solid border-[#f5f3f0] dark:border-white/10 px-4 md:px-10 lg:px-20 py-3">
     <div class="max-w-[1440px] mx-auto flex items-center justify-between gap-4">

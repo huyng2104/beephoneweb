@@ -361,6 +361,38 @@
                     Đơn hàng này chưa có dữ liệu chi tiết sản phẩm.
                 </div>
                 @endif
+
+                {{-- Tóm tắt thanh toán --}}
+                @php
+                    $subtotal = $order->items->sum('line_total');
+                    $shippingFee = $order->shipping_fee ?? 0;
+                    $discountAmount = ($subtotal + $shippingFee) - $order->total_amount;
+                    if($discountAmount < 0) $discountAmount = 0;
+                @endphp
+                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-slate-500 font-medium tracking-tight">Tạm tính (Tiền hàng):</span>
+                        <span class="text-slate-900 dark:text-white font-bold">{{ number_format($subtotal) }} ₫</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-slate-500 font-medium tracking-tight">Phí vận chuyển:</span>
+                        <span class="{{ $shippingFee <= 0 ? 'text-emerald-500' : 'text-slate-900 dark:text-white' }} font-bold">
+                            {{ $shippingFee <= 0 ? 'Miễn phí' : number_format($shippingFee) . ' ₫' }}
+                        </span>
+                    </div>
+                    @if($discountAmount > 0)
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-slate-500 font-medium tracking-tight flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px] text-red-500">redeem</span> Giảm giá (Voucher):
+                        </span>
+                        <span class="text-red-500 font-bold">-{{ number_format($discountAmount) }} ₫</span>
+                    </div>
+                    @endif
+                    <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-800">
+                        <span class="text-slate-900 dark:text-white font-black uppercase tracking-wider">Tổng thanh toán:</span>
+                        <span class="text-xl font-black text-primary">{{ number_format($order->total_amount) }} ₫</span>
+                    </div>
+                </div>
             </div>
 
             <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6 space-y-4">
