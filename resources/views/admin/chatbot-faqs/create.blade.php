@@ -70,7 +70,7 @@
                         Độ Ưu Tiên
                     </label>
                     <input type="number" name="sort_order" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="0" value="{{ old('sort_order', 0) }}">
-                    <small class="text-slate-500 dark:text-slate-400 text-xs mt-1.5 block">Số càng cao, FAQ sẽ được ưu tiên trả lời trước. Ví dụ: 10, 20, 50</small>
+                    <small class="text-slate-500 dark:text-slate-400 text-xs mt-1.5 block">Số càng nhỏ, FAQ càng ưu tiên hiển thị trước.</small>
                 </div>
 
                 <div class="flex items-end">

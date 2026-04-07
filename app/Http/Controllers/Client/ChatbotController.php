@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\ChatbotFaq;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
+use App\Models\SupportFaq;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -20,7 +23,12 @@ class ChatbotController extends Controller
         // ==========================================
         $faq = $this->searchFaq($userMessage);
         if ($faq) {
-            return response()->json(['reply' => $faq->answer, 'type' => 'faq']);
+            return response()->json([
+                'reply' => $faq->answer,
+                'type' => 'faq',
+                'products' => $this->getSuggestedProducts($userMessage),
+                'best_sellers' => $this->getBestSellingProducts(),
+            ]);
         }
 
         // ==========================================
@@ -37,7 +45,12 @@ class ChatbotController extends Controller
 
         // Nếu không có key nào, không gọi Gemini
         if (empty($validKeys)) {
-            return response()->json(['reply' => 'Hệ thống AI chưa được cấu hình API chìa khóa. Vui lòng thử lại sau hoặc liên hệ quản trị.', 'type' => 'error']);
+            return response()->json([
+                'reply' => 'Hệ thống AI chưa được cấu hình API chìa khóa. Vui lòng thử lại sau hoặc liên hệ quản trị.',
+                'type' => 'error',
+                'products' => $this->getSuggestedProducts($userMessage),
+                'best_sellers' => $this->getBestSellingProducts(),
+            ]);
         }
 
         // Random bốc đại 1 key ra để xài -> Tránh quá tải 1 key
@@ -106,9 +119,17 @@ Câu hỏi của khách: " . $userMessage;
 
             if ($response->failed()) {
                 if ($response->status() == 429) {
-                    return response()->json(['reply' => 'Dạ hiện tại lượng khách truy cập BeePhone đang quá đông, anh/chị vui lòng chờ em 10 giây rồi nhắn lại nhé ạ! 🥰']);
+                    return response()->json([
+                        'reply' => 'Dạ hiện tại lượng khách truy cập BeePhone đang quá đông, anh/chị vui lòng chờ em 10 giây rồi nhắn lại nhé ạ! 🥰',
+                        'products' => $this->getSuggestedProducts($userMessage),
+                        'best_sellers' => $this->getBestSellingProducts(),
+                    ]);
                 }
-                return response()->json(['reply' => 'Lỗi API thật sự là: ' . $response->body()]);
+                return response()->json([
+                    'reply' => 'Lỗi API thật sự là: ' . $response->body(),
+                    'products' => $this->getSuggestedProducts($userMessage),
+                    'best_sellers' => $this->getBestSellingProducts(),
+                ]);
             }
             
             $result = $response->json();
@@ -117,13 +138,25 @@ Câu hỏi của khách: " . $userMessage;
                 $botReply = $result['candidates'][0]['content']['parts'][0]['text'];
                 // Dọn dẹp markdown nếu AI vẫn cố tình trả về
                 $botReply = str_replace(['**', '*'], '', $botReply);
-                return response()->json(['reply' => $botReply]);
+                return response()->json([
+                    'reply' => $botReply,
+                    'products' => $this->getSuggestedProducts($userMessage),
+                    'best_sellers' => $this->getBestSellingProducts(),
+                ]);
             }
 
-            return response()->json(['reply' => 'Dạ em chưa hiểu ý anh/chị lắm ạ, anh chị có thể hỏi rõ hơn về bảo hành, giao hàng hay thanh toán không ạ?']);
+            return response()->json([
+                'reply' => 'Dạ em chưa hiểu ý anh/chị lắm ạ, anh chị có thể hỏi rõ hơn về bảo hành, giao hàng hay thanh toán không ạ?',
+                'products' => $this->getSuggestedProducts($userMessage),
+                'best_sellers' => $this->getBestSellingProducts(),
+            ]);
 
         } catch (\Exception $e) {
-            return response()->json(['reply' => 'Hệ thống AI đang bảo trì: ' . $e->getMessage()]);
+            return response()->json([
+                'reply' => 'Hệ thống AI đang bảo trì: ' . $e->getMessage(),
+                'products' => $this->getSuggestedProducts($userMessage),
+                'best_sellers' => $this->getBestSellingProducts(),
+            ]);
         }
     }
 
@@ -132,30 +165,144 @@ Câu hỏi của khách: " . $userMessage;
     // ==========================================
     private function searchFaq($userMessage)
     {
-        $messageLower = strtolower($userMessage);
+        $normalizedMessage = $this->normalizeText($userMessage);
+        if ($normalizedMessage === '') {
+            return null;
+        }
 
-        // Lấy tất cả FAQ active
-        $faqs = ChatbotFaq::where('is_active', true)
-                          ->orderBy('priority', 'desc')
-                          ->get();
+        // Dùng cùng nguồn dữ liệu FAQ với trang admin
+        $faqs = SupportFaq::active()
+            ->ordered()
+            ->get();
+
+        $bestMatch = null;
+        $bestScore = 0.0;
 
         foreach ($faqs as $faq) {
-            // Check trong question
-            if (stripos($faq->question, $userMessage) !== false) {
-                return $faq;
+            $score = 0.0;
+            $question = $this->normalizeText((string) $faq->question);
+
+            // Ưu tiên match cụm từ đầy đủ trong keywords/question
+            if ($question !== '' && (str_contains($question, $normalizedMessage) || str_contains($normalizedMessage, $question))) {
+                $score += 2.5;
             }
 
-            // Check trong keywords
             if (!empty($faq->keywords)) {
                 $keywords = array_map('trim', explode(',', $faq->keywords));
                 foreach ($keywords as $keyword) {
-                    if (stripos($messageLower, strtolower($keyword)) !== false) {
-                        return $faq;
+                    $kw = $this->normalizeText($keyword);
+                    if ($kw === '') {
+                        continue;
+                    }
+
+                    if (str_contains($kw, ' ')) {
+                        if (str_contains($normalizedMessage, $kw)) {
+                            $score += 3.0;
+                        }
+                    } else {
+                        if (preg_match('/\b' . preg_quote($kw, '/') . '\b/u', $normalizedMessage)) {
+                            $score += 2.0;
+                        } elseif (str_contains($normalizedMessage, $kw)) {
+                            $score += 1.0;
+                        }
                     }
                 }
             }
+
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestMatch = $faq;
+            }
         }
 
-        return null;
+        return $bestScore >= 1.5 ? $bestMatch : null;
+    }
+
+    private function normalizeText(string $text): string
+    {
+        $text = mb_strtolower(trim($text), 'UTF-8');
+        $text = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $text);
+        $text = preg_replace('/\s+/u', ' ', $text);
+        return trim($text);
+    }
+
+    private function getSuggestedProducts(string $message, int $limit = 3): array
+    {
+        $normalized = $this->normalizeText($message);
+        $tokens = array_values(array_filter(explode(' ', $normalized), fn($t) => mb_strlen($t, 'UTF-8') >= 2));
+
+        $query = Product::query()
+            ->with(['brand:id,name', 'variants:id,product_id,price,sale_price', 'images:id,product_id,path'])
+            ->where('status', 'active');
+
+        if (!empty($tokens)) {
+            $query->where(function ($q) use ($tokens) {
+                foreach ($tokens as $token) {
+                    $q->orWhere('name', 'like', '%' . $token . '%')
+                        ->orWhere('description', 'like', '%' . $token . '%');
+                }
+            });
+        }
+
+        $products = $query->latest('id')->limit($limit)->get();
+
+        return $products->map(function (Product $product) {
+            $variant = $product->variants->first();
+            $price = $variant ? ($variant->sale_price ?: $variant->price) : 0;
+            $thumbnail = optional($product->images->first())->path ?: $product->thumbnail;
+
+            return [
+                'name' => $product->name,
+                'url' => route('client.product.detail', ['id' => $product->slug ?: $product->id]),
+                'price' => $price,
+                'thumbnail' => $thumbnail ? asset('storage/' . ltrim($thumbnail, '/')) : null,
+            ];
+        })->values()->all();
+    }
+
+    private function getBestSellingProducts(int $limit = 3): array
+    {
+        $bestSellerIds = OrderItem::query()
+            ->selectRaw('product_id, SUM(quantity) as total_qty')
+            ->whereNotNull('product_id')
+            ->whereHas('order', function ($q) {
+                $q->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_RECEIVED]);
+            })
+            ->groupBy('product_id')
+            ->orderByDesc('total_qty')
+            ->limit($limit)
+            ->pluck('product_id')
+            ->all();
+
+        if (empty($bestSellerIds)) {
+            return [];
+        }
+
+        $products = Product::query()
+            ->with(['variants:id,product_id,price,sale_price', 'images:id,product_id,path'])
+            ->whereIn('id', $bestSellerIds)
+            ->where('status', 'active')
+            ->get()
+            ->keyBy('id');
+
+        $sorted = [];
+        foreach ($bestSellerIds as $id) {
+            if (isset($products[$id])) {
+                $sorted[] = $products[$id];
+            }
+        }
+
+        return collect($sorted)->map(function (Product $product) {
+            $variant = $product->variants->first();
+            $price = $variant ? ($variant->sale_price ?: $variant->price) : 0;
+            $thumbnail = optional($product->images->first())->path ?: $product->thumbnail;
+
+            return [
+                'name' => $product->name,
+                'url' => route('client.product.detail', ['id' => $product->slug ?: $product->id]),
+                'price' => $price,
+                'thumbnail' => $thumbnail ? asset('storage/' . ltrim($thumbnail, '/')) : null,
+            ];
+        })->values()->all();
     }
 }

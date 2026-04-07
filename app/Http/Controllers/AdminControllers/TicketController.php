@@ -83,7 +83,6 @@ class TicketController extends Controller
         }
 
         $ticket->update($updates);
-
         return back()->with('success', 'Phản hồi đã được gửi!');
     }
 

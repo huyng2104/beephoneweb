@@ -9,6 +9,60 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    public function searchSuggestions(Request $request)
+    {
+        $keyword = trim((string) $request->query('q', ''));
+
+        $baseQuery = Product::query()->where('status', 'active');
+
+        $suggestions = (clone $baseQuery)
+            ->when($keyword !== '', function ($q) use ($keyword) {
+                $q->where('name', 'like', '%' . $keyword . '%');
+            })
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get(['id', 'name', 'slug'])
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'url' => route('client.product.detail', ['id' => $product->slug ?: $product->id]),
+                ];
+            })
+            ->values();
+
+        $trending = (clone $baseQuery)
+            ->orderByDesc('id')
+            ->limit(6)
+            ->pluck('name')
+            ->values();
+
+        $bestSellers = (clone $baseQuery)
+            ->with(['variants', 'images'])
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get()
+            ->map(function ($product) {
+                $variant = $product->variants->first();
+                $thumbnail = optional($product->images->first())->image_url;
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'price' => $variant ? ($variant->sale_price ?: $variant->price) : 0,
+                    'thumbnail' => $thumbnail ? asset('storage/' . $thumbnail) : null,
+                    'url' => route('client.product.detail', ['id' => $product->slug ?: $product->id]),
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'trending' => $trending,
+            'suggestions' => $suggestions,
+            'best_sellers' => $bestSellers,
+        ]);
+    }
+
     public function show($slug)
     {
         $product = Product::with(['brand', 'categories', 'variants.specifications', 'variants.attributeValues.attribute', 'images'])
