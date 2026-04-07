@@ -468,6 +468,10 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
         Route::resource('role', RoleController::class);
         Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
         Route::get('member', [RoleController::class, 'listMembers'])->name('member');
+
+        // Settings
+        Route::get('settings', [App\Http\Controllers\AdminControllers\SettingController::class, 'index'])->name('settings.index');
+        Route::post('settings/update', [App\Http\Controllers\AdminControllers\SettingController::class, 'update'])->name('settings.update');
     });
 });
 // Public product routes and comment endpoints

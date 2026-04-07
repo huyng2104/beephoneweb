@@ -2,29 +2,49 @@
     class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-solid border-[#f5f3f0] dark:border-white/10 px-4 md:px-10 lg:px-20 py-3">
     <div class="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
 
-        <a href="{{ route('home') }}" class="flex items-center gap-2 group">
-            <div
-                class="size-8 bg-primary rounded-lg flex items-center justify-center text-black group-hover:scale-105 transition-transform">
-                <span class="material-symbols-outlined">rocket_launch</span>
+        <a href="{{ route('home') }}" class="flex items-center gap-3 group">
+            @if(isset($site_settings['site_logo']) && $site_settings['site_logo']->value)
+                <img src="{{ asset($site_settings['site_logo']->value) }}" alt="{{ $site_settings['site_name']->value ?? 'Bee Phone' }}" class="h-10 w-auto object-contain transition-transform group-hover:scale-105">
+            @else
+                <div class="size-10 bg-primary rounded-xl flex items-center justify-center text-black group-hover:scale-105 transition-transform shadow-lg shadow-primary/20">
+                    <span class="material-symbols-outlined text-2xl">rocket_launch</span>
+                </div>
+            @endif
+            <div class="flex flex-col">
+                <h1 class="text-xl font-black leading-none tracking-tighter text-slate-800 dark:text-white group-hover:text-primary transition-colors">
+                    {{ $site_settings['site_name']->value ?? 'Bee Phone' }}
+                </h1>
+                <span class="text-[10px] font-bold text-primary uppercase tracking-[0.2em] leading-none mt-1">Hệ thống bán lẻ</span>
             </div>
-            <h2
-                class="text-xl font-bold leading-tight tracking-tight hidden md:block group-hover:text-primary transition-colors">
-                Bee Phone</h2>
         </a>
 
+        @php
+            $headerMenuSetting = \App\Models\Setting::where('key', 'header_menu')->first();
+            $headerMenuItems = $headerMenuSetting ? $headerMenuSetting->value : [];
+            if (is_string($headerMenuItems)) {
+                $headerMenuItems = json_decode($headerMenuItems, true);
+            }
+        @endphp
+
         <nav class="hidden lg:flex items-center gap-8">
-            <a class="text-sm font-medium hover:text-primary transition-colors"
-                href="{{ route('client.products.index') }}">Tất cả SP</a>
-            <a class="text-sm font-medium hover:text-primary transition-colors"
-                href="{{ route('client.products.index', ['category' => 'dien-thoai']) }}">Điện thoại</a>
-            <a class="text-sm font-medium hover:text-primary transition-colors"
-                href="{{ route('client.products.index', ['category' => 'am-thanh']) }}">Âm thanh</a>
-            <a class="text-sm font-medium hover:text-primary transition-colors" href="{{ route('vouchers') }}">Khuyến
-                mãi</a>
-            <a class="text-sm font-medium hover:text-primary transition-colors"
-                href="{{ route('client.posts.index') }}">Tin tức & Bài viết</a>
-            <a class="text-sm font-medium hover:text-primary transition-colors"
-                href="{{ route('client.tickets.index') }}">Hỗ trợ</a>
+            @if(!empty($headerMenuItems) && is_array($headerMenuItems))
+                @foreach($headerMenuItems as $item)
+                    @include('client.layouts.menu-item', ['item' => $item, 'level' => 0])
+                @endforeach
+            @else
+                <a class="text-sm font-medium hover:text-primary transition-colors"
+                    href="{{ route('client.products.index') }}">Tất cả SP</a>
+                <a class="text-sm font-medium hover:text-primary transition-colors"
+                    href="{{ route('client.products.index', ['category' => 'dien-thoai']) }}">Điện thoại</a>
+                <a class="text-sm font-medium hover:text-primary transition-colors"
+                    href="{{ route('client.products.index', ['category' => 'am-thanh']) }}">Âm thanh</a>
+                <a class="text-sm font-medium hover:text-primary transition-colors" href="{{ route('vouchers') }}">Khuyến
+                    mãi</a>
+                <a class="text-sm font-medium hover:text-primary transition-colors"
+                    href="{{ route('client.posts.index') }}">Tin tức & Bài viết</a>
+                <a class="text-sm font-medium hover:text-primary transition-colors"
+                    href="{{ route('client.tickets.index') }}">Hỗ trợ</a>
+            @endif
         </nav>
 
         <div class="flex flex-1 justify-end items-center gap-4 max-w-xl">

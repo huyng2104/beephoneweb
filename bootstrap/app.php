@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             \App\Http\Middleware\CheckBannedUser::class,
+            \App\Http\Middleware\MaintenanceMode::class,
         ]);
 
         $middleware->alias([
