@@ -18,6 +18,7 @@ class Order extends Model
         'customer_phone',
         'customer_email',
         'shipping_address',
+        'shipping_fee',
         'total_amount',
         'status',
         'return_status',

@@ -232,7 +232,6 @@ class CheckoutController extends Controller
                 $stockObj->decrement('stock', $item->quantity);
             }
 
-            // 2.3 XỬ LÝ VOUCHER 
             $discountAmount = 0;
             if (session()->has('voucher')) {
                 $voucherSession = session('voucher');
@@ -254,12 +253,17 @@ class CheckoutController extends Controller
                 }
             }
 
-            $finalAmount = $totalPrice - $discountAmount;
+            // --- TÍNH PHÍ SHIP ---
+            $shippingFeeSetting = (int) (\App\Models\Setting::where('key', 'shipping_fee')->first()?->value ?? 30000);
+            $freeShippingThreshold = (int) (\App\Models\Setting::where('key', 'free_shipping_threshold')->first()?->value ?? 500000);
+            $appliedShippingFee = ($totalPrice >= $freeShippingThreshold) ? 0 : $shippingFeeSetting;
+
+            $finalAmount = $totalPrice - $discountAmount + $appliedShippingFee;
             if ($finalAmount < 0) $finalAmount = 0;
 
             $order->update([
-                'total_price' => $totalPrice, 
-                'total_amount' => $finalAmount 
+                'total_amount' => $finalAmount,
+                'shipping_fee' => $appliedShippingFee,
             ]);
 
             // 2.4 LOGIC THANH TOÁN BẰNG VÍ BEE PAY

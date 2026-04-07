@@ -363,25 +363,36 @@
                 <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-8xl text-white/5 rotate-12 pointer-events-none">receipt_long</span>
 
                 <h3 class="text-base font-bold mb-5 uppercase tracking-widest text-[#f4c025]">Tóm tắt thanh toán</h3>
+                
+                @php
+                    $subtotal = $order->items->sum('line_total');
+                    $shippingFee = $order->shipping_fee ?? 0;
+                    $discount = ($subtotal + $shippingFee) - $order->total_amount;
+                    if($discount < 0) $discount = 0;
+                @endphp
+
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between text-gray-400">
-                        <span>Tạm tính</span>
-                        <span class="text-white">{{ number_format($order->total_price ?? 0, 0, ',', '.') }}₫</span>
+                        <span>Tạm tính (Tiền hàng)</span>
+                        <span class="text-white">{{ number_format($subtotal, 0, ',', '.') }}₫</span>
                     </div>
                     <div class="flex justify-between text-gray-400">
                         <span>Phí vận chuyển</span>
-                        <span class="text-green-400">Miễn phí</span>
+                        <span class="{{ $shippingFee <= 0 ? 'text-green-400' : 'text-white' }}">
+                            {{ $shippingFee <= 0 ? 'Miễn phí' : number_format($shippingFee, 0, ',', '.') . '₫' }}
+                        </span>
                     </div>
-                    @if($order->total_price > $order->total_amount)
+                    
+                    @if($discount > 0)
                     <div class="flex justify-between text-gray-400">
                         <span>Giảm giá (Voucher)</span>
-                        <span class="text-red-400">-{{ number_format($order->total_price - $order->total_amount, 0, ',', '.') }}₫</span>
+                        <span class="text-red-400">-{{ number_format($discount, 0, ',', '.') }}₫</span>
                     </div>
                     @endif
 
                     <div class="pt-4 mt-2 border-t border-gray-800 flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Tổng cộng (Đã VAT)</p>
+                            <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Tổng cộng thanh toán</p>
                             <p class="text-3xl font-bold text-[#f4c025] mt-1">{{ number_format($order->total_amount, 0, ',', '.') }}₫</p>
                         </div>
                     </div>
