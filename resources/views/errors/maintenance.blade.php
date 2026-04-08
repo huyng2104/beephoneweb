@@ -48,7 +48,7 @@
         </div>
 
         <!-- Content -->
-        <h1 class="text-4xl md:text-6xl font-black mb-6 tracking-tight">BeePhone đang <span class="text-[#f4c025]">nâng cấp</span> hệ thống</h1>
+        <h1 class="text-4xl md:text-6xl font-bold mb-6 tracking-tight">BeePhone đang <span class="text-[#f4c025]">nâng cấp</span> hệ thống</h1>
         
         <p class="text-lg md:text-xl text-gray-400 font-medium mb-10 leading-relaxed max-w-xl mx-auto">
             {{ $message ?? 'Chúng tôi đang tiến hành bảo trì định kỳ để mang lại trải nghiệm tốt nhất cho bạn. Vui lòng quay lại sau.' }}
@@ -56,7 +56,7 @@
 
         @if($end_at)
             <div class="inline-flex flex-col items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-10 shadow-2xl">
-                <span class="text-xs font-black uppercase tracking-[0.3em] text-[#f4c025] mb-2">Dự kiến hoàn thành</span>
+                <span class="text-xs font-bold uppercase tracking-[0.3em] text-[#f4c025] mb-2">Dự kiến hoàn thành</span>
                 <span class="text-3xl font-bold tracking-tight">
                     {{ \Carbon\Carbon::parse($end_at)->format('H:i - d/m/Y') }}
                 </span>

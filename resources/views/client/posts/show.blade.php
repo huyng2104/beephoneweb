@@ -62,7 +62,7 @@
                     <!-- Article Header -->
                     <div class="mb-8">
                         <h1
-                            class="text-[#181611] dark:text-white text-4xl lg:text-5xl font-black leading-tight tracking-tight mb-4">
+                            class="text-[#181611] dark:text-white text-4xl lg:text-5xl font-bold leading-tight tracking-tight mb-4">
                             {{ $post->title }}
                         </h1>
                         <div class="flex items-center gap-4 text-[#8a8060] text-sm font-medium">
@@ -188,7 +188,7 @@
                     {{-- <div class="bg-background-dark text-white rounded-xl overflow-hidden relative p-6 group">
                         <div class="absolute top-0 right-0 p-4">
                             <span
-                                class="bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-full animate-pulse">HOT
+                                class="bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full animate-pulse">HOT
                                 DEAL</span>
                         </div>
                         <p class="text-primary text-sm font-bold mb-2 uppercase">Sản phẩm nổi bật</p>
@@ -202,7 +202,7 @@
                             <span class="text-sm text-gray-500 line-through">32.990.000đ</span>
                         </div>
                         <button
-                            class="w-full bg-primary text-background-dark font-black py-3 rounded-lg hover:bg-white transition-colors">
+                            class="w-full bg-primary text-background-dark font-bold py-3 rounded-lg hover:bg-white transition-colors">
                             MUA NGAY
                         </button>
                     </div> --}}
@@ -219,7 +219,7 @@
                                     href="{{ route('client.posts.show', $post->slug) }}">
 
                                     <span
-                                        class="text-2xl font-black text-gray-200 group-hover:text-primary transition-colors">
+                                        class="text-2xl font-bold text-gray-200 group-hover:text-primary transition-colors">
                                         {{ str_pad($index + 1, 2, '0', STR_PAD_LEFT) }}
                                     </span>
 

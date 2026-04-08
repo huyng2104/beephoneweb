@@ -13,7 +13,7 @@
                     <span class="material-symbols-outlined text-xs">chevron_right</span>
                     <span class="text-slate-900 font-medium">Thùng rác</span>
                 </div>
-                <h1 class="text-3xl font-black tracking-tight text-slate-900 flex items-center gap-3">
+                <h1 class="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-3">
                     <span class="material-symbols-outlined text-3xl text-red-500">delete</span> Thùng rác sản phẩm
                 </h1>
             </div>
@@ -33,11 +33,11 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-200 text-sm">
-                            <th class="py-4 px-6 font-black text-slate-600 w-16 text-center">ID</th>
-                            <th class="py-4 px-6 font-black text-slate-600 w-24">Ảnh</th>
-                            <th class="py-4 px-6 font-black text-slate-600">Tên sản phẩm</th>
-                            <th class="py-4 px-6 font-black text-slate-600">Ngày xóa</th>
-                            <th class="py-4 px-6 font-black text-slate-600 w-48 text-right">Thao tác</th>
+                            <th class="py-4 px-6 font-bold text-slate-600 w-16 text-center">ID</th>
+                            <th class="py-4 px-6 font-bold text-slate-600 w-24">Ảnh</th>
+                            <th class="py-4 px-6 font-bold text-slate-600">Tên sản phẩm</th>
+                            <th class="py-4 px-6 font-bold text-slate-600">Ngày xóa</th>
+                            <th class="py-4 px-6 font-bold text-slate-600 w-48 text-right">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">

@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             @endif
             <div class="flex flex-col">
-                <h1 class="text-xl font-black leading-none tracking-tighter text-slate-800 dark:text-white group-hover:text-primary transition-colors">
+                <h1 class="text-xl font-bold leading-none tracking-tighter text-slate-800 dark:text-white group-hover:text-primary transition-colors">
                     {{ $site_settings['site_name']->value ?? 'Bee Phone' }}
                 </h1>
                 <span class="text-[10px] font-bold text-primary uppercase tracking-[0.2em] leading-none mt-1">Hệ thống bán lẻ</span>

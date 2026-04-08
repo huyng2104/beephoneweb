@@ -7,7 +7,7 @@
 <main class="max-w-[1200px] mx-auto px-4 lg:px-10 py-10">
 
 <div class="mb-10 text-center max-w-2xl mx-auto">
-<h1 class="text-4xl lg:text-5xl font-black mb-4">
+<h1 class="text-4xl lg:text-5xl font-bold mb-4">
 Chúng tôi có thể giúp gì cho bạn?
 </h1>
 

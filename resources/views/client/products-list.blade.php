@@ -75,6 +75,21 @@
 
             <section>
                 <h3 class="font-bold text-base uppercase mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-white/10 pb-2 mt-6">
+                    <span class="material-symbols-outlined text-primary">category</span> Danh mục
+                </h3>
+                <div class="space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
+                    @foreach($categories as $category)
+                    <label class="flex items-center space-x-3 cursor-pointer group">
+                        <input type="checkbox" name="categories[]" value="{{ $category->id }}" class="filter-trigger rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 bg-transparent"
+                            {{ is_array(request('categories')) && in_array($category->id, request('categories')) ? 'checked' : '' }} />
+                        <span class="text-sm group-hover:text-primary transition-colors {{ is_array(request('categories')) && in_array($category->id, request('categories')) ? 'font-bold text-primary' : 'text-gray-600 dark:text-gray-300' }}">{{ $category->name }}</span>
+                    </label>
+                    @endforeach
+                </div>
+            </section>
+
+            <section>
+                <h3 class="font-bold text-base uppercase mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-white/10 pb-2 mt-6">
                     <span class="material-symbols-outlined text-primary">sell</span> Thương hiệu
                 </h3>
                 <div class="space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
@@ -86,6 +101,29 @@
                     </label>
                     @endforeach
                 </div>
+            </section>
+
+            <section>
+                <h3 class="font-bold text-base uppercase mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-white/10 pb-2 mt-6">
+                    <span class="material-symbols-outlined text-primary">inventory_2</span> Tình trạng kho
+                </h3>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                        <input type="radio" name="stock_status" id="stock-1" value="in-stock" class="filter-radio filter-trigger" {{ request('stock_status') == 'in-stock' ? 'checked' : '' }}>
+                        <label for="stock-1" class="filter-label block border border-gray-200 dark:border-gray-700 py-2.5 px-1 text-center rounded-lg hover:border-primary transition-colors">Còn hàng</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="stock_status" id="stock-2" value="out-of-stock" class="filter-radio filter-trigger" {{ request('stock_status') == 'out-of-stock' ? 'checked' : '' }}>
+                        <label for="stock-2" class="filter-label block border border-gray-200 dark:border-gray-700 py-2.5 px-1 text-center rounded-lg hover:border-primary transition-colors">Hết hàng</label>
+                    </div>
+                </div>
+                @if(request('stock_status'))
+                    <div class="mt-3 text-right">
+                        <button type="button" class="text-xs font-bold text-red-500 hover:text-red-600 hover:underline flex items-center justify-end gap-1 ml-auto w-fit" onclick="document.querySelectorAll('input[name=stock_status]').forEach(r => r.checked=false); document.getElementById('filter-form').submit();">
+                            <span class="material-symbols-outlined text-[14px]">close</span> Xóa lọc
+                        </button>
+                    </div>
+                @endif
             </section>
         </form>
 
@@ -107,27 +145,33 @@
                             $prodImg = $product->thumbnail ?? '';
                             $prodUrl = Str::startsWith($prodImg, ['http://', 'https://']) ? $prodImg : ($prodImg ? asset('storage/' . $prodImg) : 'https://placehold.co/400x400/f8f9fa/1a1a1a?text=BeePhone');
                             
+                            // Chỉ lấy biến thể đang active
+                            $activeVariants = $product->variants ? $product->variants->where('status', 'active') : collect();
+                            $totalStock = $activeVariants->sum('stock');
+
                             $finalPrice = $product->price ?? 0;
                             $finalSalePrice = $product->sale_price ?? 0;
                             $isVariable = false;
 
                             $specsList = is_array($product->specifications) ? $product->specifications : (json_decode($product->specifications, true) ?? []);
 
-                            if($product->type == 'simple' && $product->variants && $product->variants->count() > 0) {
-                                $firstVar = $product->variants->first();
+                            if($product->type == 'simple' && $activeVariants->isNotEmpty()) {
+                                $firstVar = $activeVariants->first();
                                 $finalPrice = $firstVar->price;
                                 $finalSalePrice = $firstVar->sale_price;
-                            } elseif($product->type == 'variable' && $product->variants && $product->variants->count() > 0) {
+                            } elseif($product->type == 'variable' && $activeVariants->isNotEmpty()) {
                                 $isVariable = true;
-                                $minVariant = $product->variants->sortBy(function($v) {
+                                $minVariant = $activeVariants->sortBy(function($v) {
                                     return ($v->sale_price > 0 && $v->sale_price < $v->price) ? $v->sale_price : $v->price;
                                 })->first();
 
-                                $finalPrice = $minVariant->price;
-                                $finalSalePrice = $minVariant->sale_price;
+                                if($minVariant) {
+                                    $finalPrice = $minVariant->price;
+                                    $finalSalePrice = $minVariant->sale_price;
+                                }
 
                                 $colors = []; $rams = []; $roms = [];
-                                foreach($product->variants as $var) {
+                                foreach($activeVariants as $var) {
                                     foreach($var->attributeValues as $val) {
                                         $attrName = mb_strtolower($val->attribute->name ?? '');
                                         if (str_contains($attrName, 'màu')) $colors[] = $val->value;
@@ -148,12 +192,12 @@
                         @endphp
                         
                         <article class="bg-white dark:bg-white/5 p-4 rounded-2xl border border-transparent hover:border-primary transition-all group flex flex-col shadow-sm hover:shadow-xl">
-                            @if($hasSale)
+                            {{-- @if($hasSale)
                                 <div class="absolute top-6 left-6 z-10">
                                     <span class="bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider shadow-sm">-{{ $discountPercent }}%</span>
                                 </div>
                             @endif
-                            
+                             --}}
                             <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" class="relative rounded-xl overflow-hidden aspect-square bg-gray-50 dark:bg-black/20 mb-4 block flex items-center justify-center p-4">
                                 <img alt="{{ $product->name }}" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 mix-blend-multiply dark:mix-blend-normal" src="{{ $prodUrl }}"/>
                             </a>
@@ -163,6 +207,18 @@
                                 <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}">
                                     <h3 class="font-bold text-lg mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-tight" title="{{ $product->name }}">{{ $product->name }}</h3>
                                 </a>
+
+                                <div class="flex items-center justify-between mb-2 mt-1">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex text-yellow-400">
+                                            @for($i=0; $i<5; $i++)
+                                                <span class="material-symbols-outlined text-[14px]">{{ $i < 4 ? 'star' : 'star_half' }}</span>
+                                            @endfor
+                                        </div>
+                                        <span class="text-[10px] text-gray-400 font-bold">(128)</span>
+                                    </div>
+                                    <span class="text-[10px] text-gray-500 font-bold">Kho: {{ $totalStock }}</span>
+                                </div>
                                 
                                 <div class="mt-auto pt-2">
                                     <div class="flex flex-col mb-4">
@@ -188,15 +244,16 @@
                                         </label>
 
                                         @if($isVariable)
-                                            <a href="{{ route('client.product.detail', $product->slug ?? $product->id) }}" 
-                                               class="bg-[#f5f3f0] dark:bg-white/10 text-[#181611] dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-colors shrink-0" title="Chọn phiên bản">
-                                                <span class="material-symbols-outlined">tune</span>
-                                            </a>
+                                            <button type="button"
+                                               class="btn-add-cart-quick-variable bg-[#181611] dark:bg-primary text-white dark:text-black w-10 h-10 rounded-lg flex items-center justify-center hover:scale-110 hover:bg-primary hover:text-black transition-all shrink-0 shadow-md"
+                                               data-product-id="{{ $product->id }}" title="Chọn phiên bản">
+                                                <span class="material-symbols-outlined">add_shopping_cart</span>
+                                            </button>
                                         @else
                                             @php
-                                                $simpleVarId = $product->variants->first()->id ?? '';
+                                                $simpleVarId = $activeVariants->first()->id ?? '';
                                             @endphp
-                                            <button class="btn-add-cart-quick bg-[#f5f3f0] dark:bg-white/10 text-[#181611] dark:text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary hover:text-black transition-colors shrink-0" 
+                                            <button class="btn-add-cart-quick bg-[#181611] dark:bg-primary text-white dark:text-black w-10 h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-all shrink-0 shadow-md" 
                                                     data-product-id="{{ $product->id }}" data-variant-id="{{ $simpleVarId }}" title="Thêm vào giỏ">
                                                 <span class="material-symbols-outlined">add_shopping_cart</span>
                                             </button>

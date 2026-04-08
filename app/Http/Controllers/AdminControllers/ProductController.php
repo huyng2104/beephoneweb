@@ -7,7 +7,6 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Attribute;
-use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -153,7 +152,7 @@ class ProductController extends Controller
                 $thumbnailPath = $request->file('thumbnail')->store('products', 'public');
             }
 
-            $sku = $request->sku ?: strtoupper(Str::slug($request->name, ''));
+            $sku = $request->sku ?: strtoupper(Str::random(12));
 
             // Lưu Sản phẩm chính
             $product = Product::create([
@@ -213,7 +212,7 @@ class ProductController extends Controller
                     }
 
                     $variant = $product->variants()->create([
-                        'sku' => !empty($varData['sku']) ? $varData['sku'] : ($sku . '-' . strtoupper(Str::random(4))),
+                        'sku' => !empty($varData['sku']) ? $varData['sku'] : strtoupper(Str::random(12)),
                         'price' => $varData['price'] ?? 0,
                         'sale_price' => $varData['sale_price'] ?? null,
                         'stock' => $varData['stock'] ?? 0,
@@ -254,42 +253,6 @@ class ProductController extends Controller
         $product->load(['categories', 'brand', 'images', 'variants.attributeValues']);
         $categories = \App\Models\Category::orderBy('name', 'asc')->get();
         return view('admin.products.show', compact('product', 'categories'));
-    }
-
-    public function comments(Product $product): View
-    {
-        // Keep it consistent with com/showcom: only root comments in the list, with nested replies.
-        $comments = Comment::query()
-            ->where('product_id', $product->id)
-            ->whereNull('parent_id')
-            ->with([
-                'user',
-                'children.user',
-                'children.children.user',
-                'children.children.children.user',
-                'children.children.children.children.user',
-            ])
-            ->latest()
-            ->get();
-
-        $rated = $comments->whereNotNull('rating');
-        $totalRatings = $rated->count();
-        $averageRating = $totalRatings > 0 ? round((float) $rated->avg('rating'), 1) : 0.0;
-
-        $ratingBreakdown = collect(range(5, 1))
-            ->mapWithKeys(fn (int $star) => [$star => $rated->where('rating', $star)->count()]);
-
-        // Load product relations used by the UI (thumbnail/status/description already on model).
-        $product->loadMissing(['brand', 'categories']);
-
-        // Render exactly like the existing com/showcom layout (admin & product comment pages look different).
-        return view('com.showcom', compact(
-            'product',
-            'comments',
-            'totalRatings',
-            'averageRating',
-            'ratingBreakdown',
-        ));
     }
 
     public function edit(Product $product)
@@ -418,7 +381,7 @@ class ProductController extends Controller
                 } else {
                     // Nếu chưa có biến thể nào thì tạo mới
                     $firstVariant = $product->variants()->create([
-                        'sku' => $request->sku ?? ($product->slug . '-' . Str::random(4)),
+                        'sku' => $request->sku ?: strtoupper(Str::random(12)),
                         'price' => $request->price ?? 0,
                         'sale_price' => $request->sale_price ?? null,
                         'stock' => $request->stock ?? 0,
@@ -503,7 +466,7 @@ class ProductController extends Controller
                         }
 
                         $newVariant = $product->variants()->create([
-                            'sku' => $varData['sku'] ?? ($request->sku ?? $product->slug) . '-' . Str::random(5),
+                            'sku' => !empty($varData['sku']) ? $varData['sku'] : strtoupper(Str::random(12)),
                             'price' => $varData['price'] ?? 0,
                             'sale_price' => $varData['sale_price'] ?? null,
                             'stock' => $varData['stock'] ?? 0,

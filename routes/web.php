@@ -46,10 +46,9 @@ use App\Http\Controllers\Client\ChatbotController;
 use App\Http\Controllers\Client\PostController as ClientPostController;
 use App\Http\Controllers\Client\ClientTicketController;
 use App\Http\Controllers\Client\VoucherController as ClientVoucherController;
+use App\Http\Controllers\Client\ReviewController as ClientReviewController;
 use App\Models\User;
-use App\Http\Controllers\AdminControllers\CommentController as AdminCommentController;
 use App\Http\Controllers\AdminControllers\ReviewController as AdminReviewController;
-use App\Http\Controllers\CommentController;
 use App\Http\Controllers\AdminControllers\WithdrawalController;
 /*
 |--------------------------------------------------------------------------
@@ -384,19 +383,15 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
         Route::post('products', [AdminProductController::class, 'store'])->name('products.store');
         Route::resource('products', AdminProductController::class)->except(['create', 'store']);
 
-        // 5.1 Quản lý Comments (Admin)
-        Route::get('comments', [AdminCommentController::class, 'index'])->name('comments.index');
-        Route::post('comments/{comment}/reply', [AdminCommentController::class, 'reply'])->name('comments.reply');
-        Route::patch('comments/{comment}/toggle-hidden', [AdminCommentController::class, 'toggleHidden'])->name('comments.toggle_hidden');
-        Route::delete('comments/{comment}', [AdminCommentController::class, 'destroy'])->name('comments.destroy');
 
-        // 5.2 Quản lý Đánh giá (Admin)
+        // Quản lý Đánh giá (Admin)
         Route::get('reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
-
-        // Link từ danh sách sản phẩm -> trang quản lý comments (lọc theo product nếu cần)
-        // Xem comment theo từng sản phẩm (UI giống trang com/showcom, khác với trang quản lý comment dạng bảng)
-        Route::get('products/{product}/comments', [AdminProductController::class, 'comments'])->name('products.comments');
-
+        Route::patch('reviews/{review}/approve', [AdminReviewController::class, 'approve'])->name('reviews.approve');
+        Route::patch('reviews/{review}/hide', [AdminReviewController::class, 'hide'])->name('reviews.hide');
+        Route::patch('reviews/{review}/pending', [AdminReviewController::class, 'pending'])->name('reviews.pending');
+        Route::post('reviews/{review}/reply', [AdminReviewController::class, 'reply'])->name('reviews.reply');
+        Route::delete('reviews/{review}/reply', [AdminReviewController::class, 'deleteReply'])->name('reviews.reply.delete');
+        Route::delete('reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
 
         // 6. Quản lý Vouchers
         Route::post('vouchers/{id}/restore', [VoucherController::class, 'restore'])->name('vouchers.restore');
@@ -478,8 +473,10 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
         Route::post('settings/update', [App\Http\Controllers\AdminControllers\SettingController::class, 'update'])->name('settings.update');
     });
 });
-// Public product routes and comment endpoints
+// Public product routes
 Route::get('/products/{product}', [ClientProductController::class, 'show'])->name('products.show');
- Route::post('/products/{product}/comments', [CommentController::class, 'store'])->name('products.comments.store');
-// Allow deleting comments from client UI (admin/owner only, with confirm modal in UI)
-Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+// Đánh giá sản phẩm (Client)
+Route::post('/products/{product}/reviews', [ClientReviewController::class, 'store'])->name('products.reviews.store');
+Route::post('/reviews/{review}/helpful', [ClientReviewController::class, 'helpful'])->name('reviews.helpful');
+Route::delete('/reviews/{review}', [ClientReviewController::class, 'destroy'])->middleware('auth')->name('reviews.destroy');

@@ -80,7 +80,7 @@ font-weight: 500;
             <!-- Page Heading -->
             <div class="mb-10 text-center max-w-2xl mx-auto">
                 <h1
-                    class="text-[#181611] dark:text-white text-4xl lg:text-5xl font-black leading-tight tracking-[-0.033em] mb-4">
+                    class="text-[#181611] dark:text-white text-4xl lg:text-5xl font-bold leading-tight tracking-[-0.033em] mb-4">
                     Chúng tôi có thể giúp gì cho bạn?
                 </h1>
                 <p class="text-[#8a8060] dark:text-white/60 text-lg font-normal leading-normal">

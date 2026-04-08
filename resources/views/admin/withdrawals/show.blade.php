@@ -17,7 +17,7 @@
                         class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
 
                         <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                            <h3 class="font-black text-lg text-slate-900 dark:text-white uppercase tracking-tight">Thông tin
+                            <h3 class="font-bold text-lg text-slate-900 dark:text-white uppercase tracking-tight">Thông tin
                                 rút tiền</h3>
                             @if ($withdrawal->status == 'pending')
                                 <span
@@ -40,7 +40,7 @@
                         <div class="p-6 grid grid-cols-2 gap-8">
                             <div>
                                 <p class="text-xs font-bold text-slate-400 uppercase mb-1">Số tiền rút</p>
-                                <p class="text-3xl font-black text-primary">{{ number_format($withdrawal->amount) }}đ</p>
+                                <p class="text-3xl font-bold text-primary">{{ number_format($withdrawal->amount) }}đ</p>
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-slate-400 uppercase mb-1">Mã giao dịch</p>
@@ -70,7 +70,7 @@
                                             <span class="text-sm text-slate-500">Số tài khoản:</span>
                                             <div class="flex items-center gap-2">
                                                 <span id="account_number"
-                                                    class="text-sm font-black text-blue-600 tracking-wider">{{ $withdrawal->account_number }}</span>
+                                                    class="text-sm font-bold text-blue-600 tracking-wider">{{ $withdrawal->account_number }}</span>
                                                 <button onclick="copyToClipboard('{{ $withdrawal->account_number }}')"
                                                     type="button"
                                                     class="size-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:text-primary transition-all"
@@ -131,7 +131,7 @@
                                         </div>
 
                                         <div class="mt-4 text-center space-y-1">
-                                            <p class="text-2xl font-black text-primary">
+                                            <p class="text-2xl font-bold text-primary">
                                                 {{ number_format($withdrawal->amount) }}đ</p>
                                             <p class="text-sm text-slate-500 dark:text-slate-400">
                                                 {{ $withdrawal->bank_name }} - <span
@@ -281,7 +281,7 @@
                         <div
                             class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 space-y-4">
                             <h3
-                                class="font-black text-sm text-slate-900 dark:text-white uppercase tracking-tight border-b border-slate-100 dark:border-slate-700 pb-3">
+                                class="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-tight border-b border-slate-100 dark:border-slate-700 pb-3">
                                 Kết quả xử lý</h3>
                             @if ($withdrawal->admin_note)
                                 <div>
@@ -303,12 +303,12 @@
                             <img src="https://ui-avatars.com/api/?name={{ urlencode($withdrawal->user->name) }}&background=random"
                                 class="w-full h-full object-cover">
                         </div>
-                        <h4 class="font-black text-slate-900 dark:text-white">{{ $withdrawal->user->name }}</h4>
+                        <h4 class="font-bold text-slate-900 dark:text-white">{{ $withdrawal->user->name }}</h4>
                         <p class="text-xs text-slate-500 mb-4">{{ $withdrawal->user->email }}</p>
 
                         <div class="bg-blue-50 dark:bg-blue-500/10 rounded-2xl p-4">
                             <p class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Số dư ví hiện tại</p>
-                            <p class="text-xl font-black text-blue-700 dark:text-blue-400">
+                            <p class="text-xl font-bold text-blue-700 dark:text-blue-400">
                                 {{ number_format($withdrawal->user->wallet->balance ?? 0) }}đ
                             </p>
                         </div>

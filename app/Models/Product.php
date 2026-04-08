@@ -72,6 +72,18 @@ class Product extends Model
     {
         return $this->hasMany(ProductImage::class);
     }
+
+    // Sản phẩm có nhiều Đánh giá
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /** Đánh giá đã được duyệt */
+    public function approvedReviews(): HasMany
+    {
+        return $this->hasMany(Review::class)->where('status', Review::STATUS_APPROVED);
+    }
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

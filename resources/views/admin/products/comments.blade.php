@@ -34,7 +34,7 @@
                                             class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{{ $product->status ?? 'Khong ro' }}</span>
                                     @endif
                                 </div>
-                                <h1 class="text-3xl font-black leading-tight tracking-tight text-slate-900 sm:text-4xl">
+                                <h1 class="text-3xl font-bold leading-tight tracking-tight text-slate-900 sm:text-4xl">
                                     {{ $product->name }}</h1>
                                 <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600 sm:text-base">
                                     {{ $product->description ?: 'Chua co mo ta cho san pham nay.' }}
@@ -59,16 +59,16 @@
                 <div class="grid gap-4 border-b border-slate-100 bg-slate-50/80 px-6 py-5 text-sm text-slate-600 sm:grid-cols-3 sm:px-8">
                     <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                         <div class="text-xs font-bold uppercase tracking-wide text-slate-400">So comment</div>
-                        <div class="mt-1 text-2xl font-black text-slate-900">{{ $comments->count() }}</div>
+                        <div class="mt-1 text-2xl font-bold text-slate-900">{{ $comments->count() }}</div>
                     </div>
                     <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                         <div class="text-xs font-bold uppercase tracking-wide text-slate-400">Danh gia</div>
-                        <div class="mt-1 text-2xl font-black text-slate-900">
+                        <div class="mt-1 text-2xl font-bold text-slate-900">
                             {{ number_format($comments->whereNotNull('rating')->avg('rating') ?? 0, 1) }}</div>
                     </div>
                     <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                         <div class="text-xs font-bold uppercase tracking-wide text-slate-400">Tra loi</div>
-                        <div class="mt-1 text-2xl font-black text-slate-900">
+                        <div class="mt-1 text-2xl font-bold text-slate-900">
                             {{ $comments->sum(fn($comment) => $comment->children->count()) }}</div>
                     </div>
                 </div>
@@ -78,7 +78,7 @@
                 <div class="grid gap-6 px-5 py-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-6">
                     <div class="flex flex-col justify-center">
                         <div class="flex items-end gap-2">
-                            <span class="text-5xl font-black leading-none">{{ number_format($averageRating, 1) }}</span>
+                            <span class="text-5xl font-bold leading-none">{{ number_format($averageRating, 1) }}</span>
                             <span class="pb-1 text-2xl font-bold text-slate-300">/5</span>
                         </div>
                         <div class="mt-3 flex items-center gap-0.5 text-primary">
@@ -114,7 +114,7 @@
                 <div class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                     <div class="border-b border-slate-100 px-6 py-4 sm:px-8">
                         <div class="flex flex-wrap items-center justify-between gap-3">
-                            <h2 class="flex items-center gap-2 text-xl font-black text-slate-900">
+                            <h2 class="flex items-center gap-2 text-xl font-bold text-slate-900">
                                 <span class="material-symbols-outlined text-primary">chat</span>
                                 Danh sach comment
                             </h2>
@@ -138,7 +138,7 @@
 
                 <div class="h-fit self-start overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:sticky lg:top-6">
                     <div class="border-b border-slate-100 px-6 py-4">
-                        <h2 class="flex items-center gap-2 text-xl font-black text-slate-900">
+                        <h2 class="flex items-center gap-2 text-xl font-bold text-slate-900">
                             <span class="material-symbols-outlined text-primary">rate_review</span>
                             Viet comment
                         </h2>

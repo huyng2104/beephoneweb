@@ -2,7 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\Attribute;
+use App\Models\AttributeValue;
+use App\Models\Brand;
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Models\VariantSpecification;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -10,145 +16,203 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        $products = [
+        // Lấy dữ liệu cần thiết
+        $brands = Brand::pluck('id', 'name')->toArray();
+        $categories = Category::pluck('id', 'slug')->toArray();
+        $attrValues = AttributeValue::with('attribute')->get()->groupBy('attribute.name');
+
+        // Hàm hỗ trợ tìm ID giá trị thuộc tính
+        $getAttrId = function($attrName, $valueName) use ($attrValues) {
+            return $attrValues[$attrName]->where('value', $valueName)->first()?->id;
+        };
+
+        $productsData = [
             [
-                'name' => 'iPhone 14 128GB',
-                'description' => 'iPhone 14 128GB chinh hang, bao hanh 12 thang.',
-                'type' => 'simple',
-                'price' => 14990000,
-                'sale_price' => 13990000,
-                'sku' => 'IP14-128-BL',
-                'stock' => 24,
-                'status' => 'active',
-                'is_featured' => true,
-                'thumbnail' => null,
+                'name' => 'iPhone 15 Pro Max',
+                'brand' => 'Apple',
+                'category' => 'iphone-15-series',
+                'type' => 'variable',
+                'variants' => [
+                    [
+                        'sku' => 'IP15PM-256-TITAN', 'price' => 34990000, 'sale_price' => 31990000, 'stock' => 50,
+                        'attrs' => ['Màu sắc' => 'Titan Tự Nhiên', 'Dung lượng' => '256GB'],
+                        'specs' => ['Màn hình' => '6.7 inch', 'Chip' => 'A17 Pro', 'Pin' => '4422 mAh']
+                    ],
+                    [
+                        'sku' => 'IP15PM-512-BLACK', 'price' => 40990000, 'sale_price' => 37990000, 'stock' => 30,
+                        'attrs' => ['Màu sắc' => 'Đen', 'Dung lượng' => '512GB'],
+                        'specs' => ['Màn hình' => '6.7 inch', 'Chip' => 'A17 Pro', 'Pin' => '4422 mAh']
+                    ]
+                ]
             ],
             [
-                'name' => 'iPhone 15 128GB',
-                'description' => 'iPhone 15 128GB voi Dynamic Island.',
-                'type' => 'simple',
-                'price' => 18990000,
-                'sale_price' => 17990000,
-                'sku' => 'IP15-128-BK',
-                'stock' => 18,
-                'status' => 'active',
-                'is_featured' => true,
-                'thumbnail' => null,
+                'name' => 'Samsung Galaxy S24 Ultra',
+                'brand' => 'Samsung',
+                'category' => 'galaxy-s-series',
+                'type' => 'variable',
+                'variants' => [
+                    [
+                        'sku' => 'S24U-256-GRAY', 'price' => 33990000, 'sale_price' => 29990000, 'stock' => 40,
+                        'attrs' => ['Màu sắc' => 'Xám Space', 'Dung lượng' => '256GB'],
+                        'specs' => ['Chip' => 'Snapdragon 8 Gen 3', 'Camera' => '200MP', 'Bút' => 'S-Pen kèm máy']
+                    ]
+                ]
             ],
             [
-                'name' => 'Samsung Galaxy S24 256GB',
-                'description' => 'Flagship Samsung man hinh AMOLED sac net.',
-                'type' => 'simple',
-                'price' => 19990000,
-                'sale_price' => 18990000,
-                'sku' => 'SS-S24-256',
-                'stock' => 20,
-                'status' => 'active',
-                'is_featured' => true,
-                'thumbnail' => null,
+                'name' => 'MacBook Air M2 13-inch',
+                'brand' => 'Apple',
+                'category' => 'macbook',
+                'type' => 'variable',
+                'variants' => [
+                    [
+                        'sku' => 'MBA-M2-8-256', 'price' => 27990000, 'sale_price' => 24990000, 'stock' => 20,
+                        'attrs' => ['RAM' => '8GB', 'Dung lượng' => '256GB'],
+                        'specs' => ['CPU' => 'Apple M2 8-core', 'GPU' => '8-core', 'Màn hình' => '13.6 inch Liquid Retina']
+                    ]
+                ]
             ],
             [
-                'name' => 'Xiaomi 14 256GB',
-                'description' => 'Xiaomi 14 camera Leica, hieu nang manh.',
-                'type' => 'simple',
-                'price' => 14990000,
-                'sale_price' => 14490000,
-                'sku' => 'XM14-256',
-                'stock' => 15,
-                'status' => 'active',
-                'is_featured' => false,
-                'thumbnail' => null,
+                'name' => 'Xiaomi 14 Ultra',
+                'brand' => 'Xiaomi',
+                'category' => 'dien-thoai',
+                'type' => 'variable',
+                'variants' => [
+                    [
+                        'sku' => 'XI14U-12-512', 'price' => 32990000, 'sale_price' => 29990000, 'stock' => 15,
+                        'attrs' => ['Màu sắc' => 'Đen', 'RAM' => '12GB', 'Dung lượng' => '512GB'],
+                        'specs' => ['Ống kính' => 'Leica Summilux', 'Sạc' => '90W HyperCharge']
+                    ]
+                ]
             ],
             [
-                'name' => 'OPPO Reno 11 5G',
-                'description' => 'OPPO Reno 11 5G thiet ke mong nhe.',
+                'name' => 'Tai nghe AirPods Pro 2 MagSafe (USB-C)',
+                'brand' => 'Apple',
+                'category' => 'am-thanh',
                 'type' => 'simple',
-                'price' => 10990000,
-                'sale_price' => 9990000,
-                'sku' => 'OP-R11-256',
-                'stock' => 30,
-                'status' => 'active',
-                'is_featured' => false,
-                'thumbnail' => null,
+                'variants' => [
+                    [
+                        'sku' => 'AIRPODS-PRO2-C', 'price' => 6190000, 'sale_price' => 5790000, 'stock' => 100,
+                        'attrs' => [],
+                        'specs' => ['Chống ồn' => 'ANC thế hệ 2', 'Kết nối' => 'Bluetooth 5.3', 'Cổng sạc' => 'USB-C']
+                    ]
+                ]
             ],
             [
-                'name' => 'realme 12 Pro 5G',
-                'description' => 'realme 12 Pro 5G camera zoom tot trong tam gia.',
+                'name' => 'Củ sạc nhanh Anker 511 Nano 3 30W',
+                'brand' => 'Anker',
+                'category' => 'cu-sac',
                 'type' => 'simple',
-                'price' => 8990000,
-                'sale_price' => 8490000,
-                'sku' => 'RM12P-256',
-                'stock' => 27,
-                'status' => 'active',
-                'is_featured' => false,
-                'thumbnail' => null,
+                'variants' => [
+                    [
+                        'sku' => 'ANKER-NANO-30W', 'price' => 450000, 'sale_price' => 350000, 'stock' => 200,
+                        'attrs' => [],
+                        'specs' => ['Công suất' => '30W', 'Công nghệ' => 'GaN 3', 'Kích thước' => 'Siêu nhỏ gọn']
+                    ]
+                ]
             ],
             [
-                'name' => 'iPhone 13 128GB',
-                'description' => 'iPhone 13 pin tot, hieu nang on dinh.',
-                'type' => 'simple',
-                'price' => 12990000,
-                'sale_price' => 11990000,
-                'sku' => 'IP13-128-WH',
-                'stock' => 22,
-                'status' => 'active',
-                'is_featured' => false,
-                'thumbnail' => null,
+                'name' => 'Apple Watch Series 9 GPS',
+                'brand' => 'Apple',
+                'category' => 'apple-watch',
+                'type' => 'variable',
+                'variants' => [
+                    [
+                        'sku' => 'AW9-41-PINK', 'price' => 10490000, 'sale_price' => 9690000, 'stock' => 25,
+                        'attrs' => ['Màu sắc' => 'Hồng', 'Phiên bản' => 'Chính hãng VN/A'],
+                        'specs' => ['Kích thước' => '41mm', 'Tính năng' => 'Double Tap', 'Màn hình' => 'Always-on 2000 nits']
+                    ]
+                ]
             ],
             [
-                'name' => 'Samsung Galaxy A55 5G',
-                'description' => 'Galaxy A55 pin 5000mAh, man hinh dep.',
+                'name' => 'Loa Bluetooth Marshall Emberton II',
+                'brand' => 'Sony', // Tạm dùng Brand có sẵn
+                'category' => 'loa-bluetooth',
                 'type' => 'simple',
-                'price' => 10990000,
-                'sale_price' => 10490000,
-                'sku' => 'SS-A55-256',
-                'stock' => 35,
-                'status' => 'active',
-                'is_featured' => false,
-                'thumbnail' => null,
+                'variants' => [
+                    [
+                        'sku' => 'MARSHALL-EMB-2', 'price' => 4490000, 'sale_price' => 4250000, 'stock' => 12,
+                        'attrs' => [],
+                        'specs' => ['Thời lượng pin' => '30+ giờ', 'Kháng nước' => 'IP67', 'Âm thanh' => 'True Stereophonic']
+                    ]
+                ]
             ],
             [
-                'name' => 'Xiaomi Redmi Note 13 Pro',
-                'description' => 'Redmi Note 13 Pro camera 200MP.',
-                'type' => 'simple',
-                'price' => 8990000,
-                'sale_price' => 8290000,
-                'sku' => 'RN13P-256',
-                'stock' => 40,
-                'status' => 'active',
-                'is_featured' => false,
-                'thumbnail' => null,
+                'name' => 'Laptop ASUS Vivobook 15 OLED',
+                'brand' => 'Asus',
+                'category' => 'asus',
+                'type' => 'variable',
+                'variants' => [
+                    [
+                        'sku' => 'ASUS-VIVO-OLED-8-512', 'price' => 18990000, 'sale_price' => 16490000, 'stock' => 10,
+                        'attrs' => ['RAM' => '8GB', 'Dung lượng' => '512GB'],
+                        'specs' => ['CPU' => 'Ryzen 5 7000 Series', 'Màn hình' => '15.6 inch OLED 100% DCI-P3']
+                    ]
+                ]
             ],
             [
-                'name' => 'iPhone 15 Pro Max 256GB',
-                'description' => 'iPhone 15 Pro Max khung titan cao cap.',
+                'name' => 'Chuột Gaming Logitech G502 X Plus',
+                'brand' => 'Sony',
+                'category' => 'phu-kien',
                 'type' => 'simple',
-                'price' => 31990000,
-                'sale_price' => 30490000,
-                'sku' => 'IP15PM-256',
-                'stock' => 12,
-                'status' => 'active',
-                'is_featured' => true,
-                'thumbnail' => null,
-            ],
+                'variants' => [
+                    [
+                        'sku' => 'LOGI-G502X-WH', 'price' => 3890000, 'sale_price' => 3490000, 'stock' => 18,
+                        'attrs' => [],
+                        'specs' => ['Cảm biến' => 'HERO 25K', 'Switch' => 'LIGHTFORCE Hybrid', 'LED' => 'LIGHTSYNC RGB']
+                    ]
+                ]
+            ]
         ];
 
-        foreach ($products as $data) {
-            Product::query()->updateOrCreate(
-                ['sku' => $data['sku']],
-                [
-                    'name' => $data['name'],
-                    'slug' => Str::slug($data['name']),
-                    'description' => $data['description'],
-                    'type' => $data['type'],
-                    'price' => $data['price'],
-                    'sale_price' => $data['sale_price'],
-                    'stock' => $data['stock'],
-                    'status' => $data['status'],
-                    'is_featured' => $data['is_featured'],
-                    'thumbnail' => $data['thumbnail'],
-                ]
-            );
+        foreach ($productsData as $p) {
+            $product = Product::create([
+                'name' => $p['name'],
+                'slug' => Str::slug($p['name']),
+                'brand_id' => $brands[$p['brand']] ?? null,
+                'type' => $p['type'],
+                'status' => 'active',
+                'is_featured' => rand(0, 1),
+                'description' => "Đây là mô tả chi tiết cho sản phẩm {$p['name']}. Sản phẩm chất lượng cao, bảo hành chính hãng.",
+                'thumbnail' => null, // Bạn có thể thêm link ảnh placeholder
+            ]);
+
+            // Gắn danh mục
+            if (isset($categories[$p['category']])) {
+                $product->categories()->attach($categories[$p['category']]);
+            }
+
+            // Tạo các biến thể
+            foreach ($p['variants'] as $v) {
+                $variant = ProductVariant::create([
+                    'product_id' => $product->id,
+                    'sku' => $v['sku'],
+                    'price' => $v['price'],
+                    'sale_price' => $v['sale_price'],
+                    'stock' => $v['stock'],
+                    'status' => 'active'
+                ]);
+
+                // Gắn giá trị thuộc tính cho biến thể
+                $atNames = [];
+                foreach ($v['attrs'] as $atName => $atValue) {
+                    $valId = $getAttrId($atName, $atValue);
+                    if ($valId) {
+                        $atNames[] = $valId;
+                    }
+                }
+                if (!empty($atNames)) {
+                    $variant->attributeValues()->attach($atNames);
+                }
+
+                // Gắn thông số kỹ thuật (Specifications)
+                foreach ($v['specs'] as $sk => $sv) {
+                    VariantSpecification::create([
+                        'variant_id' => $variant->id,
+                        'spec_key' => $sk,
+                        'spec_value' => $sv
+                    ]);
+                }
+            }
         }
     }
 }

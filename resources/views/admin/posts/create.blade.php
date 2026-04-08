@@ -63,7 +63,7 @@
                     <div class="flex flex-wrap justify-between items-center gap-3 mb-8">
                         <div class="flex flex-col gap-1">
                             <p
-                                class="text-[#181611] dark:text-zinc-100 text-3xl font-black leading-tight tracking-[-0.033em]">
+                                class="text-[#181611] dark:text-zinc-100 text-3xl font-bold leading-tight tracking-[-0.033em]">
                                 Soạn thảo bài viết</p>
                             <p class="text-[#8a8060] dark:text-zinc-400 text-sm font-normal">Tạo nội dung blog công nghệ
                                 chất

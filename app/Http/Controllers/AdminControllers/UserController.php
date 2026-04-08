@@ -162,8 +162,9 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        
-        Gate::authorize('customer.view');
+        if (auth()->id() != $id) {
+            Gate::authorize('customer.view');
+        }
         $user = User::with(['orders' => function($query) {
             $query->latest()->take(5);
         }])->findOrFail($id);

@@ -20,7 +20,7 @@
                             <span class="material-symbols-outlined text-xs">chevron_right</span>
                             <span class="text-slate-900 font-medium">Thêm sản phẩm mới</span>
                         </div>
-                        <h1 class="text-3xl font-black tracking-tight text-slate-900">Thêm sản phẩm mới</h1>
+                        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Thêm sản phẩm mới</h1>
                     </div>
                     <div class="flex items-center gap-3">
                         <button type="button" class="px-5 py-2.5 rounded-lg border border-slate-300 font-bold text-sm bg-white hover:bg-slate-50 transition-all">Lưu nháp</button>
@@ -74,7 +74,7 @@
                         <!-- GIÁ VÀ TỒN KHO -->
                         <div id="simple-product-card" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Giá & Tồn kho</h4>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Giá & Tồn kho</h4>
                             </div>
                             <div class="p-6 space-y-5">
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -102,7 +102,7 @@
                                 </div>
                             </div>
                             <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center mt-2">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">
                                     <span class="material-symbols-outlined text-base align-middle mr-1">memory</span> 
                                     Thông số kỹ thuật
                                 </h4>
@@ -118,7 +118,7 @@
                         <!-- THUỘC TÍNH & BIẾN THỂ -->
                         <div id="variable-product-card" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hidden">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Thuộc tính & Các Biến thể</h4>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Thuộc tính & Các Biến thể</h4>
                             </div>
                             <div class="p-6">
                                 
@@ -167,7 +167,7 @@
                         
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Đăng</h4>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Đăng</h4>
                             </div>
                             <div class="p-5 space-y-4">
                                 <div class="flex items-center justify-between text-sm">
@@ -190,13 +190,13 @@
                             </div>
                             <div class="bg-slate-50 p-4 border-t border-slate-100 flex items-center justify-between">
                                 <a href="{{ route('admin.products.index') }}" class="text-slate-500 hover:text-red-500 text-sm font-bold hover:underline transition-colors">Hủy bỏ</a>
-                                <button type="submit" class="bg-primary text-slate-900 px-6 py-2.5 rounded-lg font-black text-sm shadow-md shadow-primary/20 hover:brightness-105 transition-all">Lưu sản phẩm</button>
+                                <button type="submit" class="bg-primary text-slate-900 px-6 py-2.5 rounded-lg font-bold text-sm shadow-md shadow-primary/20 hover:brightness-105 transition-all">Lưu sản phẩm</button>
                             </div>
                         </div>
 
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Danh mục sản phẩm <span class="text-red-500">*</span></h4>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Danh mục sản phẩm <span class="text-red-500">*</span></h4>
                             </div>
                             <div class="p-5">
                                 <select name="category_ids[]" multiple class="select2-categories w-full">
@@ -214,7 +214,7 @@
 
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Thương hiệu</h4>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Thương hiệu</h4>
                             </div>
                             <div class="p-5">
                                 <select name="brand_id" class="w-full text-sm border-slate-200 rounded-lg py-2.5 focus:ring-primary focus:border-primary font-medium bg-slate-50/50 cursor-pointer">
@@ -230,7 +230,7 @@
 
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Ảnh đại diện <span class="text-red-500">*</span></h4>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Ảnh đại diện <span class="text-red-500">*</span></h4>
                             </div>
                             <div class="p-5">
                                 <div class="relative group aspect-square rounded-xl overflow-hidden border-2 border-dashed border-slate-200 bg-slate-50 hover:border-primary transition-colors cursor-pointer flex flex-col items-center justify-center">
@@ -246,7 +246,7 @@
 
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Album hình ảnh</h4>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Album hình ảnh</h4>
                             </div>
                             <div class="p-5 overflow-hidden">
                                 <div id="gallery-preview-container" class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
@@ -256,7 +256,7 @@
                                     <input type="file" name="images[]" id="gallery-input" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                                     <div class="flex flex-col items-center justify-center pointer-events-none" id="gallery-placeholder">
                                         <span class="material-symbols-outlined text-2xl text-slate-300 group-hover:text-primary transition-colors">collections</span>
-                                        <span class="text-[10px] font-black uppercase mt-1 text-slate-400">Chọn nhiều ảnh</span>
+                                        <span class="text-[10px] font-bold uppercase mt-1 text-slate-400">Chọn nhiều ảnh</span>
                                     </div>
                                 </div>
                             </div>

@@ -55,7 +55,7 @@
         <main class="max-w-[1280px] mx-auto px-4 lg:px-10 py-8">
             <!-- Page Heading -->
             <div class="mb-8">
-                <h1 class="text-4xl md:text-5xl font-black tracking-tighter mb-4 dark:text-white">Tin tức &amp; Cẩm nang Bee
+                <h1 class="text-4xl md:text-5xl font-bold tracking-tighter mb-4 dark:text-white">Tin tức &amp; Cẩm nang Bee
                     Phone</h1>
                 <p class="text-[#8a8060] text-lg max-w-2xl">Cập nhật xu hướng công nghệ, đánh giá chuyên sâu và mẹo vặt sử
                     dụng điện thoại mới nhất từ đội ngũ chuyên gia.</p>
@@ -174,7 +174,7 @@
                                             style="background-image: url('{{ asset('uploads/posts/' . $item->thumbnail) }}')">
                                         </div>
                                         <span
-                                            class="absolute top-3 left-3 bg-primary text-[#181611] text-[10px] font-black uppercase px-2 py-1 rounded">{{ $item->category->name ?? 'Tin tức' }}</span>
+                                            class="absolute top-3 left-3 bg-primary text-[#181611] text-[10px] font-bold uppercase px-2 py-1 rounded">{{ $item->category->name ?? 'Tin tức' }}</span>
                                     </div>
                                     <div class="p-5">
                                         <h4 class="text-lg font-bold mb-3 group-hover:text-primary transition-colors">
@@ -287,7 +287,7 @@
                                     fill="currentColor" fill-rule="evenodd"></path>
                             </svg>
                         </div>
-                        <span class="text-lg font-black tracking-tight">Bee Phone</span>
+                        <span class="text-lg font-bold tracking-tight">Bee Phone</span>
                     </div>
                     <p class="text-[#8a8060] text-sm">© 2024 Bee Phone. Tất cả quyền lợi được bảo lưu.</p>
                 </div>

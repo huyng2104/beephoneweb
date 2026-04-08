@@ -140,7 +140,7 @@
                     </div>
 
                     <div class="flex items-baseline gap-4 mt-6 p-4 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
-                        <span id="main-price" class="text-3xl font-black text-red-500 dark:text-red-400 transition-opacity duration-200">
+                        <span id="main-price" class="text-3xl font-bold text-red-500 dark:text-red-400 transition-opacity duration-200">
                             Đang cập nhật...
                         </span>
                         <span id="old-price" class="text-lg text-gray-400 line-through transition-opacity duration-200"></span>
@@ -211,7 +211,16 @@
                             <button type="button" id="btn-plus" class="px-4 py-2 hover:bg-primary hover:text-black font-bold text-lg transition-colors">+</button>
                         </div>
                     </div>
-                    <p class="text-xs text-right text-gray-500 dark:text-gray-400 mt-3">Trong kho còn: <span id="stock-text" class="font-bold text-primary">0</span> máy</p>
+                    <div class="flex items-center justify-between mt-3">
+                        <span class="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">inventory_2</span>
+                            Kho hàng
+                        </span>
+                        <span id="stock-display" class="text-xs font-bold flex items-center gap-1 transition-all">
+                            <span id="stock-dot" class="inline-block w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                            <span id="stock-text" class="text-gray-400">Đang tải...</span>
+                        </span>
+                    </div>
                 </div>
 
                 <div class="flex flex-col gap-3 mt-2">
@@ -279,7 +288,7 @@
     {{-- SẢN PHẨM LIÊN QUAN --}}
     @if($relatedProducts->isNotEmpty())
     <div class="mt-20">
-        <h2 class="text-2xl font-black mb-8 pb-3 border-b-4 border-primary inline-block uppercase text-[#181611] dark:text-white">
+        <h2 class="text-2xl font-bold mb-8 pb-3 border-b-4 border-primary inline-block uppercase text-[#181611] dark:text-white">
             Sản phẩm liên quan
         </h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -289,146 +298,356 @@
         </div>
     </div>
     @endif
-</main>
 
-<section id="comments" class="max-w-[1440px] mx-auto px-4 md:px-10 lg:px-20 pb-12 -mt-4">
-    <div class="overflow-hidden rounded-2xl border border-white/10 bg-[#141a1e] text-white shadow-[0_16px_45px_-30px_rgba(0,0,0,0.75)]">
-        <div class="border-b border-white/10 px-6 py-6">
-            <div class="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_1px]">
-                <div class="flex flex-col justify-center">
-                    <div class="flex items-end gap-2">
-                        <span class="text-6xl font-black leading-none">{{ number_format($averageRating, 1) }}</span>
-                        <span class="pb-2 text-3xl font-bold text-slate-300">/5</span>
-                    </div>
-                    <div class="mt-4 flex items-center gap-0.5 text-primary">
-                        @for($i = 1; $i <= 5; $i++)
-                            <span class="material-symbols-outlined text-[22px]">star</span>
-                        @endfor
-                    </div>
-                    <p class="mt-2 text-lg font-medium text-slate-200">{{ $totalRatings }} luot danh gia</p>
+    {{-- ===== ĐÁNH GIÁ KHÁCH HÀNG ===== --}}
+    <div class="mt-16" id="reviews-section">
+        @php
+            $avgRating     = $reviews->avg('rating') ?? 0;
+            $totalReviews  = $reviews->count();
+            $ratingLabels  = [5 => 'Tuyệt vời', 4 => 'Tốt', 3 => 'Bình thường', 2 => 'Tệ', 1 => 'Rất tệ'];
+        @endphp
 
-                    <button id="open-review-modal" type="button" class="mt-5 inline-flex h-12 w-44 items-center justify-center rounded-xl bg-primary px-6 text-base font-black text-black shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary/60">
-                        Viết đánh giá
-                    </button>
-                </div>
-
-                <div class="flex flex-col justify-center gap-3 lg:pr-6">
-                    @foreach($ratingBreakdown as $star => $count)
-                        @php
-                            $percent = $totalRatings > 0 ? round(($count / $totalRatings) * 100, 2) : 0;
-                        @endphp
-                        <div class="grid grid-cols-[30px_minmax(0,1fr)_84px] items-center gap-3">
-                            <div class="flex items-center gap-1 text-base font-bold text-white">
-                                <span>{{ $star }}</span>
-                                <span class="material-symbols-outlined text-primary text-[18px]">star</span>
-                            </div>
-                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-800">
-                                <div class="h-full rounded-full bg-primary transition-all duration-300" style="width: {{ $percent }}%"></div>
-                            </div>
-                            <div class="text-right text-sm text-slate-300">{{ $count }} danh gia</div>
-                        </div>
-                    @endforeach
-                </div>
-
-                <div class="hidden lg:block w-px bg-white/10"></div>
-            </div>
-        </div>
-
-        <div class="comments-list px-6 py-2">
-            @forelse($comments as $comment)
-                @include('components.comment', ['comment' => $comment, 'product' => $product])
-            @empty
-                <div class="rounded-2xl border border-dashed border-white/15 bg-black/10 px-6 py-10 text-center text-sm font-medium text-slate-300">
-                    Chua co danh gia nao. Hay viet danh gia dau tien cho san pham nay.
-                </div>
-            @endforelse
-        </div>
-    </div>
-</section>
-
-<div id="review-modal" aria-hidden="true" class="fixed inset-0 z-[9998] flex items-start justify-center px-4 py-8 opacity-0 pointer-events-none transition duration-200 ease-out sm:py-12">
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" data-review-close></div>
-
-    <div id="review-modal-panel" class="relative w-full max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-[#141a1e] shadow-[0_20px_60px_-40px_rgba(0,0,0,0.9)] opacity-0 translate-y-3 scale-95 transition duration-200 ease-out">
-        <div class="flex items-center justify-between border-b border-white/10 px-6 py-4">
-            <h3 class="text-lg font-black text-white">Danh gia & nhan xet</h3>
-            <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-white/20 hover:bg-white/10" data-review-close>
-                <span class="material-symbols-outlined">close</span>
+        {{-- ===== TOAST NOTIFICATIONS ===== --}}
+        @if(session('success'))
+        <div id="review-toast-success"
+             class="flex items-center gap-3 mb-5 px-5 py-4 bg-green-50 border border-green-200 text-green-800 rounded-2xl shadow-sm
+                    opacity-0 translate-y-2 transition-all duration-500">
+            <span class="material-symbols-outlined text-green-500 text-[22px] flex-shrink-0">check_circle</span>
+            <p class="text-sm font-semibold">{{ session('success') }}</p>
+            <button onclick="this.parentElement.remove()" class="ml-auto text-green-400 hover:text-green-600 transition-colors">
+                <span class="material-symbols-outlined text-[18px]">close</span>
             </button>
         </div>
+        @endif
 
-        <div class="grid gap-6 px-6 py-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-            <div class="flex flex-col gap-4 rounded-2xl border border-white/10 bg-black/10 p-5">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/20">
-                        @if($product->thumbnail)
-                            <img src="{{ asset('storage/' . $product->thumbnail) }}" alt="{{ $product->name }}" class="h-full w-full object-cover">
-                        @else
-                            <span class="material-symbols-outlined text-4xl text-slate-500">image</span>
-                        @endif
-                    </div>
-                    <div class="min-w-0">
-                        <div class="text-xs font-bold uppercase tracking-wide text-slate-400">San pham</div>
-                        <div class="mt-1 line-clamp-2 text-base font-black text-white">{{ $product->name }}</div>
-                    </div>
-                </div>
+        @if(session('error'))
+        <div id="review-toast-error"
+             class="flex items-center gap-3 mb-5 px-5 py-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl shadow-sm
+                    opacity-0 translate-y-2 transition-all duration-500">
+            <span class="material-symbols-outlined text-red-500 text-[22px] flex-shrink-0">error</span>
+            <p class="text-sm font-semibold">{{ session('error') }}</p>
+            <button onclick="this.parentElement.remove()" class="ml-auto text-red-400 hover:text-red-600 transition-colors">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+        @endif
 
-                <div class="rounded-2xl border border-white/10 bg-[#0f141a] p-4">
-                    <div class="text-sm font-bold text-slate-200">Danh gia chung</div>
-                    <div class="mt-3 flex items-center gap-2 text-primary" data-rating-stars>
-                        @for($i = 1; $i <= 5; $i++)
-                            <button type="button" class="review-star inline-flex items-center justify-center rounded-lg p-1 transition hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary/40" data-value="{{ $i }}" aria-label="{{ $i }} sao">
-                                <span class="material-symbols-outlined text-[26px]">star</span>
-                            </button>
-                        @endfor
-                    </div>
-                    <p class="mt-2 text-xs text-slate-400" data-rating-label>Chon so sao de danh gia</p>
-                </div>
-            </div>
+        @if($errors->has('review'))
+        <div id="review-toast-validation"
+             class="flex items-center gap-3 mb-5 px-5 py-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl shadow-sm
+                    opacity-0 translate-y-2 transition-all duration-500">
+            <span class="material-symbols-outlined text-amber-500 text-[22px] flex-shrink-0">warning</span>
+            <p class="text-sm font-semibold">{{ $errors->first('review') }}</p>
+            <button onclick="this.parentElement.remove()" class="ml-auto text-amber-400 hover:text-amber-600 transition-colors">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+        @endif
 
-            <div class="rounded-2xl border border-white/10 bg-black/10 p-5">
-                <form action="{{ route('products.comments.store', $product) }}" method="POST" enctype="multipart/form-data" id="review-form" class="space-y-4">
-                    @csrf
-                    <input type="hidden" name="rating" id="review_rating" value="">
+        {{-- ===== HEADER: Tiêu đề + Rating Box + Bars ===== --}}
+        <h2 class="text-xl font-bold text-[#181611] dark:text-white mb-5">
+            Đánh giá {{ $product->name }}
+        </h2>
 
-                    @guest
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <div>
-                            <label for="review_guest_name" class="block text-xs font-bold text-slate-300">Ten cua ban</label>
-                            <input id="review_guest_name" type="text" name="guest_name" required class="mt-2 w-full rounded-xl border border-white/10 bg-[#0f141a] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary/30" placeholder="Nhap ten hien thi">
+        <div class="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-6 mb-6 custom-shadow">
+            <div class="flex flex-col sm:flex-row gap-8 items-start">
+
+                {{-- Điểm trung bình + Sao + Nút --}}
+                <div class="flex flex-col items-center gap-3 min-w-[140px]">
+                    <div class="text-center">
+                        <p class="text-6xl font-black text-[#181611] dark:text-white leading-none">
+                            {{ $totalReviews > 0 ? number_format($avgRating, 1) : '—' }}
+                            @if($totalReviews > 0)<span class="text-2xl font-bold text-gray-400">/5</span>@endif
+                        </p>
+                        <div class="flex justify-center gap-0.5 mt-2">
+                            @for($i = 1; $i <= 5; $i++)
+                                <span class="material-symbols-outlined text-[22px] {{ $i <= round($avgRating) ? 'text-primary' : 'text-gray-300 dark:text-gray-600' }}"
+                                      style="font-variation-settings:'FILL' 1">star</span>
+                            @endfor
                         </div>
-                        <div>
-                            <label for="review_guest_email" class="block text-xs font-bold text-slate-300">Email</label>
-                            <input id="review_guest_email" type="email" name="guest_email" required class="mt-2 w-full rounded-xl border border-white/10 bg-[#0f141a] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary/30" placeholder="email@example.com">
-                        </div>
-                    </div>
-                    @endguest
-
-                    <div>
-                        <label for="review_content" class="block text-xs font-bold text-slate-300">Nhan xet</label>
-                        <textarea id="review_content" name="content" rows="6" required class="mt-2 w-full rounded-xl border border-white/10 bg-[#0f141a] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary/30" placeholder="Xin moi chia se mot so cam nhan ve san pham (nhap toi thieu 15 ki tu)"></textarea>
+                        <p class="text-sm text-gray-400 mt-1">{{ $totalReviews }} lượt đánh giá</p>
                     </div>
 
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <div>
-                            <label for="review_image" class="block text-xs font-bold text-slate-300">Anh (tuy chon)</label>
-                            <input id="review_image" type="file" name="image" accept=".jpg,.jpeg,.png,.webp" class="mt-2 w-full rounded-xl border border-white/10 bg-[#0f141a] px-4 py-3 text-sm text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-xs file:font-bold file:text-slate-100 hover:file:bg-white/15">
-                        </div>
-                        <div class="flex items-end">
-                            <div class="w-full rounded-xl border border-white/10 bg-[#0f141a] px-4 py-3 text-xs text-slate-400">
-                                Meo: ban co the nhan <span class="font-bold text-slate-200">ESC</span> de dong form.
+                    {{-- Nút hành động --}}
+                    @auth
+                        @if($userReview)
+                            <div class="text-center">
+                                <p class="text-xs text-green-600 font-semibold flex items-center gap-1 justify-center mb-2">
+                                    <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                    Bạn đã đánh giá
+                                </p>
+                                @if(!$userReview->isApproved() && $userReview->created_at->diffInMinutes(now()) <= 15)
+
+                                    <form action="{{ route('reviews.destroy', $userReview->id) }}" method="POST"
+                                        onsubmit="return confirm('Xóa đánh giá này? Không thể hoàn tác.')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit"
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition-colors">
+                                            <span class="material-symbols-outlined text-[13px]">delete</span>
+                                            Xóa đánh giá
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
-                        </div>
-                    </div>
+                        @elseif($canReview)
+                            <button id="open-review-modal"
+                                    class="w-full px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold text-sm rounded-xl transition-colors shadow-sm">
+                                Viết đánh giá
+                            </button>
+                        @else
+                            <p class="text-xs text-gray-400 text-center leading-relaxed">
+                                Chỉ khách hàng đã mua<br>mới được đánh giá
+                            </p>
+                        @endif
+                    @else
+                        <a href="{{ route('login') }}"
+                           class="w-full text-center px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold text-sm rounded-xl transition-colors shadow-sm">
+                            Đăng nhập để đánh giá
+                        </a>
+                    @endauth
+                </div>
 
-                    <button type="submit" class="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-primary px-6 py-4 text-sm font-black text-black shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary/60">
-                        Gui danh gia
-                    </button>
-                </form>
+                {{-- Thanh bars 5→1 sao --}}
+                <div class="flex-1 flex flex-col gap-2 justify-center">
+                    @foreach($ratingBreakdown as $star => $count)
+                    @php $pct = $totalReviews > 0 ? round(($count / $totalReviews) * 100) : 0; @endphp
+                    <div class="flex items-center gap-3 text-sm">
+                        <span class="flex items-center gap-0.5 w-10 justify-end flex-shrink-0">
+                            <span class="font-bold text-gray-700 dark:text-gray-300">{{ $star }}</span>
+                            <span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings:'FILL' 1">star</span>
+                        </span>
+                        <div class="flex-1 h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-red-500 rounded-full transition-all duration-700"
+                                 style="width: {{ $pct }}%"></div>
+                        </div>
+                        <span class="text-xs text-gray-400 w-16 flex-shrink-0">{{ $count }} đánh giá</span>
+                    </div>
+                    @endforeach
+                </div>
             </div>
         </div>
+
+        {{-- ===== FILTER PILLS ===== --}}
+        <div class="flex flex-wrap gap-2 mb-6" id="review-filters">
+            <button class="review-filter-btn active px-4 py-1.5 rounded-full border text-sm font-semibold
+                           border-red-500 text-red-500 bg-red-50 transition-all"
+                    data-filter="all">Tất cả</button>
+            <button class="review-filter-btn px-4 py-1.5 rounded-full border text-sm font-semibold
+                           border-gray-200 text-gray-600 bg-white hover:border-red-400 hover:text-red-500 transition-all dark:bg-white/5 dark:border-white/10 dark:text-gray-300"
+                    data-filter="has-image">Có hình ảnh</button>
+            {{-- <button class="review-filter-btn px-4 py-1.5 rounded-full border text-sm font-semibold
+                           border-gray-200 text-gray-600 bg-white hover:border-red-400 hover:text-red-500 transition-all dark:bg-white/5 dark:border-white/10 dark:text-gray-300"
+                    data-filter="purchased">Đã mua hàng</button> --}}
+            @foreach([5,4,3,2,1] as $star)
+            <button class="review-filter-btn px-4 py-1.5 rounded-full border text-sm font-semibold
+                           border-gray-200 text-gray-600 bg-white hover:border-red-400 hover:text-red-500 transition-all dark:bg-white/5 dark:border-white/10 dark:text-gray-300"
+                    data-filter="star-{{ $star }}">
+                {{ $star }} sao
+            </button>
+            @endforeach
+        </div>
+
+        {{-- ===== DANH SÁCH ĐÁNH GIÁ ===== --}}
+        @if($reviews->isNotEmpty())
+            <div class="flex flex-col gap-4" id="review-list">
+                @foreach($reviews as $review)
+                <div class="review-card bg-white dark:bg-white/5 rounded-2xl p-5 border border-gray-100 dark:border-white/10 custom-shadow"
+                     id="review-{{ $review->id }}"
+                     data-rating="{{ $review->rating }}"
+                     data-has-image="{{ $review->images->isNotEmpty() ? '1' : '0' }}"
+                     data-purchased="{{ $review->is_purchased ? '1' : '0' }}">
+
+                    <div class="flex items-start gap-3">
+                        {{-- Avatar --}}
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                             style="background-color: #2d6a4f;">
+                            {{ mb_strtoupper(mb_substr($review->user?->name ?? 'A', 0, 1)) }}
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            {{-- Tên + Badge --}}
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                <span class="font-bold text-sm text-[#181611] dark:text-white">
+                                    {{ $review->user?->name ?? 'Khách ẩn danh' }}
+                                    @if(auth()->id() === $review->user_id)
+                                        <span class="text-xs font-normal text-gray-400 ml-1">(Bạn)</span>
+                                    @endif
+                                </span>
+                                {{-- @if($review->is_purchased)
+                                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 bg-green-50 border border-green-200 text-green-700 text-[10px] font-bold rounded-full">
+                                        <span class="material-symbols-outlined text-[11px]">verified</span> Đã mua hàng
+                                    </span>
+                                @endif --}}
+                                @if($review->isPending() && auth()->id() === $review->user_id)
+                                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 bg-orange-50 border border-orange-200 text-orange-700 text-[10px] font-bold rounded-full">
+                                        <span class="material-symbols-outlined text-[11px]">pending</span> Đang chờ duyệt
+                                    </span>
+                                @endif
+                            </div>
+
+                            {{-- Sao + Label + Thời gian --}}
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="flex gap-0.5">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <span class="material-symbols-outlined text-[15px] {{ $i <= $review->rating ? 'text-primary' : 'text-gray-200 dark:text-gray-600' }}"
+                                              style="font-variation-settings:'FILL' 1">star</span>
+                                    @endfor
+                                </span>
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    {{ $ratingLabels[$review->rating] ?? '' }}
+                                </span>
+                            </div>
+
+                            {{-- Nội dung --}}
+                            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-3">{{ $review->comment }}</p>
+
+                            {{-- Ảnh đính kèm --}}
+                            @if($review->images->isNotEmpty())
+                                <div class="flex gap-2 flex-wrap mb-3">
+                                    @foreach($review->images as $img)
+                                        <a href="{{ asset('storage/' . $img->image_path) }}" target="_blank">
+                                            <img src="{{ asset('storage/' . $img->image_path) }}"
+                                                 class="w-16 h-16 object-cover rounded-xl border border-gray-100 dark:border-white/10 hover:opacity-80 transition-opacity">
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            {{-- Thời gian & Nút Like --}}
+                            <div class="flex items-center gap-6 mt-1 mb-2">
+                                <p class="text-xs text-gray-400 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[13px]">schedule</span>
+                                    Đánh giá đã đăng vào {{ $review->created_at->diffForHumans() }}
+                                </p>
+                                @php
+                                    $isLiked = session()->has('liked_review_' . $review->id);
+                                @endphp
+                                <button type="button" class="btn-helpful text-xs font-semibold {{ $isLiked ? 'text-primary' : 'text-gray-400' }} hover:text-primary transition-colors flex items-center gap-1" data-url="{{ route('reviews.helpful', $review->id) }}">
+                                    <span class="material-symbols-outlined text-[14px]">thumb_up</span>
+                                    Hữu ích (<span class="helpful-count">{{ $review->helpful_count }}</span>)
+                                </button>
+                            </div>
+
+                            {{-- Phản hồi Admin --}}
+                            @if($review->hasReply())
+                                <div class="mt-3 pl-4 border-l-2 border-primary/50 bg-primary/5 dark:bg-primary/10 rounded-r-xl py-2.5 pr-3">
+                                    <p class="text-xs font-bold text-primary flex items-center gap-1 mb-1">
+                                        <span class="material-symbols-outlined text-[13px]">support_agent</span>
+                                        Bee Phone đã phản hồi
+                                        @if($review->replied_at)
+                                            <span class="font-normal text-gray-400">• {{ $review->replied_at->diffForHumans() }}</span>
+                                        @endif
+                                    </p>
+                                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ $review->reply_comment }}</p>
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Nút xóa (chỉ user đó thấy, chưa duyệt và trong 15 phút) --}}
+                        @if(auth()->id() === $review->user_id && !$review->isApproved() && $review->created_at->diffInMinutes(now()) <= 15)
+                            <form action="{{ route('reviews.destroy', $review->id) }}" method="POST"
+                                  onsubmit="return confirm('Xóa đánh giá này? Không thể hoàn tác.')">
+                                @csrf @method('DELETE')
+                                <button type="submit" title="Xóa đánh giá"
+                                        class="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
+                            </form>
+                        @endif                    </div>
+                </div>
+                @endforeach
+
+                {{-- Không có kết quả sau filter --}}
+                <div id="no-filter-result" class="hidden text-center py-10 text-gray-400">
+                    <span class="material-symbols-outlined text-4xl text-gray-200">filter_list_off</span>
+                    <p class="mt-2 text-sm">Không có đánh giá phù hợp với bộ lọc.</p>
+                </div>
+            </div>
+        @else
+            <div class="bg-white dark:bg-white/5 rounded-2xl p-12 border border-gray-100 dark:border-white/10 text-center custom-shadow">
+                <span class="material-symbols-outlined text-5xl text-gray-300 dark:text-gray-600">rate_review</span>
+                <p class="mt-3 text-gray-400 dark:text-gray-500">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá!</p>
+            </div>
+        @endif
     </div>
-</div>
+
+    {{-- ===== MODAL VIẾT ĐÁNH GIÁ ===== --}}
+    @if($canReview)
+    <div id="review-modal" aria-hidden="true"
+         class="fixed inset-0 z-[9999] flex items-center justify-center px-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" data-review-close></div>
+        <div id="review-modal-panel"
+             class="relative w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 overflow-hidden
+                    opacity-0 translate-y-3 scale-95 transition-all duration-300">
+
+            {{-- Header --}}
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
+                <h3 class="font-bold text-[#181611] dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-[20px]">rate_review</span>
+                    Viết đánh giá
+                </h3>
+                <button data-review-close class="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors text-gray-500">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            {{-- Form --}}
+            <form action="{{ route('products.reviews.store', $product) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="px-6 py-5 flex flex-col gap-5">
+
+                    {{-- Chọn sao --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Số sao *</label>
+                        <input type="hidden" name="rating" id="review_rating" value="">
+                        <div class="flex gap-1" data-rating-stars>
+                            @foreach([1,2,3,4,5] as $s)
+                            <button type="button" class="review-star text-slate-300 transition-colors"
+                                    data-value="{{ $s }}" title="{{ $s }} sao">
+                                <span class="material-symbols-outlined text-[32px]" style="font-variation-settings:'FILL' 1">star</span>
+                            </button>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1" data-rating-label>Chọn số sao để đánh giá</p>
+                    </div>
+
+                    {{-- Nội dung --}}
+                    <div>
+                        <label for="review_content" class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Nội dung nhận xét *
+                        </label>
+                        <textarea id="review_content" name="comment" rows="4" required minlength="10"
+                                  class="w-full border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none resize-none dark:bg-gray-800 dark:text-white transition-shadow"
+                                  placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
+                    </div>
+
+                    {{-- Ảnh đính kèm --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Hình ảnh (tùy chọn, tối đa 5 ảnh)
+                        </label>
+                        <input type="file" name="images[]" multiple accept="image/jpeg,image/png,image/webp"
+                               class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-primary/20 file:text-[#181611] hover:file:bg-primary/30 transition">
+                    </div>
+                </div>
+
+                <div class="px-6 py-4 border-t border-gray-100 dark:border-white/10 flex justify-end gap-3 bg-gray-50/50 dark:bg-white/5">
+                    <button type="button" data-review-close
+                            class="px-5 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                        Hủy
+                    </button>
+                    <button type="submit"
+                            class="px-5 py-2.5 bg-primary text-[#181611] rounded-xl text-sm font-bold hover:brightness-105 transition-all shadow-sm">
+                        Gửi đánh giá
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+
+</main>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -506,16 +725,34 @@
             if (skuEl) skuEl.textContent = sku || '{{ $product->sku }}';
 
             currentMaxStock = stock;
-            stockTextEl.textContent = stock;
             
-            if(stock > 0) {
+            const stockDotEl = document.getElementById('stock-dot');
+
+            if(stock > 10) {
+                // Còn nhiều hàng
                 stockStatusEl.textContent = 'Còn hàng';
                 stockStatusEl.className = 'text-xs text-green-600 bg-green-100 dark:bg-green-500/20 dark:text-green-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
+                stockTextEl.textContent = stock + ' máy';
+                stockTextEl.className = 'text-green-600 dark:text-green-400';
+                if (stockDotEl) { stockDotEl.className = 'inline-block w-1.5 h-1.5 rounded-full bg-green-500'; }
+                btnBuyNow.classList.remove('btn-disabled');
+                btnAddCart.classList.remove('btn-disabled');
+            } else if (stock > 0) {
+                // Sắp hết hàng
+                stockStatusEl.textContent = 'Còn hàng';
+                stockStatusEl.className = 'text-xs text-green-600 bg-green-100 dark:bg-green-500/20 dark:text-green-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
+                stockTextEl.textContent = 'Còn ' + stock + ' máy (sắp hết)';
+                stockTextEl.className = 'text-amber-600 dark:text-amber-400';
+                if (stockDotEl) { stockDotEl.className = 'inline-block w-1.5 h-1.5 rounded-full bg-amber-500'; }
                 btnBuyNow.classList.remove('btn-disabled');
                 btnAddCart.classList.remove('btn-disabled');
             } else {
+                // Hết hàng
                 stockStatusEl.textContent = 'Hết hàng';
                 stockStatusEl.className = 'text-xs text-red-600 bg-red-100 dark:bg-red-500/20 dark:text-red-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
+                stockTextEl.textContent = 'Hết hàng';
+                stockTextEl.className = 'text-red-600 dark:text-red-400';
+                if (stockDotEl) { stockDotEl.className = 'inline-block w-1.5 h-1.5 rounded-full bg-red-500'; }
                 btnBuyNow.classList.add('btn-disabled');
                 btnAddCart.classList.add('btn-disabled');
             }
@@ -579,17 +816,48 @@
                     selectButton(this, group);
                     selectedAttributes[groupName] = valId;
                     
+                    autoSelectMatching(groupName);
+                    
                     updateAvailability();
                     findMatchingVariant();
                 });
             });
+
+            function autoSelectMatching(clickedGroupName) {
+                const selectedIdsArr = Object.values(selectedAttributes);
+                const currentMatch = variantsList.find(variant => {
+                    return selectedIdsArr.every(attrId => variant.attributes.includes(attrId));
+                });
+
+                if (!currentMatch) {
+                    const clickedValId = selectedAttributes[clickedGroupName];
+                    const newMatch = variantsList.find(v => v.stock > 0 && v.attributes.includes(clickedValId)) 
+                                  || variantsList.find(v => v.attributes.includes(clickedValId));
+                    if (newMatch) {
+                        const groups = document.querySelectorAll('.attr-group');
+                        groups.forEach(g => {
+                            const gName = g.getAttribute('data-name');
+                            if (gName !== clickedGroupName) {
+                                const btns = g.querySelectorAll('.attr-btn');
+                                btns.forEach(b => {
+                                    const bValId = parseInt(b.getAttribute('data-id'));
+                                    if (newMatch.attributes.includes(bValId)) {
+                                        selectButton(b, g);
+                                        selectedAttributes[gName] = bValId;
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+            }
 
             function deselectButtonInGroup(group) {
                 group.querySelectorAll('.attr-btn').forEach(b => {
                     b.classList.remove('border-primary', 'bg-primary/10', 'border-2', 'ring-2', 'ring-primary');
                     b.classList.add('border-gray-200', 'dark:border-white/10', 'border', 'bg-transparent');
                     b.querySelector('.check-icon').classList.add('hidden');
-                    b.querySelector('.attr-text').classList.remove('text-[#181611]', 'dark:text-white', 'font-black');
+                    b.querySelector('.attr-text').classList.remove('text-[#181611]', 'dark:text-white', 'font-bold');
                     b.querySelector('.attr-text').classList.add('text-gray-600', 'dark:text-gray-300');
                 });
             }
@@ -601,7 +869,7 @@
                 btn.classList.add('border-primary', 'bg-primary/10', 'border-2', 'ring-2', 'ring-primary');
                 btn.querySelector('.check-icon').classList.remove('hidden');
                 btn.querySelector('.attr-text').classList.remove('text-gray-600', 'dark:text-gray-300');
-                btn.querySelector('.attr-text').classList.add('text-[#181611]', 'dark:text-white', 'font-black');
+                btn.querySelector('.attr-text').classList.add('text-[#181611]', 'dark:text-white', 'font-bold');
             }
 
             function updateAvailability() {
@@ -634,8 +902,9 @@
                             const strikeEl = btn.querySelector('.strike-line');
                             if (strikeEl) strikeEl.remove();
                         } else {
-                            // Khóa nút: mờ, không click được, gạch ngang
-                            btn.classList.add('opacity-40', 'grayscale', 'pointer-events-none', 'cursor-not-allowed');
+                            // Khóa nút: mờ, nhưng VẪN CHO PHÉP CLICK để đổi tổ hợp
+                            btn.classList.add('opacity-40', 'grayscale');
+                            btn.classList.remove('pointer-events-none', 'cursor-not-allowed');
                             // Thêm gạch ngang nếu chưa có
                             if (!btn.querySelector('.strike-line')) {
                                 const strike = document.createElement('span');
@@ -673,7 +942,10 @@
                     // Cần chọn thêm để xác định chính xác biến thể
                     stockStatusEl.textContent = 'Chọn thêm cấu hình';
                     stockStatusEl.className = 'text-xs text-amber-600 bg-amber-100 dark:bg-amber-500/20 dark:text-amber-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
-                    stockTextEl.textContent = '-';
+                    stockTextEl.textContent = 'Chọn cấu hình';
+                    stockTextEl.className = 'text-amber-600 dark:text-amber-400';
+                    const _dot1 = document.getElementById('stock-dot');
+                    if (_dot1) _dot1.className = 'inline-block w-1.5 h-1.5 rounded-full bg-amber-500';
                     btnBuyNow.classList.add('btn-disabled');
                     btnAddCart.classList.add('btn-disabled');
 
@@ -696,7 +968,10 @@
                         stockStatusEl.className = 'text-xs text-red-600 bg-red-100 dark:bg-red-500/20 dark:text-red-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider';
                         priceEl.textContent = 'Liên hệ';
                         oldPriceEl.textContent = '';
-                        stockTextEl.textContent = 0;
+                        stockTextEl.textContent = 'Không có';
+                        stockTextEl.className = 'text-red-600 dark:text-red-400';
+                        const _dot2 = document.getElementById('stock-dot');
+                        if (_dot2) _dot2.className = 'inline-block w-1.5 h-1.5 rounded-full bg-red-500';
                         
                         btnBuyNow.classList.add('btn-disabled');
                         btnAddCart.classList.add('btn-disabled');
@@ -832,7 +1107,40 @@
             var ratingLabel = modal ? modal.querySelector('[data-rating-label]') : null;
             var starsWrap = modal ? modal.querySelector('[data-rating-stars]') : null;
 
-            if (!modal || !panel) return;
+            // ===== TOAST ANIMATE =====
+            var toastIds = ['review-toast-success', 'review-toast-error', 'review-toast-validation'];
+            var hasToast = false;
+
+            toastIds.forEach(function(id) {
+                var toast = byId(id);
+                if (!toast) return;
+                hasToast = true;
+
+                // Animate in
+                requestAnimationFrame(function() {
+                    setTimeout(function() {
+                        toast.classList.remove('opacity-0', 'translate-y-2');
+                        toast.classList.add('opacity-100', 'translate-y-0');
+                    }, 80);
+                });
+
+                // Tự ẩn sau 5s
+                setTimeout(function() {
+                    toast.classList.remove('opacity-100', 'translate-y-0');
+                    toast.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(function() { toast && toast.remove(); }, 500);
+                }, 5000);
+            });
+
+            // Scroll tới review section nếu có toast thông báo
+            if (hasToast) {
+                var section = byId('reviews-section');
+                if (section) {
+                    setTimeout(function() {
+                        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 200);
+                }
+            }
 
             function setRating(value) {
                 if (ratingInput) ratingInput.value = String(value || '');
@@ -853,12 +1161,13 @@
                 }
 
                 if (ratingLabel) {
-                    var map = { 1: 'Rat te', 2: 'Te', 3: 'Binh thuong', 4: 'Tot', 5: 'Tuyet voi' };
-                    ratingLabel.textContent = value ? value + '/5 - ' + (map[value] || '') : 'Chon so sao de danh gia';
+                    var map = { 1: 'Rất tệ', 2: 'Tệ', 3: 'Bình thường', 4: 'Tốt', 5: 'Tuyệt vời' };
+                    ratingLabel.textContent = value ? value + '/5 — ' + (map[value] || '') : 'Chọn số sao để đánh giá';
                 }
             }
 
             function openModal() {
+                if (!modal || !panel) return;
                 modal.setAttribute('aria-hidden', 'false');
                 modal.classList.remove('opacity-0', 'pointer-events-none');
                 modal.classList.add('opacity-100', 'pointer-events-auto');
@@ -866,13 +1175,12 @@
                 panel.classList.remove('opacity-0', 'translate-y-3', 'scale-95');
                 panel.classList.add('opacity-100', 'translate-y-0', 'scale-100');
 
-                // Rating is optional: don't auto-select stars.
-
                 var content = byId('review_content');
                 if (content && content.focus) content.focus();
             }
 
             function closeModal() {
+                if (!modal || !panel) return;
                 modal.setAttribute('aria-hidden', 'true');
                 modal.classList.remove('opacity-100', 'pointer-events-auto');
                 modal.classList.add('opacity-0', 'pointer-events-none');
@@ -885,11 +1193,11 @@
             if (starsWrap) {
                 var stars = starsWrap.querySelectorAll('.review-star');
                 for (var i = 0; i < stars.length; i++) {
-                    stars[i].classList.add('text-slate-600');
+                    stars[i].classList.add('text-slate-300');
                 }
             }
 
-            // Event delegation (more robust than binding to a single element)
+            // Event delegation
             document.addEventListener('click', function (e) {
                 var target = e.target;
                 if (!(target instanceof Element)) return;
@@ -912,12 +1220,88 @@
                     var v = Number(starBtn.getAttribute('data-value') || 0);
                     if (v >= 1 && v <= 5) setRating(v);
                 }
+
+                var helpfulBtn = target.closest('.btn-helpful');
+                if (helpfulBtn) {
+                    e.preventDefault();
+                    if (helpfulBtn.classList.contains('text-primary')) return;
+
+                    var url = helpfulBtn.getAttribute('data-url');
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(res => Object.assign(res, { isOk: res.ok }))
+                    .then(res => res.json().then(data => ({ status: res.status, ok: res.isOk, data })))
+                    .then(res => {
+                        var data = res.data;
+                        if (res.ok && data.ok) {
+                            helpfulBtn.querySelector('.helpful-count').textContent = data.count;
+                            helpfulBtn.classList.remove('text-gray-400');
+                            helpfulBtn.classList.add('text-primary');
+                        } else {
+                            alert(data.message || 'Lỗi hệ thống: không thể like bình luận.');
+                        }
+                    })
+                    .catch(e => {
+                        console.error('Lỗi Like:', e);
+                        alert('Không thể kết nối đến máy chủ hoặc lỗi cấu trúc dữ liệu.');
+                    });
+                }
             });
 
             document.addEventListener('keydown', function (e) {
                 if (e.key !== 'Escape') return;
-                if (modal.getAttribute('aria-hidden') === 'true') return;
-                closeModal();
+                if (modal && modal.getAttribute('aria-hidden') === 'true') return;
+                if (modal) closeModal();
+            });
+
+            // ===== FILTER PILLS =====
+            var filterBtns = document.querySelectorAll('.review-filter-btn');
+            var reviewCards = document.querySelectorAll('.review-card');
+            var noResult = document.getElementById('no-filter-result');
+
+            filterBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var filter = this.getAttribute('data-filter');
+
+                    // Toggle active style
+                    filterBtns.forEach(function(b) {
+                        b.classList.remove('border-red-500', 'text-red-500', 'bg-red-50', 'active');
+                        b.classList.add('border-gray-200', 'text-gray-600', 'bg-white', 'dark:bg-white/5', 'dark:border-white/10', 'dark:text-gray-300');
+                    });
+                    this.classList.add('border-red-500', 'text-red-500', 'bg-red-50', 'active');
+                    this.classList.remove('border-gray-200', 'text-gray-600', 'bg-white');
+
+                    var visible = 0;
+                    reviewCards.forEach(function(card) {
+                        var show = false;
+                        if (filter === 'all') {
+                            show = true;
+                        } else if (filter === 'has-image') {
+                            show = card.getAttribute('data-has-image') === '1';
+                        } else if (filter === 'purchased') {
+                            show = card.getAttribute('data-purchased') === '1';
+                        } else if (filter.startsWith('star-')) {
+                            var star = filter.replace('star-', '');
+                            show = card.getAttribute('data-rating') === star;
+                        }
+
+                        if (show) {
+                            card.style.display = '';
+                            visible++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+
+                    if (noResult) noResult.classList.toggle('hidden', visible > 0);
+                });
             });
         });
     </script>

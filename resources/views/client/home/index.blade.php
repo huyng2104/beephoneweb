@@ -80,16 +80,41 @@
         {{-- ========================================== --}}
         @if($categories->count() > 0)
         <section class="px-4 md:px-10 lg:px-20 mt-12">
-            <div class="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-4 md:gap-6">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="material-symbols-outlined text-primary">category</span>
+                <h2 class="text-2xl font-bold uppercase tracking-tight">Danh mục nổi bật</h2>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 @foreach($categories as $category)
                 <a href="{{ route('client.products.index', ['category' => $category->slug]) }}" 
-                   class="group flex flex-col items-center">
-                    <div class="aspect-square w-full max-w-[100px] rounded-2xl bg-white dark:bg-white/5 border-2 border-transparent group-hover:border-primary group-hover:shadow-xl transition-all duration-300 flex items-center justify-center overflow-hidden p-3 mb-3">
-                        <img src="{{ $category->thumbnail ? asset('storage/' . $category->thumbnail) : 'https://placehold.co/100/f8f9fa/1a1a1a?text=' . substr($category->name, 0, 1) }}" 
-                             alt="{{ $category->name }}" 
-                             class="w-full h-full object-contain group-hover:scale-110 transition-transform">
+                   class="px-6 py-6 bg-white dark:bg-white/5 border-2 border-gray-100 dark:border-white/10 rounded-2xl font-bold text-lg lg:text-xl hover:border-primary hover:text-primary transition-all shadow-sm hover:shadow-xl flex items-center justify-center text-center group min-h-[80px]">
+                    <div class="group-hover:scale-110 transition-transform flex flex-col items-center gap-1">
+                        <span class="line-clamp-1">{{ $category->name }}</span>
+                        <span class="text-xs text-gray-500 font-normal">{{ $category->products_count }} sản phẩm</span>
                     </div>
-                    <span class="text-xs font-bold text-center group-hover:text-primary transition-colors line-clamp-1">{{ $category->name }}</span>
+                </a>
+                @endforeach
+            </div>
+        </section>
+        @endif
+        
+        {{-- ========================================== --}}
+        {{-- KHU VỰC THƯƠNG HIỆU NỔI BẬT --}}
+        {{-- ========================================== --}}
+        @if($brands->count() > 0)
+        <section class="px-4 md:px-10 lg:px-20 mt-8">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="material-symbols-outlined text-primary">verified</span>
+                <h2 class="text-2xl font-bold uppercase tracking-tight">Thương hiệu hot</h2>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                @foreach($brands as $brand)
+                <a href="{{ route('client.products.index', ['brand' => $brand->slug]) }}" 
+                   class="px-6 py-6 bg-white dark:bg-white/5 border-2 border-gray-100 dark:border-white/10 rounded-2xl font-bold text-lg lg:text-xl hover:border-primary hover:text-primary transition-all shadow-sm hover:shadow-xl flex items-center justify-center text-center group min-h-[80px]">
+                    <div class="group-hover:scale-110 transition-transform flex flex-col items-center gap-1">
+                        <span class="line-clamp-1">{{ $brand->name }}</span>
+                        <span class="text-xs text-gray-500 font-normal">{{ $brand->products_count }} sản phẩm</span>
+                    </div>
                 </a>
                 @endforeach
             </div>
@@ -160,7 +185,7 @@
                     <div class="mb-4">
                         <p class="text-sm font-medium opacity-80 uppercase tracking-wider">Tổng giá trị combo</p>
                         <div class="flex items-end gap-2">
-                            <h3 class="text-3xl font-black">28.990.000₫</h3>
+                            <h3 class="text-3xl font-bold">28.990.000₫</h3>
                             <span class="text-sm line-through opacity-60">32.200.000₫</span>
                         </div>
                     </div>
@@ -308,21 +333,7 @@
                 </div>
             </div>
         </section>
-        {{-- ========================================== --}}
-        {{-- THƯƠNG HIỆU ĐỒNG HÀNH --}}
-        {{-- ========================================== --}}
-        @if($brands->count() > 0)
-        <section class="px-4 md:px-10 lg:px-20 mt-20">
-            <div class="bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-100 dark:border-white/10">
-                <div class="flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-                    @foreach($brands as $brand)
-                        <img src="{{ $brand->logo ? asset('storage/' . $brand->logo) : 'https://placehold.co/120x60?text=' . $brand->name }}" 
-                             alt="{{ $brand->name }}" class="h-8 md:h-12 object-contain">
-                    @endforeach
-                </div>
-            </div>
-        </section>
-        @endif
+
 
         {{-- ========================================== --}}
         {{-- TIN TỨC CẬP NHẬT --}}

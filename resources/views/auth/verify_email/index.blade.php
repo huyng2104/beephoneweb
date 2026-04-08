@@ -61,7 +61,7 @@
                         class="w-20 h-20 bg-green-100 dark:bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mb-5 animate-[bounce_1s_ease-in-out]">
                         <span class="material-symbols-outlined text-5xl">check_circle</span>
                     </div>
-                    <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-2">Thành công!</h3>
+                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Thành công!</h3>
                     <p class="text-slate-600 dark:text-slate-400 mb-6 font-medium">{{ session('success') }}</p>
 
                     <button onclick="closeAlert()"
@@ -75,7 +75,7 @@
                         class="w-20 h-20 bg-red-100 dark:bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-5 animate-[pulse_1s_ease-in-out]">
                         <span class="material-symbols-outlined text-5xl">warning</span>
                     </div>
-                    <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-2">Ôi hỏng!</h3>
+                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Ôi hỏng!</h3>
                     <p class="text-slate-600 dark:text-slate-400 mb-6 font-medium">
                         @if (session('error'))
                             {{ session('error') }}

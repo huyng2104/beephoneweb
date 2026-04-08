@@ -10,7 +10,7 @@
         <div class="flex-1 overflow-y-auto p-8 space-y-6">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Quản lý ví</h2>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Quản lý ví</h2>
                     <p class="text-slate-500 text-sm mt-1">Xem và quản lý số dư, trạng thái ví của người dùng trên hệ thống
                     </p>
                 </div>
@@ -26,28 +26,28 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng số dư hệ thống</p>
-                    <p class="text-2xl font-black mt-1 text-slate-900 dark:text-slate-100">
+                    <p class="text-2xl font-bold mt-1 text-slate-900 dark:text-slate-100">
                         {{ number_format($totalBalance ?? 0) }}đ
                     </p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng nạp (Tháng này)</p>
-                    <p class="text-2xl font-black mt-1 text-blue-500">
+                    <p class="text-2xl font-bold mt-1 text-blue-500">
                         +{{ number_format($totalDeposit ?? 0) }}đ
                     </p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng rút (Tháng này)</p>
-                    <p class="text-2xl font-black mt-1 text-red-500">
+                    <p class="text-2xl font-bold mt-1 text-red-500">
                         -{{ number_format($totalWithdraw ?? 0) }}đ
                     </p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Ví đang bị khóa</p>
-                    <p class="text-2xl font-black mt-1 text-orange-500">
+                    <p class="text-2xl font-bold mt-1 text-orange-500">
                         {{ number_format($lockedWalletsCount ?? 0) }}
                     </p>
                 </div>
@@ -136,7 +136,7 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <p class="text-sm font-black text-blue-600 dark:text-blue-500">
+                                        <p class="text-sm font-bold text-blue-600 dark:text-blue-500">
                                             {{ number_format($wallet->balance) }}đ
                                         </p>
                                     </td>

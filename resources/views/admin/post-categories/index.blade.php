@@ -60,7 +60,7 @@
                 <div class="mx-auto space-y-6">
                     <div class="flex flex-wrap justify-between items-end gap-3">
                         <div class="flex min-w-72 flex-col gap-1">
-                            <p class="text-[#181611] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">
+                            <p class="text-[#181611] dark:text-white text-4xl font-bold leading-tight tracking-[-0.033em]">
                                 Quản lý Danh mục</p>
                             <p class="text-[#8a8060] dark:text-[#b5ae98] text-base font-normal leading-normal">Tổ chức các
                                 chủ đề tin tức, hướng dẫn và đánh giá sản phẩm</p>
@@ -179,7 +179,7 @@
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-[#8a8060] uppercase tracking-wider">Tổng danh mục</p>
-                                <p class="text-2xl font-black text-[#181611] dark:text-white">{{ $totalCategories }}</p>
+                                <p class="text-2xl font-bold text-[#181611] dark:text-white">{{ $totalCategories }}</p>
                             </div>
                         </div>
                         <div
@@ -190,7 +190,7 @@
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-[#8a8060] uppercase tracking-wider">Nhiều bài nhất</p>
-                                <p class="text-lg font-black text-[#181611] dark:text-white">
+                                <p class="text-lg font-bold text-[#181611] dark:text-white">
                                     {{ $topCategory->name ?? 'Chưa có' }}</p>
                             </div>
                         </div>
@@ -201,7 +201,7 @@
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-[#8a8060] uppercase tracking-wider">Mới thêm tháng này</p>
-                                <p class="text-2xl font-black text-[#181611] dark:text-white">{{ $newCategoriesThisMonth }}
+                                <p class="text-2xl font-bold text-[#181611] dark:text-white">{{ $newCategoriesThisMonth }}
                                 </p>
                             </div>
                         </div>

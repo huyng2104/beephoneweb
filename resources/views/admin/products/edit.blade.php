@@ -31,7 +31,7 @@
                             <span class="material-symbols-outlined text-xs">chevron_right</span>
                             <span class="text-slate-900 font-medium">Sửa sản phẩm</span>
                         </div>
-                        <h1 class="text-3xl font-black tracking-tight text-slate-900">Sửa: {{ $product->name }}</h1>
+                        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Sửa: {{ $product->name }}</h1>
                     </div>
                     <div class="flex items-center gap-3">
                         <a href="{{ route('admin.products.index') }}" class="px-5 py-2.5 rounded-lg border border-slate-300 font-bold text-sm bg-white hover:bg-slate-50 transition-all text-slate-700">Hủy bỏ</a>
@@ -92,7 +92,7 @@
                                 $simpleVariant = $product->variants->first();
                             @endphp
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Giá & Tồn kho</h4>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Giá & Tồn kho</h4>
                             </div>
                             <div class="p-6 space-y-5">
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -137,7 +137,7 @@
 
                             {{-- Thông số cho sản phẩm đơn --}}
                             <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">
                                     <span class="material-symbols-outlined text-base align-middle mr-1">memory</span>
                                     Thông số kỹ thuật
                                 </h4>
@@ -173,7 +173,7 @@
                         {{-- THUỘC TÍNH & BIẾN THỂ (Sản phẩm biến thể) --}}
                         <div id="variable-product-card" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden {{ old('type', $product->type) == 'simple' ? 'hidden' : '' }}">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Thuộc tính & Các Biến thể</h4>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Thuộc tính & Các Biến thể</h4>
                             </div>
                             <div class="p-6">
 
@@ -338,7 +338,7 @@
 
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Đăng</h4>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Đăng</h4>
                             </div>
                             <div class="p-5 space-y-4">
                                 <div class="flex items-center justify-between text-sm">
@@ -363,7 +363,7 @@
 
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Danh mục <span class="text-red-500">*</span></h4>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Danh mục <span class="text-red-500">*</span></h4>
                             </div>
                             <div class="p-5">
                                 <select name="category_ids[]" multiple class="select2-categories w-full">
@@ -381,7 +381,7 @@
 
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase tracking-wider text-slate-700">Thương hiệu</h4>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700">Thương hiệu</h4>
                             </div>
                             <div class="p-5">
                                 <select name="brand_id" class="w-full text-sm border-slate-200 rounded-lg py-2.5 px-3 bg-slate-50 focus:ring-primary">
@@ -395,7 +395,7 @@
 
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase text-slate-700">Ảnh đại diện</h4>
+                                <h4 class="font-bold text-sm uppercase text-slate-700">Ảnh đại diện</h4>
                             </div>
                             <div class="p-5 text-center">
                                 <div class="mb-4 rounded-xl overflow-hidden border border-slate-200 shadow-inner group relative">
@@ -415,7 +415,7 @@
 
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h4 class="font-black text-sm uppercase text-slate-700">Album hình ảnh</h4>
+                                <h4 class="font-bold text-sm uppercase text-slate-700">Album hình ảnh</h4>
                             </div>
                             <div class="p-5 overflow-hidden">
                                 {{-- Preview cho ảnh đã có --}}
@@ -438,7 +438,7 @@
                                     <input type="file" name="images[]" id="gallery-input" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                                     <div class="flex flex-col items-center justify-center pointer-events-none" id="gallery-placeholder">
                                         <span class="material-symbols-outlined text-2xl text-slate-300 group-hover:text-primary transition-colors">collections</span>
-                                        <span class="text-[10px] font-black uppercase mt-1 text-slate-400">Chọn thêm ảnh nhiều ảnh</span>
+                                        <span class="text-[10px] font-bold uppercase mt-1 text-slate-400">Chọn thêm ảnh nhiều ảnh</span>
                                     </div>
                                 </div>
 
@@ -537,7 +537,7 @@
                     const previewHtml = `
                         <div class="relative aspect-square rounded-lg border border-primary/30 overflow-hidden group shadow-sm bg-indigo-50/10 p-1">
                             <img src="${e.target.result}" class="w-full h-full object-cover rounded-md">
-                            <span class="absolute top-1 left-1 px-1.5 py-0.5 bg-primary text-slate-900 text-[8px] font-black uppercase rounded shadow-sm">Mới</span>
+                            <span class="absolute top-1 left-1 px-1.5 py-0.5 bg-primary text-slate-900 text-[8px] font-bold uppercase rounded shadow-sm">Mới</span>
                             <button type="button" class="absolute top-1 right-1 size-5 bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-red-700 btn-remove-new-img" data-index="${i}">
                                 <span class="material-symbols-outlined text-[14px]">close</span>
                             </button>
@@ -623,7 +623,7 @@
             let html = `
                 <div class="border border-slate-200 rounded-lg p-4 bg-white shadow-sm" id="attr-block-${id}">
                     <div class="flex justify-between mb-3 border-b border-slate-50 pb-2">
-                        <strong class="text-sm font-black text-slate-700 uppercase tracking-tight">${name}</strong>
+                        <strong class="text-sm font-bold text-slate-700 uppercase tracking-tight">${name}</strong>
                         <button type="button" class="text-red-400 hover:text-red-600 text-xs font-bold btn-remove-attr" data-id="${id}">Xóa</button>
                     </div>
                     <input type="hidden" name="attributes[${id}][id]" value="${id}">

@@ -5,7 +5,7 @@
     <header class="bg-white dark:bg-gray-900 border-b border-[#e6e3db] px-8 py-6">
         <div class="flex flex-wrap justify-between items-end gap-4">
             <div class="flex flex-col gap-1">
-                <h2 class="text-[#181611] dark:text-white text-3xl font-black tracking-tight">Quản lý khuyến mãi
+                <h2 class="text-[#181611] dark:text-white text-3xl font-bold tracking-tight">Quản lý khuyến mãi
                 </h2>
                 <p class="text-[#8a8060] text-sm font-normal">Theo dõi và cấu hình các chương trình ưu đãi của
                     Bee Phone.</p>
@@ -56,7 +56,7 @@
             <div class="flex flex-col gap-4 rounded-xl p-6 bg-white dark:bg-gray-900 border border-[#e6e3db] shadow-sm">
                 <div class="flex items-center justify-between mb-2">
                     <div>
-                        <h3 class="text-[#181611] dark:text-white text-base font-black tracking-tight">Xu hướng sử dụng</h3>
+                        <h3 class="text-[#181611] dark:text-white text-base font-bold tracking-tight">Xu hướng sử dụng</h3>
                         <p class="text-[#8a8060] text-xs font-medium mt-1">Lượt dùng 7 ngày gần nhất</p>
                     </div>
                     <div class="p-2 bg-primary/10 rounded-lg">

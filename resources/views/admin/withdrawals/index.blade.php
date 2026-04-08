@@ -10,7 +10,7 @@
         <div class="flex-1 overflow-y-auto p-8 space-y-6">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Yêu cầu rút tiền</h2>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Yêu cầu rút tiền</h2>
                     <p class="text-slate-500 text-sm mt-1">Quản lý và xét duyệt các giao dịch rút tiền từ người dùng</p>
                 </div>
                 <a href="#">
@@ -25,28 +25,28 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Tổng tiền chờ duyệt</p>
-                    <p class="text-2xl font-black mt-1 text-orange-500">
+                    <p class="text-2xl font-bold mt-1 text-orange-500">
                         {{ number_format($totalPendingAmount ?? 0) }}đ
                     </p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Đơn chờ xử lý</p>
-                    <p class="text-2xl font-black mt-1 text-slate-900 dark:text-slate-100">
+                    <p class="text-2xl font-bold mt-1 text-slate-900 dark:text-slate-100">
                         {{ number_format($pendingCount ?? 0) }}
                     </p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Đã duyệt (Tháng này)</p>
-                    <p class="text-2xl font-black mt-1 text-green-500">
+                    <p class="text-2xl font-bold mt-1 text-green-500">
                         {{ number_format($totalCompletedAmount ?? 0) }}đ
                     </p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Đơn bị từ chối</p>
-                    <p class="text-2xl font-black mt-1 text-red-500">
+                    <p class="text-2xl font-bold mt-1 text-red-500">
                         {{ number_format($rejectedCount ?? 0) }}
                     </p>
                 </div>
@@ -148,7 +148,7 @@
                                     </td>
 
                                     <td class="px-6 py-4">
-                                        <p class="text-sm font-black text-slate-900 dark:text-slate-100">
+                                        <p class="text-sm font-bold text-slate-900 dark:text-slate-100">
                                             {{ number_format($withdrawal->amount) }}đ
                                         </p>
                                     </td>

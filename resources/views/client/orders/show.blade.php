@@ -35,6 +35,21 @@
             </div>
         </div>
 
+        {{-- THÔNG BÁO ALERT --}}
+        @if (session('success'))
+            <div class="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 font-semibold shadow-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error') || $errors->any())
+            <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-semibold shadow-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[20px]">error</span>
+                {{ session('error') ?? $errors->first() }}
+            </div>
+        @endif
+
         @php
             $step = 0;
             if(in_array($order->status, ['pending'])) $step = 1;
@@ -170,7 +185,7 @@
                 <h2 class="text-lg font-bold uppercase tracking-tight text-[#181611] dark:text-white flex items-center gap-2">
                     <span class="material-symbols-outlined text-[#f4c025]">inventory_2</span> Sản phẩm đã mua
                 </h2>
-                <span class="bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 px-3 py-1 rounded-full text-xs font-black text-[#181611] dark:text-[#f4c025]">
+                <span class="bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 px-3 py-1 rounded-full text-xs font-bold text-[#181611] dark:text-[#f4c025]">
                     {{ $order->items->count() }} MẶT HÀNG
                 </span>
             </div>
@@ -203,9 +218,159 @@
                                     <p class="text-lg font-bold text-red-500">{{ number_format($item->unit_price, 0, ',', '.') }}₫</p>
                                     @if(in_array($order->status, [\App\Models\Order::STATUS_DELIVERED, \App\Models\Order::STATUS_RECEIVED]) && $item->product)
                                         @php $prodParam = $item->product->slug ?: $item->product->id; @endphp
-                                        <a href="{{ route('client.product.detail', ['id' => $prodParam]) }}" class="px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 font-bold rounded-lg hover:bg-blue-600 hover:text-white transition-colors text-xs whitespace-nowrap">
-                                            Mua lại
-                                        </a>
+                                        <div class="flex items-center gap-2 mt-2">
+                                            @php
+                                                $userReview = \App\Models\Review::with(['images', 'repliedBy'])
+                                                    ->where('user_id', auth()->id())
+                                                    ->where('product_id', $item->product_id)
+                                                    ->first();
+                                                $hasReviewed = $userReview !== null;
+                                            @endphp
+                                            
+                                            {{-- Toàn bộ phần đánh giá chỉ hiện khi đơn ĐÃ NHẬN --}}
+                                            @if($order->status == \App\Models\Order::STATUS_RECEIVED)
+                                                {{-- Chỉ cho phép đánh giá nếu CHƯA HOÀN HÀNG (kiểm tra cả đơn và item cụ thể) --}}
+                                                @if(!$hasReviewed && $order->return_status == \App\Models\Order::RETURN_NONE && $item->return_status == \App\Models\OrderItem::RETURN_NONE)
+                                                    <button type="button" onclick="document.getElementById('review-modal-{{ $item->product_id }}').classList.remove('hidden'); document.getElementById('review-modal-{{ $item->product_id }}').classList.add('flex');" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 font-bold rounded-lg hover:bg-red-600 hover:text-white transition-colors text-xs whitespace-nowrap inline-flex items-center gap-1">
+                                                        <span class="material-symbols-outlined text-[13px]">rate_review</span> Đánh giá
+                                                    </button>
+                                                @elseif($hasReviewed)
+                                                    <button type="button" onclick="document.getElementById('view-review-modal-{{ $item->product_id }}').classList.remove('hidden'); document.getElementById('view-review-modal-{{ $item->product_id }}').classList.add('flex');" class="px-3 py-1.5 bg-green-50 text-green-600 border border-green-200 font-bold rounded-lg hover:bg-green-600 hover:text-white transition-colors text-xs whitespace-nowrap inline-flex items-center gap-1">
+                                                        <span class="material-symbols-outlined text-[13px]">check_circle</span> Xem đánh giá
+                                                    </button>
+                                                @endif
+                                            @endif
+                                            
+                                            <a href="{{ route('client.product.detail', ['id' => $prodParam]) }}" class="px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 font-bold rounded-lg hover:bg-blue-600 hover:text-white transition-colors text-xs whitespace-nowrap inline-flex items-center gap-1">
+                                                <span class="material-symbols-outlined text-[13px]">shopping_cart</span> Mua lại
+                                            </a>
+                                        </div>
+
+                                        {{-- MODAL HIỂN THỊ ĐÁNH GIÁ (NẾU ĐÃ ĐÁNH GIÁ) --}}
+                                        @if($hasReviewed)
+                                        <div id="view-review-modal-{{ $item->product_id }}" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-black/60 transition-opacity">
+                                            <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl dark:bg-[#1a1a1a] text-left p-6 relative animate-[scaleIn_0.2s_ease-out]">
+                                                <button type="button" onclick="document.getElementById('view-review-modal-{{ $item->product_id }}').classList.add('hidden'); document.getElementById('view-review-modal-{{ $item->product_id }}').classList.remove('flex');" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">close</span>
+                                                </button>
+                                                
+                                                <h2 class="text-lg font-bold text-[#181611] dark:text-white flex items-center gap-2 mb-4 border-b border-gray-100 dark:border-white/10 pb-3">
+                                                    <span class="material-symbols-outlined text-green-500">rate_review</span>
+                                                    Đánh giá của bạn
+                                                </h2>
+
+                                                <div class="space-y-4">
+                                                    {{-- Rating Stars --}}
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Đánh giá:</span>
+                                                        <div class="flex gap-0.5">
+                                                            @for($i = 1; $i <= 5; $i++)
+                                                                <span class="material-symbols-outlined text-[16px] {{ $i <= $userReview->rating ? 'text-[#f4c025]' : 'text-gray-200 dark:text-gray-600' }}" style="font-variation-settings:'FILL' 1">star</span>
+                                                            @endfor
+                                                        </div>
+                                                        <span class="text-xs text-gray-400">({{ $userReview->created_at->format('d/m/Y H:i') }})</span>
+                                                    </div>
+
+                                                    {{-- Nội dung --}}
+                                                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                                        {{ $userReview->comment }}
+                                                    </div>
+
+                                                    {{-- Ảnh đính kèm --}}
+                                                    @if($userReview->images->isNotEmpty())
+                                                        <div>
+                                                            <div class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Hình ảnh đính kèm:</div>
+                                                            <div class="flex gap-2 flex-wrap">
+                                                                @foreach($userReview->images as $img)
+                                                                    <a href="{{ asset('storage/' . $img->image_path) }}" target="_blank">
+                                                                        <img src="{{ asset('storage/' . $img->image_path) }}" class="w-16 h-16 object-cover rounded-xl border border-gray-100 dark:border-white/10 hover:opacity-80 transition-opacity">
+                                                                    </a>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endif
+
+                                                    {{-- Phản hồi admin --}}
+                                                    @if($userReview->hasReply())
+                                                        <div class="mt-4 pl-4 border-l-2 border-[#f4c025]/50 bg-[#f4c025]/5 dark:bg-[#f4c025]/10 rounded-r-xl py-3 pr-4">
+                                                            <p class="text-xs font-bold text-[#f4c025] flex items-center gap-1 mb-1">
+                                                                <span class="material-symbols-outlined text-[14px]">support_agent</span> Phản hồi từ Bee Phone
+                                                            </p>
+                                                            <p class="text-sm text-gray-700 dark:text-gray-300">{{ $userReview->reply_comment }}</p>
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                <div class="mt-6 pt-4 border-t border-gray-100 dark:border-white/10 flex justify-end">
+                                                    <button type="button" onclick="document.getElementById('view-review-modal-{{ $item->product_id }}').classList.add('hidden'); document.getElementById('view-review-modal-{{ $item->product_id }}').classList.remove('flex');" class="px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-bold transition-colors dark:bg-white/5 dark:text-gray-300 hover:dark:bg-white/10 block w-full text-center sm:w-auto">
+                                                        Đóng
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        {{-- MODAL ĐÁNH GIÁ SẢN PHẨM INLINE --}}
+                                        @if(!$hasReviewed && $order->status == \App\Models\Order::STATUS_RECEIVED)
+                                        <div id="review-modal-{{ $item->product_id }}" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-black/60 transition-opacity">
+                                            <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl dark:bg-[#1a1a1a] text-left p-6 relative animate-[scaleIn_0.2s_ease-out]">
+
+                                                <button type="button" onclick="document.getElementById('review-modal-{{ $item->product_id }}').classList.add('hidden'); document.getElementById('review-modal-{{ $item->product_id }}').classList.remove('flex');" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">close</span>
+                                                </button>
+                                                
+                                                <h2 class="text-lg font-bold text-[#181611] dark:text-white flex items-center gap-2 mb-1 border-b border-gray-100 dark:border-white/10 pb-3">
+                                                    <span class="material-symbols-outlined text-red-500">rate_review</span>
+                                                    Đánh giá sản phẩm
+                                                </h2>
+                                                
+                                                <div class="flex items-center gap-4 mb-5 p-3 mt-4 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10">
+                                                    <div class="w-14 h-14 shrink-0 bg-white dark:bg-black/20 rounded-lg border border-gray-100 dark:border-white/5 p-1">
+                                                        <img src="{{ $imageUrl }}" alt="{{ $baseName }}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal">
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-sm font-bold text-[#181611] dark:text-white line-clamp-2 leading-tight">{{ $baseName }}</p>
+                                                        @if($variantInfo)<p class="text-[11px] text-gray-500 mt-1 uppercase tracking-wider font-semibold">{{ $variantInfo }}</p>@endif
+                                                    </div>
+                                                </div>
+
+                                                <form action="{{ route('products.reviews.store', $item->product_id) }}" method="POST" enctype="multipart/form-data">
+                                                    @csrf
+                                                    
+                                                    <div class="mb-4">
+                                                        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Chất lượng sản phẩm <span class="text-red-500">*</span></label>
+                                                        <select name="rating" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-[#181611] dark:bg-black/20 dark:border-white/10 dark:text-white focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none" required>
+                                                            <option value="">-- Chọn số sao --</option>
+                                                            <option value="5">5 Sao - Tuyệt vời</option>
+                                                            <option value="4">4 Sao - Tốt</option>
+                                                            <option value="3">3 Sao - Bình thường</option>
+                                                            <option value="2">2 Sao - Tệ</option>
+                                                            <option value="1">1 Sao - Rất tệ</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="mb-4">
+                                                        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Đánh giá chi tiết <span class="text-red-500">*</span></label>
+                                                        <textarea name="comment" rows="3" class="w-full rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none bg-white dark:bg-black/20 p-3 text-sm text-[#181611] dark:text-white dark:border-white/10 resize-none" placeholder="Hãy chia sẻ những trải nghiệm thực tế với sản phẩm này (tối thiểu 10 ký tự)..." required minlength="10"></textarea>
+                                                    </div>
+
+                                                    <div class="mb-6">
+                                                        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Thêm hình ảnh (Tùy chọn, tối đa 5 ảnh)</label>
+                                                        <input type="file" name="images[]" multiple accept="image/jpeg,image/png,image/webp" class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-red-50 disabled:file:bg-gray-100 dark:file:bg-white/10 file:text-red-600 hover:file:bg-red-100 dark:hover:file:bg-white/20 transition cursor-pointer">
+                                                    </div>
+
+                                                    <div class="flex gap-3 justify-end items-center pt-4 border-t border-gray-100 dark:border-white/10">
+                                                        <button type="button" onclick="document.getElementById('review-modal-{{ $item->product_id }}').classList.add('hidden'); document.getElementById('review-modal-{{ $item->product_id }}').classList.remove('flex');" class="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-gray-300 transition-colors">
+                                                            Hủy bỏ
+                                                        </button>
+                                                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold shadow-sm hover:bg-red-600 transition-colors inline-flex items-center gap-1.5 focus:scale-[0.98]">
+                                                            Hoàn tất đánh giá
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
@@ -214,15 +379,16 @@
                             <div class="mt-4 pt-4 border-t border-dashed border-gray-200 dark:border-white/10">
                                 @if ($item->canRequestReturn())
                                     @php
-                                        $deliveredAt = $order->updated_at;
+                                        $deliveredAt = $order->updated_at ? $order->updated_at->copy() : null;
                                         $returnDeadline = $deliveredAt ? $deliveredAt->addDays(7) : null;
-                                        $daysLeft = $returnDeadline ? now()->diffInDays($returnDeadline, false) : null;
+                                        $rawDaysLeft = $returnDeadline ? now()->diffInHours($returnDeadline, false) / 24 : null;
+                                        $daysLeft = $rawDaysLeft !== null ? (int) ceil($rawDaysLeft) : null;
                                     @endphp
                                     <div class="flex flex-wrap items-center gap-3">
                                         <button type="button" onclick="document.getElementById('return-modal-{{ $item->id }}').classList.remove('hidden')" class="px-5 py-2 bg-amber-50 dark:bg-amber-500/10 text-amber-600 border border-amber-200 dark:border-amber-500/20 font-bold rounded-lg hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors text-sm shadow-sm inline-flex items-center gap-2">
                                             <span class="material-symbols-outlined text-[18px]">assignment_return</span> Yêu cầu hoàn hàng
                                         </button>
-                                        @if($daysLeft !== null)
+                                        @if($daysLeft !== null && $daysLeft >= 0)
                                             <span class="text-xs text-gray-400 dark:text-gray-500 inline-flex items-center gap-1">
                                                 <span class="material-symbols-outlined text-[14px]">schedule</span>
                                                 Còn <strong class="{{ $daysLeft <= 2 ? 'text-red-500' : 'text-amber-600' }}">{{ max(0, $daysLeft) }} ngày</strong>&nbsp;để yêu cầu hoàn

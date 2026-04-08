@@ -58,7 +58,7 @@
                         class="w-20 h-20 bg-green-100 dark:bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mb-5 animate-[bounce_1s_ease-in-out]">
                         <span class="material-symbols-outlined text-5xl">check_circle</span>
                     </div>
-                    <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-2">Thành công!</h3>
+                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Thành công!</h3>
                     <p class="text-slate-600 dark:text-slate-400 mb-6 font-medium">{{ session('success') }}</p>
 
                     <button onclick="closeAlert()"
@@ -72,7 +72,7 @@
                         class="w-20 h-20 bg-red-100 dark:bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-5 animate-[pulse_1s_ease-in-out]">
                         <span class="material-symbols-outlined text-5xl">warning</span>
                     </div>
-                    <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-2">Ôi hỏng!</h3>
+                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Ôi hỏng!</h3>
                     <p class="text-slate-600 dark:text-slate-400 mb-6 font-medium">
                         @if (session('error'))
                             {{ session('error') }}
@@ -156,7 +156,7 @@
                         <span class="material-symbols-outlined text-4xl text-slate-900">smartphone</span>
                     </div>
                     <div>
-                        <h1 class="text-4xl font-black text-white tracking-tight">Bee Phone</h1>
+                        <h1 class="text-4xl font-bold text-white tracking-tight">Bee Phone</h1>
                         <p class="text-primary font-semibold text-sm tracking-widest uppercase mt-1">Premium Tech</p>
                     </div>
                 </div>
@@ -212,7 +212,7 @@
             </div>
             <div class="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
                 <div class="mb-10">
-                    <h1 class="text-4xl font-black text-slate-900 dark:text-white mb-3">Chào mừng trở lại!</h1>
+                    <h1 class="text-4xl font-bold text-slate-900 dark:text-white mb-3">Chào mừng trở lại!</h1>
                     <p class="text-slate-500 dark:text-slate-400 font-medium">Đăng nhập vào tài khoản Bee Phone của bạn
                         để tiếp tục.</p>
                 </div>
@@ -262,7 +262,7 @@
                     </div>
 
                     <button
-                        class="w-full bg-primary hover:bg-primary/90 text-slate-900 font-black py-4 rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] text-lg"
+                        class="w-full bg-primary hover:bg-primary/90 text-slate-900 font-bold py-4 rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] text-lg"
                         type="submit">
                         Đăng nhập
                     </button>
@@ -291,7 +291,7 @@
                     </button>
                 </div> --}}
                 <p class="text-center text-slate-600 dark:text-slate-400 font-medium mt-10">
-                    Chưa có tài khoản? <a class="text-primary font-black hover:underline"
+                    Chưa có tài khoản? <a class="text-primary font-bold hover:underline"
                         href="{{ route('register') }}">Đăng ký
                         ngay</a>
                 </p>

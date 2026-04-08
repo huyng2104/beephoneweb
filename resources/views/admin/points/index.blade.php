@@ -261,7 +261,7 @@
                                     <span class="material-symbols-outlined text-orange-600 text-2xl">workspace_premium</span>
                                 </div>
                             @else
-                                <span class="text-lg font-black text-slate-400">#{{ $index + 1 }}</span>
+                                <span class="text-lg font-bold text-slate-400">#{{ $index + 1 }}</span>
                             @endif
                         </td>
 
@@ -292,7 +292,7 @@
                         {{-- Cột 4: Tổng điểm --}}
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-1">
-                                <span class="text-xl font-black text-primary">{{ number_format($user->total_points ?? 0) }}</span>
+                                <span class="text-xl font-bold text-primary">{{ number_format($user->total_points ?? 0) }}</span>
                                 <span class="material-symbols-outlined text-primary text-[18px]">toll</span>
                             </div>
                         </td>

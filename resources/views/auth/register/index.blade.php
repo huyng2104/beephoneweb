@@ -64,7 +64,7 @@
                         <span class="material-symbols-outlined text-4xl text-slate-900">smartphone</span>
                     </div>
                     <div>
-                        <h1 class="text-4xl font-black text-white tracking-tight">Bee Phone</h1>
+                        <h1 class="text-4xl font-bold text-white tracking-tight">Bee Phone</h1>
                         <p class="text-primary font-semibold text-sm tracking-widest uppercase mt-1">Premium Tech</p>
                     </div>
                 </div>
@@ -120,7 +120,7 @@
             </div>
             <div class="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
                 <div class="mb-10">
-                    <h1 class="text-4xl font-black text-slate-900 dark:text-white mb-3">Đăng ký tài khoản</h1>
+                    <h1 class="text-4xl font-bold text-slate-900 dark:text-white mb-3">Đăng ký tài khoản</h1>
                     <p class="text-slate-500 dark:text-slate-400 font-medium">Vui lòng điền đủ thông tin để tiếp tục để
                         tiếp tục.</p>
                 </div>
@@ -210,7 +210,7 @@
                     </div>
 
                     <button
-                        class="w-full bg-primary hover:bg-primary/90 text-slate-900 font-black py-4 rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] text-lg mt-4"
+                        class="w-full bg-primary hover:bg-primary/90 text-slate-900 font-bold py-4 rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] text-lg mt-4"
                         type="submit">
                         Đăng ký tài khoản
                     </button>
@@ -239,7 +239,7 @@
                     </button>
                 </div> --}}
                 <p class="text-center text-slate-600 dark:text-slate-400 font-medium mt-10">
-                    Chưa có tài khoản? <a class="text-primary font-black hover:underline"
+                    Chưa có tài khoản? <a class="text-primary font-bold hover:underline"
                         href="{{ route('register') }}">Đăng ký
                         ngay</a>
                 </p>

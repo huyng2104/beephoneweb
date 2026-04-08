@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\Comment;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -83,32 +82,44 @@ class ProductController extends Controller
             ->get();
         }
 
-        // Comments
-        $comments = Comment::query()
+        $reviews = \App\Models\Review::with(['user', 'images', 'repliedBy'])
             ->where('product_id', $product->id)
-            ->whereNull('parent_id')
-            ->where('is_hidden', false)
-            ->with([
-                'user.role',
-                'children.user.role',
-                'children.children.user.role',
-            ])
+            ->where(function ($query) {
+                $query->where('status', \App\Models\Review::STATUS_APPROVED);
+                if (auth()->check()) {
+                    $query->orWhere('user_id', auth()->id());
+                }
+            })
             ->latest()
             ->get();
 
-        $rated = $comments->whereNotNull('rating');
-        $totalRatings = $rated->count();
-        $averageRating = $totalRatings > 0 ? round((float) $rated->avg('rating'), 1) : 0.0;
+        $userReview = null;
+        $canReview  = false;
+        if (auth()->check()) {
+            $userReview = \App\Models\Review::where('product_id', $product->id)
+                ->where('user_id', auth()->id())
+                ->first();
+
+            // Chỉ được viết đánh giá nếu đã mua hàng (đơn đã giao nhận) và chưa review
+            if (!$userReview) {
+                $canReview = \App\Models\Order::where('user_id', auth()->id())
+                    ->where('status', \App\Models\Order::STATUS_RECEIVED)
+                    ->whereHas('items', fn ($q) => $q->where('product_id', $product->id))
+                    ->exists();
+            }
+        }
 
         $ratingBreakdown = collect(range(5, 1))
-            ->mapWithKeys(fn (int $star) => [$star => $rated->where('rating', $star)->count()]);
+            ->mapWithKeys(fn (int $star) => [
+                $star => $reviews->where('rating', $star)->count(),
+            ]);
 
         return view('client.product-detail', compact(
             'product',
             'relatedProducts',
-            'comments',
-            'totalRatings',
-            'averageRating',
+            'reviews',
+            'userReview',
+            'canReview',
             'ratingBreakdown',
         ));
     }
@@ -127,6 +138,12 @@ class ProductController extends Controller
                 } else {
                     $q->where('slug', $categoryIdentifier);
                 }
+            });
+        }
+
+        if ($request->has('categories') && is_array($request->categories)) {
+            $query->whereHas('categories', function ($q) use ($request) {
+                $q->whereIn('category_id', $request->categories);
             });
         }
 
@@ -159,6 +176,19 @@ class ProductController extends Controller
             });
         }
 
+        // 5.5 LỌC THEO TÌNH TRẠNG KHO
+        if ($request->has('stock_status') && in_array($request->stock_status, ['in-stock', 'out-of-stock'])) {
+            if ($request->stock_status == 'in-stock') {
+                $query->whereHas('variants', function($q) {
+                    $q->where('status', 'active')->where('stock', '>', 0);
+                });
+            } else {
+                $query->whereDoesntHave('variants', function($q) {
+                    $q->where('status', 'active')->where('stock', '>', 0);
+                });
+            }
+        }
+
         // 6. Sắp xếp (Sorting)
         $sort = $request->input('sort', 'newest');
         switch ($sort) {
@@ -187,11 +217,13 @@ class ProductController extends Controller
 
         // 8. Lấy danh sách Filters
         $brands = \App\Models\Brand::where('is_active', 1)->get();
+        $categories = \App\Models\Category::where('is_active', 1)->get();
+        
         $currentCategory = null;
         if($request->has('category')){
              $currentCategory = \App\Models\Category::where('id', $request->category)->orWhere('slug', $request->category)->first();
         }
 
-        return view('client.products-list', compact('products', 'brands', 'currentCategory', 'sort'));
+        return view('client.products-list', compact('products', 'brands', 'categories', 'currentCategory', 'sort'));
     }
 }

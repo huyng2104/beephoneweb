@@ -13,8 +13,14 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // 1. Lấy danh mục nổi bật (Lấy 8 cái để hiển thị menu hoặc grid)
-        $categories = Category::where('is_active', true)->orderBy('sort_order', 'asc')->take(8)->get();
+        // 1. Lấy danh mục nổi bật (Sắp xếp theo số lượng sản phẩm)
+        $categories = Category::withCount(['products' => function($query) {
+            $query->where('status', 'active');
+        }])
+        ->where('is_active', true)
+        ->orderBy('products_count', 'desc')
+        ->take(5) 
+        ->get();
 
         // 2. Lấy 8 sản phẩm mới nhất
         $newProducts = Product::with(['variants.attributeValues.attribute', 'brand', 'categories'])
@@ -34,8 +40,14 @@ class HomeController extends Controller
         // 4. Lấy 3 bài viết tin tức mới nhất
         $news = Post::latest()->take(3)->get();
 
-        // 5. Lấy thương hiệu
-        $brands = Brand::where('is_active', 1)->orderBy('sort_order')->get();
+        // 5. Lấy thương hiệu (Sắp xếp theo số lượng sản phẩm)
+        $brands = Brand::withCount(['products' => function($query) {
+            $query->where('status', 'active');
+        }])
+        ->where('is_active', 1)
+        ->orderBy('products_count', 'desc')
+        ->take(5)
+        ->get();
 
         // 6. Lấy Banner
         $banners = Banner::where('is_active', true)->latest()->take(5)->get();
