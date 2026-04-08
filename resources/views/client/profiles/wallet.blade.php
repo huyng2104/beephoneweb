@@ -25,7 +25,7 @@
                 @if ($user->wallet)
                     <h2 class="text-5xl font-bold tracking-tight">
                         {{ number_format($user->wallet->balance ?? 0, 0, ',', '.') }}
-                        <span class="text-2xl ml-1 text-[#f4c025]">đ</span>
+                        <span class="text-2xl ml-1 text-[#f4c025]">VNĐ</span>
                     </h2>
 
                     @if ($user->wallet->status !== 'active')

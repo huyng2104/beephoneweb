@@ -1,13 +1,22 @@
 <aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col fixed h-full z-50">
-    <div class="p-6 flex items-center gap-3">
-        <div class="bg-primary rounded-lg p-1.5 flex items-center justify-center">
-            <span class="material-symbols-outlined text-background-dark font-bold">smartphone</span>
-        </div>
-        <div>
-            <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">Bee Phone</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Hệ thống quản trị</p>
-        </div>
-    </div>
+    @php
+        $logo = isset($site_settings['site_logo']) ? $site_settings['site_logo']->value : null;
+    @endphp
+        <a href="{{ url('/') }}" class="p-6 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <div class=" p-1.5 flex items-center justify-center shrink-0">
+                @if(isset($site_settings['site_logo']) && $site_settings['site_logo']->value)
+                    <img src="{{ asset($site_settings['site_logo']->value) }}" alt="{{ $site_settings['site_name']->value ?? 'Bee Phone' }}" class="h-10 w-auto object-contain transition-transform group-hover:scale-105">
+                @else
+                    <div class="size-10 bg-primary rounded-xl flex items-center justify-center text-black group-hover:scale-105 transition-transform shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-2xl">rocket_launch</span>
+                    </div>
+                @endif
+            </div>
+            <div class="overflow-hidden">
+                <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-none truncate">Bee Phone</h1>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-semibold uppercase tracking-wider">Hệ thống quản trị</p>
+            </div>
+        </a>
 
     <nav class="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto custom-scrollbar">
         {{-- Bảng điều khiển --}}
@@ -79,7 +88,7 @@
 
         {{-- Các Menu Khác --}}
         @can('order.view')
-            <li class="mb-1 list-none">
+            <div class="mb-1">
                 <div id="btn-toggle-orders"
                     class="px-3 py-2.5 flex items-center justify-between text-sm cursor-pointer transition-colors {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.returns.*') ? 'bg-primary/10 text-primary font-bold rounded-lg' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium rounded-lg' }}">
                     <span class="flex items-center gap-3">
@@ -117,21 +126,21 @@
                         </a>
                     </li>
                 </ul>
-            </li>
+            </div>
         @endcan
 
         @can('customer.view')
-            <li class="mb-1 list-none">
+            <div class="mb-1">
                 <a class="{{ request()->routeIs('admin.users.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
                     href="{{ route('admin.users.index') }}">
                     <span class="material-symbols-outlined">group</span>
                     <span>Người dùng</span>
                 </a>
-            </li>
+            </div>
         @endcan
 
         @can('roles.view')
-            <li class="mb-1 list-none">
+            <div class="mb-1">
                 <div id="btn-toggle-permission"
                     class="px-3 py-2 flex items-center justify-between text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white transition-colors">
                     <span class="flex items-center gap-2">
@@ -183,7 +192,7 @@
                         </a>
                     </li>
                 </ul>
-            </li>
+            </div>
         @endcan
 
         @can('voucher.view')
@@ -191,6 +200,21 @@
                 href="{{ route('admin.vouchers.index') }}">
                 <span class="material-symbols-outlined">confirmation_number</span>
                 <span>Voucher</span>
+            </a>
+        @endcan
+
+        {{-- Đánh giá sản phẩm --}}
+        @can('comment.view')
+            <a class="{{ request()->routeIs('admin.reviews.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative"
+                href="{{ route('admin.reviews.index') }}">
+                <span class="material-symbols-outlined">rate_review</span>
+                <span>Đánh giá</span>
+                @php $pendingReviews = \App\Models\Review::where('status', 0)->count(); @endphp
+                @if($pendingReviews > 0)
+                <span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                    {{ $pendingReviews > 99 ? '99+' : $pendingReviews }}
+                </span>
+                @endif
             </a>
         @endcan
 
@@ -211,7 +235,7 @@
         @endcan
 
         @can('wallet.view')
-            <li class="mb-1 list-none">
+            <div class="mb-1">
                 <div id="btn-toggle-wallet"
                     class="px-3 py-2 flex items-center justify-between text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white transition-colors">
                     <span class="flex items-center gap-2">
@@ -251,7 +275,7 @@
                         </a>
                     </li>
                 </ul>
-            </li>
+            </div>
         @endcan
 
         <script>
@@ -279,25 +303,31 @@
             </a>
         @endcan
 
-        <a class="{{ request()->routeIs('admin.chatbot-faqs.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ route('admin.chatbot-faqs.index') }}">
-            <span class="material-symbols-outlined">smart_toy</span>
-            <span>Cài đặt Chatbot</span>
-        </a>
-
-        <a class="{{ request()->routeIs('admin.tickets.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ route('admin.tickets.index') }}">
-            <span class="material-symbols-outlined">support_agent</span>
-            <span>Phản hồi khách hàng</span>
-        </a>
-
-        <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
-            <a class="{{ request()->routeIs('admin.settings.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-                href="{{ route('admin.settings.index') }}">
-                <span class="material-symbols-outlined">settings</span>
-                <span>Cài đặt</span>
+        @can('settings.view')
+            <a class="{{ request()->routeIs('admin.chatbot-faqs.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                href="{{ route('admin.chatbot-faqs.index') }}">
+                <span class="material-symbols-outlined">smart_toy</span>
+                <span>Cài đặt Chatbot</span>
             </a>
-        </div>
+        @endcan
+
+        @can('support.view')
+            <a class="{{ request()->routeIs('admin.tickets.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                href="{{ route('admin.tickets.index') }}">
+                <span class="material-symbols-outlined">support_agent</span>
+                <span>Hỗ trợ KH (Tickets)</span>
+            </a>
+        @endcan
+
+        @can('settings.view')
+            <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
+                <a class="{{ request()->routeIs('admin.settings.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                    href="{{ route('admin.settings.index') }}">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Cài đặt hệ thống</span>
+                </a>
+            </div>
+        @endcan
     </nav>
 
     @php

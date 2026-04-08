@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\Comment;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -83,32 +82,44 @@ class ProductController extends Controller
             ->get();
         }
 
-        // Comments
-        $comments = Comment::query()
+        $reviews = \App\Models\Review::with(['user', 'images', 'repliedBy'])
             ->where('product_id', $product->id)
-            ->whereNull('parent_id')
-            ->where('is_hidden', false)
-            ->with([
-                'user.role',
-                'children.user.role',
-                'children.children.user.role',
-            ])
+            ->where(function ($query) {
+                $query->where('status', \App\Models\Review::STATUS_APPROVED);
+                if (auth()->check()) {
+                    $query->orWhere('user_id', auth()->id());
+                }
+            })
             ->latest()
             ->get();
 
-        $rated = $comments->whereNotNull('rating');
-        $totalRatings = $rated->count();
-        $averageRating = $totalRatings > 0 ? round((float) $rated->avg('rating'), 1) : 0.0;
+        $userReview = null;
+        $canReview  = false;
+        if (auth()->check()) {
+            $userReview = \App\Models\Review::where('product_id', $product->id)
+                ->where('user_id', auth()->id())
+                ->first();
+
+            // Chỉ được viết đánh giá nếu đã mua hàng (đơn đã giao nhận) và chưa review
+            if (!$userReview) {
+                $canReview = \App\Models\Order::where('user_id', auth()->id())
+                    ->where('status', \App\Models\Order::STATUS_RECEIVED)
+                    ->whereHas('items', fn ($q) => $q->where('product_id', $product->id))
+                    ->exists();
+            }
+        }
 
         $ratingBreakdown = collect(range(5, 1))
-            ->mapWithKeys(fn (int $star) => [$star => $rated->where('rating', $star)->count()]);
+            ->mapWithKeys(fn (int $star) => [
+                $star => $reviews->where('rating', $star)->count(),
+            ]);
 
         return view('client.product-detail', compact(
             'product',
             'relatedProducts',
-            'comments',
-            'totalRatings',
-            'averageRating',
+            'reviews',
+            'userReview',
+            'canReview',
             'ratingBreakdown',
         ));
     }

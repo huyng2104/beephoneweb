@@ -83,8 +83,7 @@ class PostController extends Controller
             'thumbnail' => $thumbnail,
             'content' => $request->content,
             'post_categories_id' => $request->post_categories_id,
-            // 'user_id' => Auth::id(),
-            'user_id' => 1,
+            'user_id' => Auth::id(),
             'views' => 0,
             'status' => 1
         ]);
