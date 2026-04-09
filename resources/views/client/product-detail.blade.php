@@ -1008,7 +1008,21 @@
         }
 
         // --- AJAX XỬ LÝ MUA HÀNG ---
+        @guest
+        const IS_GUEST = true;
+        @else
+        const IS_GUEST = false;
+        @endguest
+
         function handleAddToCart(isBuyNow = false) {
+            // Nếu chưa đăng nhập → hiện modal yêu cầu đăng nhập
+            if (IS_GUEST) {
+                if (typeof window.showLoginRequiredModal === 'function') {
+                    window.showLoginRequiredModal();
+                }
+                return;
+            }
+
             const productId = document.querySelector('input[name="product_id"]').value;
             const variantId = document.querySelector('input[name="variant_id"]').value;
             const quantity = document.getElementById('input-qty').value;
