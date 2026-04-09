@@ -324,11 +324,25 @@
         
         // --- LOGIC THÊM GIỎ HÀNG NHANH ---
         const csrfToken = '{{ csrf_token() }}';
-        
+        @guest
+        const IS_GUEST = true;
+        @else
+        const IS_GUEST = false;
+        @endguest
+
+        // Chặn nút thêm nhanh (sản phẩm đơn giản) khi chưa đăng nhập
         document.querySelectorAll('.btn-add-cart-quick').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
-                
+
+                // Nếu chưa đăng nhập → hiện modal yêu cầu đăng nhập
+                if (IS_GUEST) {
+                    if (typeof window.showLoginRequiredModal === 'function') {
+                        window.showLoginRequiredModal();
+                    }
+                    return;
+                }
+
                 const productId = this.getAttribute('data-product-id');
                 const variantId = this.getAttribute('data-variant-id') || '';
                 const originalHtml = this.innerHTML;

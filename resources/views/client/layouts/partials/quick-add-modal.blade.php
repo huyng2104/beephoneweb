@@ -103,6 +103,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const btn = e.target.closest('.btn-add-cart-quick-variable');
         if (btn) {
             e.preventDefault();
+
+            // Nếu chưa đăng nhập → hiện modal yêu cầu đăng nhập thay vì modal chọn biến thể
+            @guest
+            if (typeof window.showLoginRequiredModal === 'function') {
+                window.showLoginRequiredModal();
+            }
+            return;
+            @endguest
+
             currentProdId = btn.getAttribute('data-product-id');
             
             openModal();

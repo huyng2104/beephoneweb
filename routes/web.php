@@ -255,13 +255,13 @@ Route::middleware(['check.verified', 'check.banned'])->group(function () {
     // Giỏ hàng
     Route::post('/cart/add', [CartController::class, 'add'])->name('client.cart.add');
     Route::get('/cart/count', [CartController::class, 'count'])->name('client.cart.count');
-    Route::get('/gio-hang', [CartController::class, 'index'])->name('client.cart.index');
-    Route::post('/cart/update', [CartController::class, 'update'])->name('client.cart.update');
-    Route::post('/cart/remove', [CartController::class, 'remove'])->name('client.cart.remove');
+    Route::get('/gio-hang', [CartController::class, 'index'])->middleware('auth')->name('client.cart.index');
+    Route::post('/cart/update', [CartController::class, 'update'])->middleware('auth')->name('client.cart.update');
+    Route::post('/cart/remove', [CartController::class, 'remove'])->middleware('auth')->name('client.cart.remove');
     Route::get('/cart/get-variants', [CartController::class, 'getVariants'])->name('client.cart.get_variants');
-    Route::post('/cart/change-variant', [CartController::class, 'changeVariant'])->name('client.cart.change_variant');
-    Route::post('/cart/apply-voucher', [CartController::class, 'applyVoucher'])->name('client.cart.apply_voucher');
-    Route::post('/cart/checkout-select', [CartController::class, 'checkoutSelect'])->name('client.cart.checkout_select');
+    Route::post('/cart/change-variant', [CartController::class, 'changeVariant'])->middleware('auth')->name('client.cart.change_variant');
+    Route::post('/cart/apply-voucher', [CartController::class, 'applyVoucher'])->middleware('auth')->name('client.cart.apply_voucher');
+    Route::post('/cart/checkout-select', [CartController::class, 'checkoutSelect'])->middleware('auth')->name('client.cart.checkout_select');
 
     // Thanh toán
     Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('client.checkout.index');

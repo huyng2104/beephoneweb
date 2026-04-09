@@ -237,5 +237,100 @@
     @endauth
 
     @stack('js')
+
+    {{-- ===================================================== --}}
+    {{-- MODAL: YÊU CẦU ĐĂNG NHẬP (HIỆN KHI KHÁCH CHƯA AUTH) --}}
+    {{-- ===================================================== --}}
+    @guest
+    <div id="login-required-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4">
+        {{-- Overlay backdrop --}}
+        <div id="login-modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
+
+        {{-- Modal Card --}}
+        <div id="login-modal-card" class="relative bg-white dark:bg-[#1a1610] rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-white/10 w-full max-w-sm transform scale-90 opacity-0 transition-all duration-300">
+
+            {{-- Top gradient bar --}}
+            <div class="h-1.5 w-full bg-gradient-to-r from-primary via-yellow-300 to-primary bg-[length:200%_auto] animate-[shine_2s_linear_infinite]"></div>
+
+            {{-- Content --}}
+            <div class="p-8 text-center">
+                {{-- Icon --}}
+                <div class="mx-auto w-20 h-20 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-5">
+                    <span class="material-symbols-outlined text-5xl text-primary" style="font-variation-settings:'FILL' 1">lock</span>
+                </div>
+
+                {{-- Title --}}
+                <h2 class="text-xl font-bold text-[#181611] dark:text-white mb-2">Bạn chưa đăng nhập</h2>
+
+                {{-- Description --}}
+                <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-7">
+                    Bạn phải <span class="font-bold text-primary">đăng nhập</span> để tiếp tục mua sắm.<br>
+                    Chỉ mất vài giây thôi!
+                </p>
+
+                {{-- Buttons --}}
+                <div class="flex flex-col gap-3">
+                    <a href="{{ route('login') }}" id="login-modal-go-btn"
+                       class="w-full bg-primary text-black font-bold py-3.5 rounded-2xl hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-[20px]">login</span>
+                        Đăng nhập ngay
+                    </a>
+                    <a href="{{ route('register') }}"
+                       class="w-full bg-gray-100 dark:bg-white/10 text-[#181611] dark:text-white font-bold py-3.5 rounded-2xl hover:bg-gray-200 dark:hover:bg-white/20 active:scale-95 transition-all text-sm">
+                        Tạo tài khoản mới
+                    </a>
+                    <button type="button" id="login-modal-cancel-btn"
+                            class="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors py-1">
+                        Để sau
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Hàm mở modal yêu cầu đăng nhập - gọi từ bất cứ đâu
+    window.showLoginRequiredModal = function() {
+        const modal = document.getElementById('login-required-modal');
+        const backdrop = document.getElementById('login-modal-backdrop');
+        const card = document.getElementById('login-modal-card');
+        if (!modal) return;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+
+        // Animate in
+        requestAnimationFrame(() => {
+            backdrop.classList.remove('opacity-0');
+            card.classList.remove('scale-90', 'opacity-0');
+        });
+    };
+
+    window.hideLoginRequiredModal = function() {
+        const modal = document.getElementById('login-required-modal');
+        const backdrop = document.getElementById('login-modal-backdrop');
+        const card = document.getElementById('login-modal-card');
+        if (!modal) return;
+
+        backdrop.classList.add('opacity-0');
+        card.classList.add('scale-90', 'opacity-0');
+        document.body.style.overflow = '';
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const cancelBtn = document.getElementById('login-modal-cancel-btn');
+        const backdrop = document.getElementById('login-modal-backdrop');
+        if (cancelBtn) cancelBtn.addEventListener('click', window.hideLoginRequiredModal);
+        if (backdrop) backdrop.addEventListener('click', window.hideLoginRequiredModal);
+    });
+    </script>
+    @endguest
+
 </body>
 </html>
