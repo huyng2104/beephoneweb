@@ -40,6 +40,8 @@
         
         <form id="filter-form" action="{{ route('client.products.index') }}" method="GET" class="w-full lg:w-64 flex-shrink-0 space-y-8 bg-white dark:bg-white/5 p-6 rounded-2xl border border-gray-100 dark:border-white/10 h-fit sticky top-24 shadow-sm">
             @if(request('category')) <input type="hidden" name="category" value="{{ request('category') }}"> @endif
+            @if(request('brand')) <input type="hidden" name="brand" value="{{ request('brand') }}"> @endif
+            @if(request('search')) <input type="hidden" name="search" value="{{ request('search') }}"> @endif
             <input type="hidden" name="sort" id="sort-input" value="{{ $sort }}">
 
             <section>
@@ -326,7 +328,14 @@
         // --- LOGIC LỌC ---
         const filterForm = document.getElementById('filter-form');
         document.querySelectorAll('.filter-trigger').forEach(trigger => {
-            trigger.addEventListener('change', () => { document.body.style.opacity = '0.5'; filterForm.submit(); });
+            trigger.addEventListener('change', () => {
+                const searchInput = filterForm.querySelector('input[name="search"]');
+                if (searchInput && (trigger.name === 'categories[]' || trigger.name === 'brands[]')) {
+                    searchInput.remove();
+                }
+                document.body.style.opacity = '0.5';
+                filterForm.submit();
+            });
         });
         document.querySelectorAll('.sort-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {

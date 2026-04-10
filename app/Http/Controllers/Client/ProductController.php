@@ -130,12 +130,42 @@ class ProductController extends Controller
             });
         }
 
+<<<<<<< Updated upstream
+=======
+        if ($request->has('categories') && is_array($request->categories)) {
+            $query->whereHas('categories', function ($q) use ($request) {
+                $q->whereIn('category_id', $request->categories);
+            });
+        }
+
+        // 2.5. Tìm kiếm sản phẩm
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%')
+                    ->orWhere('sku', 'like', '%' . $search . '%');
+            });
+        }
+
+>>>>>>> Stashed changes
         // 3. Lọc theo Nổi bật
         if ($request->has('featured') && $request->featured == 1) {
             $query->where('is_featured', true);
         }
 
         // 4. Lọc theo Thương hiệu (Brand)
+        if ($request->filled('brand')) {
+            $brandIdentifier = $request->brand;
+            $query->whereHas('brand', function ($q) use ($brandIdentifier) {
+                if (is_numeric($brandIdentifier)) {
+                    $q->where('id', $brandIdentifier);
+                } else {
+                    $q->where('slug', $brandIdentifier);
+                }
+            });
+        }
+
         if ($request->has('brands') && is_array($request->brands)) {
             $query->whereIn('brand_id', $request->brands);
         }
