@@ -235,6 +235,7 @@
         @endcan
 
         @can('wallet.view')
+            @php $pendingWithdrawals = \App\Models\WithdrawalRequest::where('status', 'pending')->count(); @endphp
             <div class="mb-1">
                 <div id="btn-toggle-wallet"
                     class="px-3 py-2 flex items-center justify-between text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white transition-colors">
@@ -242,7 +243,12 @@
                         <span class="material-symbols-outlined w-5 h-5 flex items-center justify-center !text-[20px]">
                             account_balance_wallet
                         </span>
-                        Quản lý tài chính
+                        Quản lý ví
+                        @if($pendingWithdrawals > 0)
+                        <span class="inline-flex items-center justify-center min-w-[18px] h-4.5 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold ml-1">
+                            {{ $pendingWithdrawals > 99 ? '99+' : $pendingWithdrawals }}
+                        </span>
+                        @endif
                     </span>
 
                     <svg id="icon-arrow-wallet" xmlns="http://www.w3.org/2000/svg"
@@ -271,7 +277,12 @@
                             <div
                                 class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.withdrawals.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
                             </div>
-                            Yêu cầu rút tiền
+                            <span>Yêu cầu rút tiền</span>
+                            @if($pendingWithdrawals > 0)
+                            <span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                                {{ $pendingWithdrawals > 99 ? '99+' : $pendingWithdrawals }}
+                            </span>
+                            @endif
                         </a>
                     </li>
                 </ul>

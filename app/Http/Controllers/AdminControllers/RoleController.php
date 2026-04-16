@@ -167,7 +167,7 @@ class RoleController extends Controller
         $activeUsers = User::whereHas('role', function ($q) {
             $q->where('name', '!=', 'user');
         })->where('status', 'active')->count();
-        $roles = Role::whereNotIn('name', ['user', 'admin'])
+        $roles = Role::where('name', '!=', 'user')
             ->orderBy('id', 'desc')
             ->get();
         $query = User::with('role')

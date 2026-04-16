@@ -369,11 +369,14 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $password = Str::random(8);
         $user->update([
-            'password' => $password
+            'password' => Hash::make($password)
         ]);
+
+        // Send email to user
+        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\AdminResetPasswordMail($user, $password));
+
         return back()->with([
-            'success' => 'Đã khôi phục mật khẩu',
-            'new_password' => $password
+            'success' => 'Đã khôi phục mật khẩu và gửi email cho người dùng',
         ]);
     }
     public function restore($id)
