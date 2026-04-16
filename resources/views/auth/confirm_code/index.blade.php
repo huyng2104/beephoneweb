@@ -208,12 +208,11 @@
                 <div class="text-center space-y-2">
                     <p class="text-sm text-slate-500 dark:text-slate-400">
                         Bạn không nhận được mã?
-                        <span class="font-medium text-slate-900 dark:text-white">Gửi lại mã trong 00:59</span>
+                        <span class="font-medium text-slate-900 dark:text-white" id="timer-text">Gửi lại mã trong <span id="countdown">00:59</span></span>
                     </p>
-                    <button class="text-primary font-semibold hover:underline text-sm opacity-50 cursor-not-allowed"
-                        type="button">
+                    <a href="{{ route('resend_otp') }}" id="resend-btn" class="text-primary font-semibold hover:underline text-sm opacity-50 pointer-events-none inline-block">
                         Gửi lại mã ngay
-                    </button>
+                    </a>
                 </div>
                 <!-- Action Button -->
                 <button
@@ -274,6 +273,26 @@
                     }
                 });
             });
+
+            // Countdown logic
+            const countdownEl = document.getElementById('countdown');
+            const timerTextEl = document.getElementById('timer-text');
+            const resendBtn = document.getElementById('resend-btn');
+            
+            if (countdownEl && resendBtn) {
+                let timeLeft = 59;
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    let seconds = timeLeft < 10 ? '0' + timeLeft : timeLeft;
+                    countdownEl.textContent = '00:' + seconds;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        timerTextEl.textContent = 'Có thể gửi lại mã.';
+                        resendBtn.classList.remove('opacity-50', 'pointer-events-none');
+                    }
+                }, 1000);
+            }
         });
     </script>
 </body>
