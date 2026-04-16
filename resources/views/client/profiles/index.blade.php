@@ -207,7 +207,8 @@
                             class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Email</label>
                         <p class="text-base font-medium display-field">{{ $user->email }}</p>
                         <input type="email" name="email" value="{{ $user->email }}"
-                            class="hidden edit-field w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400">
+                            {{ auth()->user()->role->name !== 'admin' ? 'readonly' : '' }}
+                            class="hidden edit-field w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 {{ auth()->user()->role->name !== 'admin' ? 'opacity-70 cursor-not-allowed' : '' }}">
                     </div>
 
                     {{-- Số điện thoại --}}
@@ -252,15 +253,42 @@
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-8 overflow-hidden transition-all duration-300 hover:shadow-md hover:border-yellow-100"
                 data-purpose="address-card">
                 <div class="p-6 border-b border-gray-100">
-                    <h3 class="font-bold text-lg">Địa chỉ giao hàng</h3>
+                    <h3 class="font-bold text-lg">Địa chỉ</h3>
                 </div>
                 <div class="p-6">
-                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Địa chỉ
-                        chính</label>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Địa chỉ chính</label>
                     <p class="text-base font-medium display-field">{{ $user->address ?? 'Chưa có địa chỉ giao hàng' }}</p>
-                    <input type="text" name="address" value="{{ $user->address }}"
-                        placeholder="Nhập địa chỉ của bạn"
-                        class="hidden edit-field w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400">
+
+                    {{-- Khối chọn địa chỉ mới --}}
+                    <div class="hidden edit-field space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <select id="addr_province"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400">
+                                <option value="">Tỉnh/Thành phố</option>
+                            </select>
+                            <select id="addr_district"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400">
+                                <option value="">Quận/Huyện</option>
+                            </select>
+                            <select id="addr_ward"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400">
+                                <option value="">Phường/Xã</option>
+                            </select>
+                        </div>
+                        <input type="text" id="addr_street" placeholder="Số nhà, tên đường..."
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
+                            oninput="buildFullAddress()">
+
+                        {{-- Hidden field để lưu chuỗi địa chỉ đầy đủ --}}
+                        <input type="hidden" name="address" id="full_address" value="{{ $user->address }}">
+
+                        <div id="address-preview" class="p-3 bg-gray-50 border border-dashed border-gray-200 rounded-lg text-xs mt-2">
+                             <span class="text-gray-400 font-bold uppercase block mb-1">Xem trước địa chỉ:</span>
+                             <span id="address-preview-text" class="text-gray-600 italic">
+                                {{ $user->address ?? 'Chưa nhập địa chỉ' }}
+                             </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>
@@ -302,75 +330,7 @@
             </div>
         </div>
         <!-- Recent Activity Summary -->
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-300 hover:shadow-sm"
-            data-purpose="recent-activity">
-            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="font-bold">Hoạt động gần đây</h3>
-                <a class="text-sm text-[#f4c025] font-semibold hover:underline" href="#">Xem tất cả</a>
-            </div>
-
-            <div class="divide-y divide-gray-100">
-                <!-- Order Item 1 -->
-                {{-- @foreach ($user->activityLogs()->latest()->take(3)->get() as $log)
-                    <div
-                        class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-200 hover:bg-gray-50">
-                        <div class="flex gap-4">
-                            <div>
-                                <h4 class="font-bold text-sm">{{ $log->description }}
-                                    @if ($log->model)
-                                        - <a class="text-blue-500" href="#">{{ $log->model->name ?? '' }}</a>
-                                    @endif
-                                </h4>
-                                <p class="text-xs text-gray-500 mt-1">Ngày {{ $log->created_at->format('d/m/Y') }}</p>
-                            </div>
-                        </div>
-
-                    </div>
-                @endforeach --}}
-                <!-- Order Item 2 -->
-                {{-- <div
-                            class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-200 hover:bg-gray-50">
-                            <div class="flex gap-4">
-                                <div class="w-16 h-16 bg-gray-50 rounded-lg flex-shrink-0 border border-gray-100 p-2">
-                                    <img alt="AirPods Pro" class="w-full h-full object-contain"
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWFWvIy1yFD9N030EJix0um1cvujySUjEtemTx52GPpVhvekdMYCkJS55x6NhIlRoQDU108I5bZ3HHEoBWnLqbqooNxMibdjtzivO1CtKGp6x1aWIbvzPX2lHrEz1LEFlyx4HgA0txXTQsgyEpHpom7EzeF7DwLWYbCuSbkLrBXSDUdVwgh39k8MNIdTtS-3W9nZIz1smpUeeBW4BfBHqCzCTtwGsmzh5o_NlEoIsvOh5JFbI8k__BZs2pk5yo00sK8FoRRA6Fck4" />
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-sm">AirPods Pro (Gen 2) MagSafe USB-C</h4>
-                                    <p class="text-xs text-gray-500 mt-1">Đơn hàng: #BP-88055 • Ngày: 05/10/2023</p>
-                                    <p class="text-sm font-bold mt-1 text-[#f4c025]">5.890.000₫</p>
-                                </div>
-                            </div>
-                            <div>
-                                <span
-                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    Giao hàng thành công
-                                </span>
-                            </div>
-                        </div>
-                        <!-- Order Item 3 -->
-                        <div
-                            class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-200 hover:bg-gray-50">
-                            <div class="flex gap-4">
-                                <div class="w-16 h-16 bg-gray-50 rounded-lg flex-shrink-0 border border-gray-100 p-2">
-                                    <img alt="Samsung S23" class="w-full h-full object-contain"
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnlgqAfgNUiMOqb6ktzkHscAdpjbgP_zOwVFbI7j1hkbhLNsfneFg46h2c_f8aEvzGLhmioZ1HDswXQbEVUVdoAskuPtMQS7a50SIX56bLFbe_a3wREhs9eevNJ_vko_YnW112mNhmZbl07xxzfNO5sv5imUM2JkUxQdtIGTmI_U82-OToXH3b2hfiGG3h9uW3Na-rBvBhMcEjJA8_xiS_-eQQ2dPFZ9uTX0bKkmLhQxult-PTZ27yhq-HOqRFgMM2wEjJuDIArzY" />
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-sm">Ốp lưng Silicone iPhone 15 Pro Max</h4>
-                                    <p class="text-xs text-gray-500 mt-1">Đơn hàng: #BP-87990 • Ngày: 28/09/2023</p>
-                                    <p class="text-sm font-bold mt-1 text-[#f4c025]">1.290.000₫</p>
-                                </div>
-                            </div>
-                            <div>
-                                <span
-                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    Đang giao hàng
-                                </span>
-                            </div>
-                        </div> --}}
-            </div>
-        </div>
+        
     </section>
     <div id="passwordModal"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
@@ -548,7 +508,90 @@
                 }
             });
 
+            // --- LOGIC GỌI API ĐỊA CHÍNH VIỆT NAM ---
+            const host = "https://provinces.open-api.vn/api/";
 
+            async function fetchProvinces() {
+                try {
+                    const response = await fetch(host + "?p=1");
+                    const data = await response.json();
+                    renderOptions("addr_province", data, "Tỉnh/Thành phố");
+                } catch (error) {
+                    console.error("Lỗi lấy tỉnh thành:", error);
+                }
+            }
+
+            async function fetchDistricts(provinceId) {
+                try {
+                    const response = await fetch(host + "p/" + provinceId + "?depth=2");
+                    const data = await response.json();
+                    renderOptions("addr_district", data.districts, "Quận/Huyện");
+                } catch (error) {
+                    console.error("Lỗi lấy quận huyện:", error);
+                }
+            }
+
+            async function fetchWards(districtId) {
+                try {
+                    const response = await fetch(host + "d/" + districtId + "?depth=2");
+                    const data = await response.json();
+                    renderOptions("addr_ward", data.wards, "Phường/Xã");
+                } catch (error) {
+                    console.error("Lỗi lấy phường xã:", error);
+                }
+            }
+
+            function renderOptions(elementId, items, placeholder) {
+                const select = document.getElementById(elementId);
+                if (!select) return;
+                select.innerHTML = `<option value="">${placeholder}</option>`;
+                if (items) {
+                    items.forEach(item => {
+                        select.innerHTML += `<option value="${item.code}">${item.name}</option>`;
+                    });
+                }
+            }
+
+            // Gán buildFullAddress vào global để dùng oninput
+            window.buildFullAddress = function() {
+                const provinceName = document.getElementById("addr_province").options[document.getElementById("addr_province").selectedIndex]?.text || '';
+                const districtName = document.getElementById("addr_district").options[document.getElementById("addr_district").selectedIndex]?.text || '';
+                const wardName = document.getElementById("addr_ward").options[document.getElementById("addr_ward").selectedIndex]?.text || '';
+                const street = document.getElementById("addr_street").value.trim();
+
+                let parts = [];
+                if (street) parts.push(street);
+                if (wardName && wardName !== 'Phường/Xã') parts.push(wardName);
+                if (districtName && districtName !== 'Quận/Huyện') parts.push(districtName);
+                if (provinceName && provinceName !== 'Tỉnh/Thành phố') parts.push(provinceName);
+
+                const fullAddr = parts.join(", ");
+                document.getElementById("full_address").value = fullAddr;
+                document.getElementById("address-preview-text").innerText = fullAddr || 'Chưa nhập địa chỉ';
+            }
+
+            fetchProvinces();
+
+            document.getElementById("addr_province").addEventListener("change", function() {
+                if (this.value) {
+                    fetchDistricts(this.value);
+                } else {
+                    renderOptions("addr_district", [], "Quận/Huyện");
+                }
+                renderOptions("addr_ward", [], "Phường/Xã");
+                window.buildFullAddress();
+            });
+
+            document.getElementById("addr_district").addEventListener("change", function() {
+                if (this.value) {
+                    fetchWards(this.value);
+                } else {
+                    renderOptions("addr_ward", [], "Phường/Xã");
+                }
+                window.buildFullAddress();
+            });
+
+            document.getElementById("addr_ward").addEventListener("change", window.buildFullAddress);
         });
     </script>
 @endpush

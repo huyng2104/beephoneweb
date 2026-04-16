@@ -39,8 +39,8 @@
                                 <div class="space-y-2">
                                     <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Email</label>
                                     <input name="email" value="{{ old('email', $user->email) }}"
-                                        class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                                        placeholder="email@vi-du.com" type="text" />
+                                        class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all {{ auth()->user()->role->name !== 'admin' ? 'opacity-70 cursor-not-allowed' : '' }}"
+                                        placeholder="email@vi-du.com" type="text" {{ auth()->user()->role->name !== 'admin' ? 'readonly' : '' }} />
                                     @error('email')
                                         <span class="text-red-500 text-sm">{{ $message }}</span>
                                     @enderror
@@ -58,9 +58,14 @@
                                 <div class="space-y-2">
                                     <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Vai trò</label>
 
+                                    @php
+                                        $isDisabled = auth()->user()->role->name !== 'admin' || auth()->id() == $user->id;
+                                    @endphp
+
                                     {{-- Đã thêm ID cho thẻ select để JS có thể tìm thấy --}}
                                     <select name="role" id="role_select"
-                                        class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
+                                        {{ $isDisabled ? 'disabled' : '' }}
+                                        class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all {{ $isDisabled ? 'opacity-70 cursor-not-allowed' : '' }}">
                                         @foreach ($roles as $role)
                                             <option value="{{ $role->id }}"
                                                 data-role-name="{{ strtolower($role->name) }}"
@@ -69,6 +74,11 @@
                                             </option>
                                         @endforeach
                                     </select>
+
+                                    {{-- Nếu bị vô hiệu hóa, gửi ID vai trò hiện tại qua input hidden để không làm mất dữ liệu khi submit --}}
+                                    @if($isDisabled)
+                                        <input type="hidden" name="role" value="{{ $user->role_id }}">
+                                    @endif
 
                                     @error('role')
                                         <span class="text-red-500 text-sm">{{ $message }}</span>
@@ -104,123 +114,137 @@
                                     @enderror
                                 </div>
 
-                                <div class="space-y-2 md:col-span-2">
-                                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Địa chỉ</label>
-                                    <input name="address" value="{{ old('address', $user->address) }}"
-                                        class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                                        placeholder="Số nhà, tên đường, phường/xã, quận/huyện..." type="text" />
-                                    @error('address')
-                                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
+                                <div class="space-y-4 md:col-span-2">
+                                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Địa chỉ cụ thể</label>
 
-                        </div>
+                                    {{-- INPUT ẨN ĐỂ SUBMIT --}}
+                                    <input type="hidden" name="address" id="shipping_address_hidden" value="{{ old('address', $user->address) }}">
 
-                        <div
-                            class="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                            <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-primary">lock</span>
-                                Bảo mật
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Mật
-                                        khẩu</label>
-                                    <div class="relative">
-                                        <input name="password" value="{{ old('password') }}"
-                                            class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                                            placeholder="••••••••" type="password" />
-                                        @error('password')
-                                            <span class="text-red-500 text-sm">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Xác nhận mật
-                                        khẩu</label>
-                                    <input name="comfirm_password" value="{{ old('comfirm_password') }}"
-                                        class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                                        placeholder="••••••••" type="password" />
-                                    @error('comfirm_password')
-                                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-                        @php
-                            // Kiểm tra lúc mới load, role hiện tại có phải là user hoặc admin không
-                            $initialRoleName = isset($user) && $user->role ? strtolower($user->role->name) : '';
-                            // Ưu tiên old() nếu submit lỗi, nếu không lấy role hiện tại
-                            $currentRoleName = old('role')
-                                ? strtolower($roles->where('id', old('role'))->first()->name ?? '')
-                                : $initialRoleName;
-
-                            $isHidden = in_array($currentRoleName, ['user', 'admin']);
-                        @endphp
-
-                        {{-- Bọc toàn bộ phần quyền vào 1 div có ID --}}
-                        <div id="custom_permissions_block" class="{{ $isHidden ? 'hidden' : 'block' }} mt-6">
-                            <div
-                                class="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
-                                <h4 class="font-bold mb-4 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary">security</span>
-                                    Phân quyền truy cập (Quyền cấp riêng)
-                                </h4>
-
-                                @php
-                                    $rolePermissionIds = [];
-                                    if (isset($user) && $user->role) {
-                                        $rolePermissionIds = $user->role->permissions->pluck('id')->toArray();
-                                    }
-
-                                    $groupedPermissions = $permissions->groupBy(function ($item) {
-                                        return explode('.', $item->slug)[0];
-                                    });
-                                @endphp
-
-                                <div class="space-y-6">
-                                    @foreach ($groupedPermissions as $groupName => $groupPermissions)
-                                        <div
-                                            class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
-                                            <h4
-                                                class="font-bold text-slate-800 dark:text-slate-200 capitalize mb-4 border-b border-slate-200 dark:border-slate-600 pb-2">
-                                                Phân quyền {{ $groupName }}
-                                            </h4>
-
-                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                @foreach ($groupPermissions as $permission)
-                                                    @if (!in_array($permission->id, $rolePermissionIds))
-                                                        <label class="flex items-center gap-3 cursor-pointer group">
-                                                            @php
-                                                                $hasUserPermission =
-                                                                    isset($user) &&
-                                                                    $user->permissions->contains('id', $permission->id);
-                                                                $oldPermissions = old('permissions');
-                                                                $isChecked = is_array($oldPermissions)
-                                                                    ? in_array($permission->id, $oldPermissions)
-                                                                    : $hasUserPermission;
-                                                            @endphp
-
-                                                            <input type="checkbox" name="permissions[]"
-                                                                value="{{ $permission->id }}"
-                                                                class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary transition-all"
-                                                                {{ $isChecked ? 'checked' : '' }}>
-
-                                                            <span
-                                                                class="text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:text-primary transition-colors">
-                                                                {{ $permission->name }}
-                                                            </span>
-                                                        </label>
-                                                    @endif
-                                                @endforeach
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {{-- Tỉnh/Thành phố --}}
+                                        <div>
+                                            <div class="relative">
+                                                <select id="addr_province" onchange="loadDistricts(this.value)" class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all appearance-none cursor-pointer">
+                                                    <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                                </select>
+                                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">expand_more</span>
                                             </div>
                                         </div>
-                                    @endforeach
+
+                                        {{-- Quận/Huyện --}}
+                                        <div>
+                                            <div class="relative">
+                                                <select id="addr_district" onchange="loadWards(this.value)" disabled class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                                    <option value="">-- Chọn Quận/Huyện --</option>
+                                                </select>
+                                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">expand_more</span>
+                                            </div>
+                                        </div>
+
+                                        {{-- Phường/Xã --}}
+                                        <div>
+                                            <div class="relative">
+                                                <select id="addr_ward" onchange="buildFullAddress()" disabled class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                                    <option value="">-- Chọn Phường/Xã --</option>
+                                                </select>
+                                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">expand_more</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Số nhà, tên đường --}}
+                                    <div>
+                                        <input type="text" id="addr_street" placeholder="Số nhà, tên đường..." class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" oninput="buildFullAddress()">
+                                    </div>
+
+                                    {{-- PREVIEW ĐỊA CHỈ --}}
+                                    <div id="address-preview" class="mt-2 text-sm font-medium  hidden">
+                                        Địa chỉ: <span id="address-preview-text"></span>
+                                    </div>
+
+                                    @error('address')
+                                        <span class="text-red-500 text-sm block mt-1">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
+
                         </div>
+
+
+                        @if(auth()->user()->role->name === 'admin')
+                            @php
+                                // Kiểm tra lúc mới load, role hiện tại có phải là user hoặc admin không
+                                $initialRoleName = isset($user) && $user->role ? strtolower($user->role->name) : '';
+                                // Ưu tiên old() nếu submit lỗi, nếu không lấy role hiện tại
+                                $currentRoleName = old('role')
+                                    ? strtolower($roles->where('id', old('role'))->first()->name ?? '')
+                                    : $initialRoleName;
+
+                                $isHidden = in_array($currentRoleName, ['user', 'admin']);
+                            @endphp
+
+                            {{-- Bọc toàn bộ phần quyền vào 1 div có ID --}}
+                            <div id="custom_permissions_block" class="{{ $isHidden ? 'hidden' : 'block' }} mt-6">
+                                <div
+                                    class="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
+                                    <h4 class="font-bold mb-4 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary">security</span>
+                                        Phân quyền truy cập (Quyền cấp riêng)
+                                    </h4>
+
+                                    @php
+                                        $rolePermissionIds = [];
+                                        if (isset($user) && $user->role) {
+                                            $rolePermissionIds = $user->role->permissions->pluck('id')->toArray();
+                                        }
+
+                                        $groupedPermissions = $permissions->groupBy(function ($item) {
+                                            return explode('.', $item->slug)[0];
+                                        });
+                                    @endphp
+
+                                    <div class="space-y-6">
+                                        @foreach ($groupedPermissions as $groupName => $groupPermissions)
+                                            <div
+                                                class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                                                <h4
+                                                    class="font-bold text-slate-800 dark:text-slate-200 capitalize mb-4 border-b border-slate-200 dark:border-slate-600 pb-2">
+                                                    Phân quyền {{ $groupName }}
+                                                </h4>
+
+                                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                    @foreach ($groupPermissions as $permission)
+                                                        @if (!in_array($permission->id, $rolePermissionIds))
+                                                            <label class="flex items-center gap-3 cursor-pointer group">
+                                                                @php
+                                                                    $hasUserPermission =
+                                                                        isset($user) &&
+                                                                        $user->permissions->contains('id', $permission->id);
+                                                                    $oldPermissions = old('permissions');
+                                                                    $isChecked = is_array($oldPermissions)
+                                                                        ? in_array($permission->id, $oldPermissions)
+                                                                        : $hasUserPermission;
+                                                                @endphp
+
+                                                                <input type="checkbox" name="permissions[]"
+                                                                    value="{{ $permission->id }}"
+                                                                    class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary transition-all"
+                                                                    {{ $isChecked ? 'checked' : '' }}>
+
+                                                                <span
+                                                                    class="text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:text-primary transition-colors">
+                                                                    {{ $permission->name }}
+                                                                </span>
+                                                            </label>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                         <div class="mt-8 flex items-center gap-4 pb-12">
                             <button
                                 class="px-8 py-2.5 rounded-lg bg-primary text-slate-900 font-bold hover:shadow-lg hover:shadow-primary/20 transition-all flex items-center gap-2">
@@ -333,7 +357,136 @@
                         permissionsBlock.classList.remove('hidden');
                         permissionsBlock.classList.add('block');
                     }
+        });
+    </script>
+    <script>
+        // ==========================================
+        // ĐỊA CHỈ - API PROVINCES
+        // ==========================================
+        const API_BASE = 'https://provinces.open-api.vn/api';
+
+        // Load danh sách tỉnh/thành khi trang load
+        async function loadProvinces() {
+            try {
+                const res = await fetch(`${API_BASE}/p/`);
+                const data = await res.json();
+                const select = document.getElementById('addr_province');
+                data.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.code;
+                    opt.textContent = p.name;
+                    select.appendChild(opt);
                 });
+            } catch(e) {
+                console.error('Không load được danh sách tỉnh:', e);
+            }
+        }
+
+        // Load quận/huyện theo mã tỉnh
+        async function loadDistricts(provinceCode) {
+            const districtSelect = document.getElementById('addr_district');
+            const wardSelect = document.getElementById('addr_ward');
+
+            // Reset dropdowns con
+            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            wardSelect.disabled = true;
+
+            if (!provinceCode) {
+                districtSelect.disabled = true;
+                buildFullAddress();
+                return;
+            }
+
+            districtSelect.disabled = true;
+            districtSelect.innerHTML = '<option value="">Đang tải...</option>';
+
+            try {
+                const res = await fetch(`${API_BASE}/p/${provinceCode}?depth=2`);
+                const data = await res.json();
+                districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+                data.districts.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.code;
+                    opt.textContent = d.name;
+                    districtSelect.appendChild(opt);
+                });
+                districtSelect.disabled = false;
+            } catch(e) {
+                districtSelect.innerHTML = '<option value="">-- Lỗi tải dữ liệu --</option>';
+                console.error(e);
+            }
+            buildFullAddress();
+        }
+
+        // Load phường/xã theo mã quận/huyện
+        async function loadWards(districtCode) {
+            const wardSelect = document.getElementById('addr_ward');
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            wardSelect.disabled = true;
+
+            if (!districtCode) { buildFullAddress(); return; }
+
+            wardSelect.innerHTML = '<option value="">Đang tải...</option>';
+
+            try {
+                const res = await fetch(`${API_BASE}/d/${districtCode}?depth=2`);
+                const data = await res.json();
+                wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+                data.wards.forEach(w => {
+                    const opt = document.createElement('option');
+                    opt.value = w.code;
+                    opt.textContent = w.name;
+                    wardSelect.appendChild(opt);
+                });
+                wardSelect.disabled = false;
+            } catch(e) {
+                wardSelect.innerHTML = '<option value="">-- Lỗi tải dữ liệu --</option>';
+                console.error(e);
+            }
+            buildFullAddress();
+        }
+
+        // Ghép địa chỉ đầy đủ từ 4 ô
+        function buildFullAddress() {
+            const street   = document.getElementById('addr_street')?.value.trim() || '';
+            const provSel  = document.getElementById('addr_province');
+            const distSel  = document.getElementById('addr_district');
+            const wardSel  = document.getElementById('addr_ward');
+
+            const province = provSel?.options[provSel.selectedIndex]?.text || '';
+            const district = distSel?.options[distSel.selectedIndex]?.text || '';
+            const ward     = wardSel?.options[wardSel.selectedIndex]?.text || '';
+
+            const parts = [street, ward, district, province].filter(p => p && !p.startsWith('--') && !p.includes('Đang tải'));
+            const full = parts.join(', ');
+
+            document.getElementById('shipping_address_hidden').value = full;
+
+            const preview = document.getElementById('address-preview');
+            const previewText = document.getElementById('address-preview-text');
+            if (full) {
+                previewText.textContent = full;
+                preview.classList.remove('hidden');
+            } else {
+                preview.classList.add('hidden');
+            }
+        }
+
+        // Khởi động - load tỉnh thành khi DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProvinces();
+            
+            // Note: Phân tách logic prepopulate do đây là trang edit user
+            // Ta có chuỗi địa chỉ cũ (nếu có) trên input hidden, 
+            // người dùng có thể tự chọn lại mà không auto parser phần cũ trừ khi viết thêm hàm parse chuỗi phức tạp.
+            // Để đơn giản ta chỉ hiển thị địa chỉ cũ ở preview
+            const oldAddress = document.getElementById('shipping_address_hidden').value;
+            if (oldAddress) {
+                const preview = document.getElementById('address-preview');
+                const previewText = document.getElementById('address-preview-text');
+                previewText.textContent = oldAddress + ' (Đang lưu)';
+                preview.classList.remove('hidden');
             }
         });
     </script>

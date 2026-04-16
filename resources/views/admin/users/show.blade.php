@@ -4,6 +4,9 @@
 
 @section('content')
     <main class="max-w-[1200px] mx-auto w-full p-4 md:p-8">
+
+        @include('popup_notify.index')
+
         <!-- Profile Overview Header -->
         <div class="bg-white dark:bg-slate-900 rounded-xl p-6 mb-8 border border-primary/10 shadow-sm">
             <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
@@ -85,14 +88,16 @@
                         </form>
                     @endif
                 @endif
-                <form action="{{ route('admin.resetPw', $user->id) }}" method="POST">
-                    @csrf
-                    <button onclick="return(confirm('Bạn có muốn reset mật khẩu không'))"
-                        class="flex items-center justify-center gap-2 rounded-lg h-11 px-6 bg-primary text-slate-900 text-sm font-bold hover:opacity-90 transition-opacity">
-                        <span class="material-symbols-outlined text-lg">lock_reset</span>
-                        <span>Reset mật khẩu</span>
-                    </button>
-                </form>
+                @if (Auth::user()->id != $user->id)
+                    <form action="{{ route('admin.resetPw', $user->id) }}" method="POST">
+                        @csrf
+                        <button onclick="return(confirm('Bạn có muốn reset mật khẩu không'))"
+                            class="flex items-center justify-center gap-2 rounded-lg h-11 px-6 bg-primary text-slate-900 text-sm font-bold hover:opacity-90 transition-opacity">
+                            <span class="material-symbols-outlined text-lg">lock_reset</span>
+                            <span>Reset mật khẩu</span>
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
         <div class="bg-white dark:bg-slate-900 rounded-xl p-6 mb-8 border border-primary/10 shadow-sm">
@@ -622,36 +627,7 @@
     </div>
 </div>
         </main>
-        @if (session('new_password'))
-            <div id="password-modal"
-                class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] p-4">
 
-                <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 text-center border border-gray-100">
-
-                    <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-green-100 mb-4">
-                        <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                            </path>
-                        </svg>
-                    </div>
-
-                    <h3 class="text-xl font-bold text-gray-900 mb-1">Mật khẩu mới</h3>
-                    <p class="text-sm text-gray-500 mb-6">Đã cập nhật thành công cho người dùng.</p>
-
-                    <div class="bg-gray-50 border-2 border-dashed border-blue-200 p-4 rounded-xl mb-6">
-                        <span class="text-2xl font-mono font-bold text-blue-600 tracking-wider">
-                            {{ session('new_password') }}
-                        </span>
-                    </div>
-
-                    <button onclick="document.getElementById('password-modal').remove()"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200">
-                        Đã hiểu và lưu lại
-                    </button>
-                </div>
-            </div>
-        @endif
 
         <style>
             /* Hiệu ứng hiện lên nhẹ nhàng */
