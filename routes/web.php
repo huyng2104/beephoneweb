@@ -186,6 +186,7 @@ Route::get('reset-password', [AuthController::class, 'resetPassword'])->name('re
 Route::post('post-reset-password', [AuthController::class, 'postResetPassword'])->name('post-reset-password');
 Route::get('verify-code', [AuthController::class, 'verify_code'])->name('verify-code');
 Route::post('check-otp', [AuthController::class, 'check_otp'])->name('check_otp');
+Route::get('resend-otp', [AuthController::class, 'resend_otp'])->name('resend_otp');
 
 // ==========================================
 // XÁC THỰC EMAIL

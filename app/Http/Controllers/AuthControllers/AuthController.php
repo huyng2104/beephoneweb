@@ -166,9 +166,43 @@ class AuthController extends Controller
     public function verify_code()
     {
         if (!session('verify_email')) {
-            return redirect()->route('/');
+            return redirect()->route('login');
         }
         return view('auth.confirm_code.index');
+    }
+
+    public function resend_otp(Request $request)
+    {
+        if (!session('verify_email')) {
+            return redirect()->route('login')->withErrors(['email' => 'Yêu cầu không hợp lệ.']);
+        }
+
+        $code = mt_rand(100000, 999999);
+        session([
+            'verify_otp' => $code,
+            'verify_expire' => Carbon::now()->addMinutes(5),
+            'verify_attempt' => 0,
+        ]);
+
+        $data = [
+            'code' => $code,
+            'email' => session('verify_email')
+        ];
+
+        Mail::send('mails/reset_password', $data, function ($message) use ($data) {
+            $message->to($data['email'], 'Tên người nhận');
+            $message->subject('Khôi phục mật khẩu hệ thống');
+            $message->from(
+                env('MAIL_FROM_ADDRESS'),
+                env('MAIL_FROM_NAME')
+            );
+            $message->replyTo('support@yourdomain.com', 'Support Team');
+            $message->priority(1);
+        });
+
+        return back()->with([
+            'success' => "Mã xác nhận mới đã được gửi đến email của bạn."
+        ]);
     }
 
     public function check_otp(Request $request)
