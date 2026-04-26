@@ -75,6 +75,20 @@ document.addEventListener('DOMContentLoaded', function() {
             if (is_string($headerMenuItems)) {
                 $headerMenuItems = json_decode($headerMenuItems, true);
             }
+
+            // Lấy hiển thị số lượng giỏ hàng hiện tại
+            $currentCartCount = 0;
+            if (Auth::check()) {
+                $cart = \App\Models\Cart::where('user_id', Auth::id())->first();
+            } else {
+                if (!\Illuminate\Support\Facades\Session::isStarted()) {
+                    \Illuminate\Support\Facades\Session::start();
+                }
+                $cart = \App\Models\Cart::where('session_id', \Illuminate\Support\Facades\Session::getId())->first();
+            }
+            if (!empty($cart)) {
+                $currentCartCount = \App\Models\CartItem::where('cart_id', $cart->id)->sum('quantity');
+            }
         @endphp
 
         <nav class="hidden lg:flex items-center gap-8">
@@ -229,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span
                         class="material-symbols-outlined text-[#181611] dark:text-white group-hover:text-black">shopping_cart</span>
                     <span
-                        class="absolute -top-1 -right-1 bg-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full text-black leading-none">0</span>
+                        class="absolute -top-1 -right-1 bg-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full text-black leading-none">{{ $currentCartCount }}</span>
                 </a>
 
             </div>

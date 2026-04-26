@@ -218,6 +218,16 @@
             </a>
         @endcan
 
+        {{-- Hỏi đáp sản phẩm --}}
+        @can('comment.view')
+            <a class="{{ request()->routeIs('admin.comments.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative"
+                href="{{ route('admin.comments.index') }}">
+                <span class="material-symbols-outlined">forum</span>
+                <span>Hỏi đáp</span>
+                @php $pendingComments = \App\Models\ProductComment::where('status', 1)->whereNull('parent_id')->count(); @endphp
+            </a>
+        @endcan
+
         @can('posts.view')
             <a class="{{ request()->routeIs('admin.posts.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
                 href="{{ route('admin.posts.index') }}">

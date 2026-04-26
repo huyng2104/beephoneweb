@@ -84,6 +84,17 @@ class Product extends Model
     {
         return $this->hasMany(Review::class)->where('status', Review::STATUS_APPROVED);
     }
+
+    // Sản phẩm có nhiều Hỏi đáp (Bình luận)
+    public function comments(): HasMany
+    {
+        return $this->hasMany(ProductComment::class);
+    }
+
+    public function approvedComments(): HasMany
+    {
+        return $this->hasMany(ProductComment::class)->where('status', 1); // 1 = approved
+    }
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

@@ -20,49 +20,54 @@ class ReviewController extends Controller
     public function store(Request $request, Product $product): RedirectResponse
     {
         $validated = $request->validate([
+            'order_id'=> ['required', 'exists:orders,id'],
             'rating'  => ['required', 'integer', 'min:1', 'max:5'],
             'comment' => ['required', 'string', 'min:10', 'max:3000'],
             'images'  => ['nullable', 'array', 'max:5'],
             'images.*'=> ['image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
         ], [
+            'order_id.required'=> 'Thiếu thông tin đơn hàng.',
             'rating.required'  => 'Vui lòng chọn số sao.',
             'comment.required' => 'Vui lòng nhập nội dung nhận xét.',
             'comment.min'      => 'Nhận xét phải có ít nhất 10 ký tự.',
         ]);
 
-        // Kiểm tra đã mua hàng chưa — bắt buộc phải mua mới được review
         $user = $request->user();
-        $isPurchased = false;
+
+        // Kiểm tra đơn hàng có đúng của user và đã nhận thành công chưa
+        $order = null;
         if ($user) {
-            $isPurchased = Order::query()
+            $order = Order::where('id', $validated['order_id'])
                 ->where('user_id', $user->id)
                 ->where('status', Order::STATUS_RECEIVED)
                 ->whereHas('items', fn ($q) => $q->where('product_id', $product->id))
-                ->exists();
+                ->first();
         }
 
-        if (!$isPurchased) {
+        if (!$order) {
             return back()->withErrors(['review' => 'Bạn cần mua và nhận hàng thành công để có thể đánh giá sản phẩm này.']);
         }
 
-        // Kiểm tra đã review sản phẩm này chưa (1 user = 1 review/sản phẩm)
-        if ($user) {
+        // Kiểm tra đã review sản phẩm này TRONG ĐƠN HÀNG NÀY chưa (1 đơn hàng = 1 lần đánh giá/sp)
+        if ($user && $order) {
             $alreadyReviewed = Review::where('user_id', $user->id)
                 ->where('product_id', $product->id)
+                ->where('order_id', $order->id)
                 ->exists();
 
             if ($alreadyReviewed) {
-                return back()->withErrors(['review' => 'Bạn đã đánh giá sản phẩm này rồi.']);
+                return back()->withErrors(['review' => 'Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi.']);
             }
         }
 
         $review = Review::create([
             'user_id'      => $user?->id,
+            'order_id'     => $order->id,
             'product_id'   => $product->id,
             'rating'       => $validated['rating'],
             'comment'      => $validated['comment'],
-            'status'       => Review::STATUS_PENDING, // chờ Admin duyệt
-            'is_purchased' => $isPurchased,
+            'status'       => Review::STATUS_APPROVED, // mặc định hiển thị
+            'is_purchased' => true,
         ]);
 
         // Lưu ảnh đính kèm
@@ -78,7 +83,20 @@ class ReviewController extends Controller
             }
         }
 
-        return back()->with('success', 'Cảm ơn bạn đã đánh giá! Đánh giá của bạn đang chờ duyệt.');
+        // Tặng 1 điểm cho khách hàng sau khi đánh giá sản phẩm đã mua
+        if ($user && $order) {
+            $user->increment('reward_points', 1);
+
+            \App\Models\PointHistory::create([
+                'user_id'     => $user->id,
+                'order_id'    => $order->id, 
+                'points'      => 1,
+                'type'        => 'earn',
+                'description' => 'Đánh giá sản phẩm: ' . $product->name,
+            ]);
+        }
+
+        return back()->with('success', 'Cảm ơn bạn đã đánh giá! Phân hồi của bạn đã được đăng và bạn được tặng 1 Bee Point.');
     }
 
     /**

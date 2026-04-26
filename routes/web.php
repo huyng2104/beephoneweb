@@ -142,6 +142,7 @@ Route::middleware('check.verified')->group(function () {
         Route::patch('/don-mua/item/{itemId}/hoan-hang', [ClientOrderController::class, 'requestReturn'])->name('client.orders.return');
         Route::patch('/don-mua/item/{itemId}/gui-hang-hoan', [ClientOrderController::class, 'markReturnShipped'])->name('client.orders.return.shipped');
         Route::patch('/don-mua/item/{itemId}/huy-hoan-hang', [ClientOrderController::class, 'cancelReturn'])->name('client.orders.return.cancel');
+        Route::post('/don-mua/{id}/mua-lai', [ClientOrderController::class, 'repurchase'])->name('client.orders.repurchase');
     });
 
     Route::get('/bai-viet', [ClientPostController::class, 'index'])->name('client.posts.index');
@@ -393,6 +394,12 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
         Route::delete('reviews/{review}/reply', [AdminReviewController::class, 'deleteReply'])->name('reviews.reply.delete');
         Route::delete('reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
 
+        // Quản lý Hỏi đáp (Comments - Admin)
+        Route::get('comments', [\App\Http\Controllers\AdminControllers\ProductCommentController::class, 'index'])->name('comments.index');
+        Route::post('comments/{comment}/reply', [\App\Http\Controllers\AdminControllers\ProductCommentController::class, 'reply'])->name('comments.reply');
+        Route::patch('comments/{comment}/toggle', [\App\Http\Controllers\AdminControllers\ProductCommentController::class, 'toggleStatus'])->name('comments.toggle');
+        Route::delete('comments/{comment}', [\App\Http\Controllers\AdminControllers\ProductCommentController::class, 'destroy'])->name('comments.destroy');
+
         // 6. Quản lý Vouchers
         Route::post('vouchers/{id}/restore', [VoucherController::class, 'restore'])->name('vouchers.restore');
         Route::resource('vouchers', VoucherController::class);
@@ -476,7 +483,8 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
 // Public product routes
 Route::get('/products/{product}', [ClientProductController::class, 'show'])->name('products.show');
 
-// Đánh giá sản phẩm (Client)
 Route::post('/products/{product}/reviews', [ClientReviewController::class, 'store'])->name('products.reviews.store');
+Route::post('/products/{product}/comments', [\App\Http\Controllers\Client\ProductCommentController::class, 'store'])->name('products.comments.store');
+Route::delete('/comments/{comment}', [\App\Http\Controllers\Client\ProductCommentController::class, 'destroy'])->middleware('auth')->name('products.comments.destroy');
 Route::post('/reviews/{review}/helpful', [ClientReviewController::class, 'helpful'])->name('reviews.helpful');
 Route::delete('/reviews/{review}', [ClientReviewController::class, 'destroy'])->middleware('auth')->name('reviews.destroy');

@@ -24,15 +24,12 @@
 <div class="p-8 flex flex-col gap-8">
 
     {{-- ===== STATS ===== --}}
-    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <a href="{{ route('admin.reviews.index') }}" class="flex flex-col gap-1 rounded-xl p-5 bg-white dark:bg-gray-900 border {{ request()->missing('status') ? 'border-primary ring-1 ring-primary' : 'border-[#e6e3db] hover:border-gray-400' }} transition-all shadow-sm hover:shadow-md cursor-pointer">
             <p class="text-[#8a8060] text-xs font-medium uppercase tracking-wide">Tổng đánh giá</p>
             <p class="text-[#181611] dark:text-white text-3xl font-bold">{{ number_format($stats['total']) }}</p>
         </a>
-        <a href="{{ route('admin.reviews.index', ['status' => 0]) }}" class="flex flex-col gap-1 rounded-xl p-5 bg-amber-50 border {{ request('status') === '0' ? 'border-amber-500 ring-1 ring-amber-500' : 'border-amber-200 hover:border-amber-400' }} transition-all shadow-sm hover:shadow-md cursor-pointer">
-            <p class="text-amber-600 text-xs font-medium uppercase tracking-wide">Chờ duyệt</p>
-            <p class="text-amber-700 text-3xl font-bold">{{ number_format($stats['pending']) }}</p>
-        </a>
+
         <a href="{{ route('admin.reviews.index', ['status' => 1]) }}" class="flex flex-col gap-1 rounded-xl p-5 bg-green-50 border {{ request('status') === '1' ? 'border-green-500 ring-1 ring-green-500' : 'border-green-200 hover:border-green-400' }} transition-all shadow-sm hover:shadow-md cursor-pointer">
             <p class="text-green-600 text-xs font-medium uppercase tracking-wide">Đang hiển thị</p>
             <p class="text-green-700 text-3xl font-bold">{{ number_format($stats['approved']) }}</p>
@@ -92,7 +89,6 @@
                 <select name="status" onchange="this.form.submit()"
                         class="px-3 py-2 border border-[#e6e3db] rounded-lg text-sm focus:ring-primary outline-none cursor-pointer bg-white dark:bg-gray-800">
                     <option value="">Tất cả trạng thái</option>
-                    <option value="0" {{ request('status') === '0' ? 'selected' : '' }}> Chờ duyệt</option>
                     <option value="1" {{ request('status') === '1' ? 'selected' : '' }}> Hiển thị</option>
                     <option value="2" {{ request('status') === '2' ? 'selected' : '' }}> Đã ẩn</option>
                 </select>
@@ -234,7 +230,7 @@
                                     2 => 'bg-gray-100 text-gray-600 border-gray-200',
                                 };
                                 $statusLabel = match($review->status) {
-                                    0 => 'Chờ duyệt',
+                                    0 => 'Hiển thị',
                                     1 => 'Hiển thị',
                                     2 => 'Đã ẩn',
                                 };
@@ -252,9 +248,9 @@
                                 @if($review->status !== 1)
                                 <form action="{{ route('admin.reviews.approve', $review->id) }}" method="POST" class="inline">
                                     @csrf @method('PATCH')
-                                    <button type="submit" title="Duyệt"
+                                    <button type="submit" title="Hiển thị"
                                             class="p-2 hover:bg-green-50 rounded-lg text-[#8a8060] hover:text-green-600 transition-colors">
-                                        <span class="material-symbols-outlined text-lg">check_circle</span>
+                                        <span class="material-symbols-outlined text-lg">visibility</span>
                                     </button>
                                 </form>
                                 @endif
