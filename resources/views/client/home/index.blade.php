@@ -391,10 +391,23 @@
             // LOGIC THÊM GIỎ HÀNG NHANH CỦA BRO
             // ==========================================
             const csrfToken = '{{ csrf_token() }}';
+            @guest
+            const IS_GUEST = true;
+            @else
+            const IS_GUEST = false;
+            @endguest
 
             document.querySelectorAll('.btn-add-cart-quick').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
+
+                    // Nếu chưa đăng nhập → hiện modal yêu cầu đăng nhập
+                    if (IS_GUEST) {
+                        if (typeof window.showLoginRequiredModal === 'function') {
+                            window.showLoginRequiredModal();
+                        }
+                        return;
+                    }
                     
                     const productId = this.getAttribute('data-product-id');
                     const variantId = this.getAttribute('data-variant-id') || '';
@@ -429,7 +442,10 @@
                         if (data.success) {
                             const cartBadges = document.querySelectorAll('.bg-primary.text-black.rounded-full');
                             cartBadges.forEach(badge => badge.innerText = data.cart_count);
-                            alert('Đã thêm sản phẩm vào giỏ hàng!');
+                            // Hiện toast thông báo
+                            if (typeof window.showCartToast === 'function') {
+                                window.showCartToast('Đã thêm vào giỏ hàng!');
+                            }
                         } else {
                             alert(data.message);
                         }

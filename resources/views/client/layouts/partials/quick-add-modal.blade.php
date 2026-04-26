@@ -304,6 +304,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Cập nhật số lượng giỏ hàng trên header
                 const cartBadges = document.querySelectorAll('.bg-primary.text-black.rounded-full');
                 cartBadges.forEach(badge => badge.innerText = data.cart_count);
+
+                // Hiện toast thông báo toàn cục
+                if (typeof window.showCartToast === 'function') {
+                    window.showCartToast('Đã thêm vào giỏ hàng!');
+                }
                 
                 setTimeout(() => {
                     closeModal();

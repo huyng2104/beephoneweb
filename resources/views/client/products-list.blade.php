@@ -32,14 +32,22 @@
     </nav>
 
     <div class="mb-8">
-        <h1 class="text-3xl md:text-4xl font-bold uppercase tracking-tight mb-2">{{ $currentCategory->name ?? 'Tất cả Điện thoại' }}</h1>
+        @if(request('search'))
+            <p class="text-sm text-gray-400 uppercase tracking-wider font-bold mb-1">Kết quả tìm kiếm cho</p>
+            <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-2">
+                "<span class="text-primary">{{ request('search') }}</span>"
+            </h1>
+        @else
+            <h1 class="text-3xl md:text-4xl font-bold uppercase tracking-tight mb-2">{{ $currentCategory->name ?? 'Tất cả Điện thoại' }}</h1>
+        @endif
         <p class="text-gray-500 dark:text-gray-400 text-sm">Tìm thấy <span class="font-bold text-primary">{{ $products->total() }}</span> sản phẩm phù hợp</p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
         
         <form id="filter-form" action="{{ route('client.products.index') }}" method="GET" class="w-full lg:w-64 flex-shrink-0 space-y-8 bg-white dark:bg-white/5 p-6 rounded-2xl border border-gray-100 dark:border-white/10 h-fit sticky top-24 shadow-sm">
-            @if(request('category')) <input type="hidden" name="category" value="{{ request('category') }}"> @endif
+        @if(request('category')) <input type="hidden" name="category" value="{{ request('category') }}"> @endif
+            @if(request('search')) <input type="hidden" name="search" value="{{ request('search') }}"> @endif
             <input type="hidden" name="sort" id="sort-input" value="{{ $sort }}">
 
             <section>
