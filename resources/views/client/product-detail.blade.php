@@ -186,14 +186,12 @@
                                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                     @foreach($values as $valId => $valName)
                                         <button type="button" 
-                                            class="attr-btn relative border border-gray-200 dark:border-white/10 bg-transparent rounded-xl py-3 px-2 text-center transition-all hover:border-primary dark:hover:border-primary"
+                                            class="attr-btn relative border-2 border-gray-100 dark:border-white/5 bg-white dark:bg-black/20 rounded-xl py-2.5 px-3 flex items-center justify-center transition-all duration-200 hover:border-[#f4c025]/50 overflow-hidden"
                                             data-id="{{ $valId }}">
-                                            
-                                            <div class="check-icon absolute top-0 right-0 bg-primary text-black rounded-bl-lg rounded-tr-lg p-1 hidden">
-                                                <span class="material-symbols-outlined text-[12px] font-bold">check</span>
+                                            <div class="check-icon absolute bottom-0 right-0 bg-[#f4c025] w-5 h-5 rounded-tl-xl flex items-center justify-center hidden">
+                                                <span class="material-symbols-outlined text-[13px] font-black text-[#181611] mr-[1px] mb-[1px]">check</span>
                                             </div>
-                                            
-                                            <span class="block font-bold text-sm text-gray-600 dark:text-gray-300 attr-text transition-colors">{{ $valName }}</span>
+                                            <span class="block font-semibold text-sm text-gray-600 dark:text-gray-300 attr-text transition-colors relative z-10">{{ $valName }}</span>
                                         </button>
                                     @endforeach
                                 </div>
@@ -369,42 +367,11 @@
                     </div>
 
                     {{-- Nút hành động --}}
-                    @auth
-                        @if($userReview)
-                            <div class="text-center">
-                                <p class="text-xs text-green-600 font-semibold flex items-center gap-1 justify-center mb-2">
-                                    <span class="material-symbols-outlined text-[14px]">check_circle</span>
-                                    Bạn đã đánh giá
-                                </p>
-                                @if(!$userReview->isApproved() && $userReview->created_at->diffInMinutes(now()) <= 15)
-
-                                    <form action="{{ route('reviews.destroy', $userReview->id) }}" method="POST"
-                                        onsubmit="return confirm('Xóa đánh giá này? Không thể hoàn tác.')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit"
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition-colors">
-                                            <span class="material-symbols-outlined text-[13px]">delete</span>
-                                            Xóa đánh giá
-                                        </button>
-                                    </form>
-                                @endif
-                            </div>
-                        @elseif($canReview)
-                            <button id="open-review-modal"
-                                    class="w-full px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold text-sm rounded-xl transition-colors shadow-sm">
-                                Viết đánh giá
-                            </button>
-                        @else
-                            <p class="text-xs text-gray-400 text-center leading-relaxed">
-                                Chỉ khách hàng đã mua<br>mới được đánh giá
-                            </p>
-                        @endif
-                    @else
-                        <a href="{{ route('login') }}"
-                           class="w-full text-center px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold text-sm rounded-xl transition-colors shadow-sm">
-                            Đăng nhập để đánh giá
-                        </a>
-                    @endauth
+                    <div class="text-center mt-2">
+                        <p class="text-xs text-gray-400 leading-relaxed italic">
+                            Tính năng đánh giá chỉ dành cho<br>khách hàng đã mua sản phẩm này.
+                        </p>
+                    </div>
                 </div>
 
                 {{-- Thanh bars 5→1 sao --}}
@@ -417,7 +384,7 @@
                             <span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings:'FILL' 1">star</span>
                         </span>
                         <div class="flex-1 h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                            <div class="h-full bg-red-500 rounded-full transition-all duration-700"
+                            <div class="h-full bg-[#f4c025] rounded-full transition-all duration-700"
                                  style="width: {{ $pct }}%"></div>
                         </div>
                         <span class="text-xs text-gray-400 w-16 flex-shrink-0">{{ $count }} đánh giá</span>
@@ -430,17 +397,17 @@
         {{-- ===== FILTER PILLS ===== --}}
         <div class="flex flex-wrap gap-2 mb-6" id="review-filters">
             <button class="review-filter-btn active px-4 py-1.5 rounded-full border text-sm font-semibold
-                           border-red-500 text-red-500 bg-red-50 transition-all"
+                           border-[#f4c025] text-[#181611] bg-[#f4c025] transition-all shadow-[0_4px_10px_-2px_rgba(244,192,37,0.4)]"
                     data-filter="all">Tất cả</button>
             <button class="review-filter-btn px-4 py-1.5 rounded-full border text-sm font-semibold
-                           border-gray-200 text-gray-600 bg-white hover:border-red-400 hover:text-red-500 transition-all dark:bg-white/5 dark:border-white/10 dark:text-gray-300"
+                           border-gray-200 text-gray-600 bg-white hover:border-[#f4c025] hover:text-[#f4c025] hover:bg-[#f4c025]/5 transition-all dark:bg-white/5 dark:border-white/10 dark:text-gray-300 dark:hover:border-[#f4c025] dark:hover:text-[#f4c025]"
                     data-filter="has-image">Có hình ảnh</button>
             {{-- <button class="review-filter-btn px-4 py-1.5 rounded-full border text-sm font-semibold
-                           border-gray-200 text-gray-600 bg-white hover:border-red-400 hover:text-red-500 transition-all dark:bg-white/5 dark:border-white/10 dark:text-gray-300"
+                           border-gray-200 text-gray-600 bg-white hover:border-[#f4c025] hover:text-[#f4c025] hover:bg-[#f4c025]/5 transition-all dark:bg-white/5 dark:border-white/10 dark:text-gray-300"
                     data-filter="purchased">Đã mua hàng</button> --}}
             @foreach([5,4,3,2,1] as $star)
             <button class="review-filter-btn px-4 py-1.5 rounded-full border text-sm font-semibold
-                           border-gray-200 text-gray-600 bg-white hover:border-red-400 hover:text-red-500 transition-all dark:bg-white/5 dark:border-white/10 dark:text-gray-300"
+                           border-gray-200 text-gray-600 bg-white hover:border-[#f4c025] hover:text-[#f4c025] hover:bg-[#f4c025]/5 transition-all dark:bg-white/5 dark:border-white/10 dark:text-gray-300 dark:hover:border-[#f4c025] dark:hover:text-[#f4c025]"
                     data-filter="star-{{ $star }}">
                 {{ $star }} sao
             </button>
@@ -449,15 +416,15 @@
 
         {{-- ===== DANH SÁCH ĐÁNH GIÁ ===== --}}
         @if($reviews->isNotEmpty())
-            <div class="flex flex-col gap-4" id="review-list">
+            <div class="flex flex-col" id="review-list">
                 @foreach($reviews as $review)
-                <div class="review-card bg-white dark:bg-white/5 rounded-2xl p-5 border border-gray-100 dark:border-white/10 custom-shadow"
+                <div class="review-card py-6 border-b border-gray-100 dark:border-white/10 last:border-0"
                      id="review-{{ $review->id }}"
                      data-rating="{{ $review->rating }}"
                      data-has-image="{{ $review->images->isNotEmpty() ? '1' : '0' }}"
                      data-purchased="{{ $review->is_purchased ? '1' : '0' }}">
 
-                    <div class="flex items-start gap-3">
+                    <div class="flex items-start gap-4">
                         {{-- Avatar --}}
                         <div class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
                              style="background-color: #2d6a4f;">
@@ -478,11 +445,7 @@
                                         <span class="material-symbols-outlined text-[11px]">verified</span> Đã mua hàng
                                     </span>
                                 @endif --}}
-                                @if($review->isPending() && auth()->id() === $review->user_id)
-                                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 bg-orange-50 border border-orange-200 text-orange-700 text-[10px] font-bold rounded-full">
-                                        <span class="material-symbols-outlined text-[11px]">pending</span> Đang chờ duyệt
-                                    </span>
-                                @endif
+
                             </div>
 
                             {{-- Sao + Label + Thời gian --}}
@@ -571,81 +534,205 @@
         @endif
     </div>
 
-    {{-- ===== MODAL VIẾT ĐÁNH GIÁ ===== --}}
-    @if($canReview)
-    <div id="review-modal" aria-hidden="true"
-         class="fixed inset-0 z-[9999] flex items-center justify-center px-4 opacity-0 pointer-events-none transition-all duration-300">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" data-review-close></div>
-        <div id="review-modal-panel"
-             class="relative w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 overflow-hidden
-                    opacity-0 translate-y-3 scale-95 transition-all duration-300">
-
-            {{-- Header --}}
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-bold text-[#181611] dark:text-white flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary text-[20px]">rate_review</span>
-                    Viết đánh giá
-                </h3>
-                <button data-review-close class="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors text-gray-500">
-                    <span class="material-symbols-outlined text-[20px]">close</span>
-                </button>
-            </div>
-
-            {{-- Form --}}
-            <form action="{{ route('products.reviews.store', $product) }}" method="POST" enctype="multipart/form-data">
+    {{-- ===== HỎI VÀ ĐÁP (Q&A) ===== --}}
+    <div class="mt-16" id="qa-section">
+        <div class="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-6 custom-shadow">
+            <h2 class="text-xl font-bold text-[#181611] dark:text-white mb-4">Hỏi và đáp</h2>
+            
+            @auth
+            <form action="{{ route('products.comments.store', $product->id) }}" method="POST" class="mb-8 block">
                 @csrf
-                <div class="px-6 py-5 flex flex-col gap-5">
+                <div class="flex flex-col gap-3">
+                    <textarea name="content" rows="3" required placeholder="Xin mời để lại câu hỏi, BeePhone sẽ phản hồi trong 1 giờ..."
+                              class="w-full border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#f4c025] outline-none resize-none dark:bg-gray-800 dark:text-white transition-all"></textarea>
 
-                    {{-- Chọn sao --}}
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Số sao *</label>
-                        <input type="hidden" name="rating" id="review_rating" value="">
-                        <div class="flex gap-1" data-rating-stars>
-                            @foreach([1,2,3,4,5] as $s)
-                            <button type="button" class="review-star text-slate-300 transition-colors"
-                                    data-value="{{ $s }}" title="{{ $s }} sao">
-                                <span class="material-symbols-outlined text-[32px]" style="font-variation-settings:'FILL' 1">star</span>
-                            </button>
-                            @endforeach
-                        </div>
-                        <p class="text-xs text-gray-400 mt-1" data-rating-label>Chọn số sao để đánh giá</p>
+                    <div class="flex justify-end mt-1">
+                        <button type="submit" class="px-6 py-2.5 bg-[#f4c025] text-[#181611] font-bold rounded-xl hover:brightness-105 transition-all text-sm shadow-[0_4px_14px_0_rgba(244,192,37,0.39)]">
+                            <span class="material-symbols-outlined text-[16px] inline-block align-middle mr-1" style="font-variation-settings: 'FILL' 1;">send</span> Gửi câu hỏi
+                        </button>
                     </div>
-
-                    {{-- Nội dung --}}
-                    <div>
-                        <label for="review_content" class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                            Nội dung nhận xét *
-                        </label>
-                        <textarea id="review_content" name="comment" rows="4" required minlength="10"
-                                  class="w-full border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none resize-none dark:bg-gray-800 dark:text-white transition-shadow"
-                                  placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
-                    </div>
-
-                    {{-- Ảnh đính kèm --}}
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                            Hình ảnh (tùy chọn, tối đa 5 ảnh)
-                        </label>
-                        <input type="file" name="images[]" multiple accept="image/jpeg,image/png,image/webp"
-                               class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-primary/20 file:text-[#181611] hover:file:bg-primary/30 transition">
-                    </div>
-                </div>
-
-                <div class="px-6 py-4 border-t border-gray-100 dark:border-white/10 flex justify-end gap-3 bg-gray-50/50 dark:bg-white/5">
-                    <button type="button" data-review-close
-                            class="px-5 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                        Hủy
-                    </button>
-                    <button type="submit"
-                            class="px-5 py-2.5 bg-primary text-[#181611] rounded-xl text-sm font-bold hover:brightness-105 transition-all shadow-sm">
-                        Gửi đánh giá
-                    </button>
                 </div>
             </form>
+            @endauth
+            @guest
+            <div class="mb-8 block relative cursor-pointer" onclick="showLoginModal()">
+                <div class="absolute inset-0 z-10" title="Đăng nhập để bình luận"></div>
+                <div class="flex flex-col gap-3">
+                    <textarea rows="3" placeholder="Xin mời để lại câu hỏi, BeePhone sẽ phản hồi trong 1 giờ..." readonly
+                              class="w-full border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#f4c025] outline-none resize-none dark:bg-gray-800 dark:text-gray-400 bg-gray-50 transition-all"></textarea>
+                    
+                    <div class="flex justify-end mt-1">
+                        <button type="button" class="px-6 py-2.5 bg-gray-300 dark:bg-gray-700 text-gray-500 font-bold rounded-xl pointer-events-none text-sm transition-all shadow-none">
+                            <span class="material-symbols-outlined text-[16px] inline-block align-middle mr-1" style="font-variation-settings: 'FILL' 1;">send</span> Gửi câu hỏi
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @endguest
+
+            <div class="flex flex-col">
+                @forelse($comments as $comment)
+                    <div class="py-6 border-b border-gray-100 dark:border-white/10 last:border-0 transition-all">
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold bg-[#181611] text-[#f4c025] shrink-0 shadow-inner">
+                                {{ mb_strtoupper(mb_substr($comment->user_id ? ($comment->user->name ?? 'K') : ($comment->guest_name ?: 'K'), 0, 1)) }}
+                            </div>
+                            <div class="flex-1 min-w-0 text-sm">
+                                <div class="flex flex-wrap items-center gap-2 mb-1">
+                                    <span class="font-bold text-[#181611] dark:text-white break-words">{{ $comment->user_id ? ($comment->user->name ?? 'Khách') : ($comment->guest_name ?: 'Khách') }}</span>
+                                    @if($comment->user && $comment->user->role && $comment->user->role->name === 'admin')
+                                        <span class="bg-[#f4c025] text-[#181611] text-[10px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wide">QTV</span>
+                                    @endif
+                                    <span class="text-xs text-gray-400 whitespace-nowrap">&bull; {{ $comment->created_at->diffForHumans() }}</span>
+                                </div>
+                                <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-2 break-words">{{ $comment->content }}</p>
+                                <div class="flex items-center gap-4 mt-2">
+                                    <button type="button" class="text-xs text-gray-500 font-semibold hover:text-[#181611] dark:hover:text-[#f4c025] flex items-center gap-1 whitespace-nowrap transition-colors w-fit" onclick="@auth toggleReplyForm({{ $comment->id }}) @else showLoginModal() @endauth">
+                                        <span class="material-symbols-outlined text-[14px]">reply</span> Phản hồi
+                                    </button>
+                                    @if(auth()->check() && (auth()->id() === $comment->user_id || (auth()->user()->role && auth()->user()->role->name === 'admin')))
+                                    <form action="{{ route('products.comments.destroy', $comment->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa không? Hành động này không thể hoàn tác.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" title="Xóa bình luận" class="text-xs text-red-400 font-semibold hover:text-red-600 flex items-center gap-1 whitespace-nowrap transition-colors w-fit">
+                                            <span class="material-symbols-outlined text-[14px]">delete</span> Xóa
+                                        </button>
+                                    </form>
+                                    @endif
+                                </div>
+
+                                @auth
+                                {{-- Form Reply Cho User --}}
+                                <form action="{{ route('products.comments.store', $product->id) }}" method="POST" id="reply-form-{{ $comment->id }}" class="hidden mt-4 bg-[#f9f8f5] dark:bg-white/5 p-4 rounded-xl border border-[#e6e3db] dark:border-white/10 w-full">
+                                    @csrf
+                                    <input type="hidden" name="parent_id" value="{{ $comment->id }}">
+                                    <div class="flex flex-col gap-3">
+                                        <textarea name="content" rows="2" required placeholder="Nhập câu trả lời..."
+                                                  class="w-full border border-[#e6e3db] dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-[#f4c025] outline-none resize-none dark:bg-gray-800 dark:text-white text-xs"></textarea>
+                                        <div class="flex justify-end gap-2 mt-1">
+                                            <button type="button" class="px-3 py-1.5 text-xs text-gray-500 font-medium hover:bg-white dark:hover:bg-white/5 rounded-lg transition" onclick="toggleReplyForm({{ $comment->id }})">Huỷ</button>
+                                            <button type="submit" class="px-4 py-1.5 text-xs bg-[#f4c025] text-[#181611] font-semibold rounded-lg hover:brightness-105 transition shadow-sm">Gửi</button>
+                                        </div>
+                                    </div>
+                                </form>
+                                @endauth
+
+                                {{-- Các câu trả lời --}}
+                                @if($comment->replies->count() > 0)
+                                    <div class="mt-4 flex flex-col gap-4 bg-[#f9f8f5] dark:bg-white/5 rounded-xl border border-[#e6e3db] dark:border-white/10 p-4">
+                                        @foreach($comment->replies as $reply)
+                                        <div class="flex gap-4">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 {{ ($reply->user && $reply->user->role && $reply->user->role->name === 'admin') ? 'bg-[#181611] text-[#f4c025] shadow-inner' : 'bg-gray-400' }}">
+                                                {{ mb_strtoupper(mb_substr($reply->user_id ? ($reply->user->name ?? 'K') : ($reply->guest_name ?: 'K'), 0, 1)) }}
+                                            </div>
+                                            <div class="flex-1 min-w-0 text-sm">
+                                                <div class="flex flex-wrap items-center gap-2 mb-1">
+                                                    <span class="font-bold text-[#181611] dark:text-white break-words">{{ $reply->user_id ? ($reply->user->name ?? 'Khách') : ($reply->guest_name ?: 'Khách') }}</span>
+                                                    @if($reply->user && $reply->user->role && $reply->user->role->name === 'admin')
+                                                        <span class="bg-[#f4c025] text-[#181611] text-[10px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wide">QTV</span>
+                                                    @endif
+                                                    <span class="text-xs text-gray-400 whitespace-nowrap">&bull; {{ $reply->created_at->diffForHumans() }}</span>
+                                                </div>
+                                                <p class="text-gray-700 dark:text-gray-300 leading-relaxed break-words">{{ $reply->content }}</p>
+                                                <div class="flex items-center gap-4 mt-1.5">
+                                                    <button type="button" class="text-xs text-gray-500 font-semibold hover:text-[#181611] dark:hover:text-[#f4c025] flex items-center gap-1 whitespace-nowrap transition-colors w-fit" onclick="@auth focusReplyForm({{ $comment->id }}, '{{ $reply->user_id ? ($reply->user->name ?? 'Khách') : ($reply->guest_name ?: 'Khách') }}') @else showLoginModal() @endauth">
+                                                        <span class="material-symbols-outlined text-[14px]">reply</span> Phản hồi
+                                                    </button>
+                                                    @if(auth()->check() && (auth()->id() === $reply->user_id || (auth()->user()->role && auth()->user()->role->name === 'admin')))
+                                                    <form action="{{ route('products.comments.destroy', $reply->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phản hồi này không? Hành động này không thể hoàn tác.');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" title="Xóa phản hồi" class="text-xs text-red-400 font-semibold hover:text-red-600 flex items-center gap-1 whitespace-nowrap transition-colors w-fit">
+                                                            <span class="material-symbols-outlined text-[14px]">delete</span> Xóa
+                                                        </button>
+                                                    </form>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center py-6 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2 text-gray-300 dark:text-gray-600">forum</span>
+                        <p class="text-sm">Chưa có câu hỏi nào. Hãy là người đầu tiên đặt câu hỏi!</p>
+                    </div>
+                @endforelse
+            </div>
         </div>
     </div>
-    @endif
+    
+    {{-- Login Modal --}}
+    <div id="login-modal-overlay" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center opacity-0 transition-opacity duration-300 backdrop-blur-sm">
+        <div class="bg-white dark:bg-[#221e10] p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300 relative border border-gray-100 dark:border-white/10">
+            <button onclick="hideLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors bg-gray-50 dark:bg-white/5 rounded-full p-1.5 focus:outline-none">
+                <span class="material-symbols-outlined text-xl block">close</span>
+            </button>
+            <div class="text-center">
+                <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-5 text-primary">
+                    <span class="material-symbols-outlined text-4xl">lock</span>
+                </div>
+                <h3 class="text-2xl font-bold text-[#181611] dark:text-white mb-2">Yêu cầu đăng nhập</h3>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mb-8 leading-relaxed">Hãy đăng nhập để sử dụng chức năng này và tham gia thảo luận cùng cộng đồng Bee Phone.</p>
+                <div class="flex flex-col gap-3">
+                    <a href="{{ route('login') }}" class="w-full bg-[#f4c025] text-[#181611] font-bold py-3.5 rounded-xl hover:brightness-105 transition-all shadow-[0_4px_14px_0_rgba(244,192,37,0.39)] inline-block">Đăng nhập ngay</a>
+                    <button onclick="hideLoginModal()" class="w-full bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 font-bold py-3.5 rounded-xl hover:bg-gray-200 dark:hover:bg-white/10 transition-colors">Để sau</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        function showLoginModal() {
+            const modal = document.getElementById('login-modal-overlay');
+            const modalBox = modal.querySelector('div');
+            modal.classList.remove('hidden');
+            // Trigger reflow
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            modalBox.classList.remove('scale-95');
+        }
+
+        function hideLoginModal() {
+            const modal = document.getElementById('login-modal-overlay');
+            const modalBox = modal.querySelector('div');
+            modal.classList.add('opacity-0');
+            modalBox.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function toggleReplyForm(id) {
+            const form = document.getElementById('reply-form-' + id);
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                form.querySelector('textarea').focus();
+            } else {
+                form.classList.add('hidden');
+            }
+        }
+
+        function focusReplyForm(commentId, authorName) {
+            const form = document.getElementById('reply-form-' + commentId);
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+            }
+            const textarea = form.querySelector('textarea');
+            const prefix = '@' + authorName + ' ';
+            if (!textarea.value.includes(prefix)) {
+                textarea.value = prefix + textarea.value;
+            }
+            textarea.focus();
+            // Đưa con trỏ xuống cuối
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        }
+    </script>
 </main>
 
 
@@ -854,22 +941,22 @@
 
             function deselectButtonInGroup(group) {
                 group.querySelectorAll('.attr-btn').forEach(b => {
-                    b.classList.remove('border-primary', 'bg-primary/10', 'border-2', 'ring-2', 'ring-primary');
-                    b.classList.add('border-gray-200', 'dark:border-white/10', 'border', 'bg-transparent');
+                    b.classList.remove('border-[#f4c025]', 'bg-[#f4c025]/10');
+                    b.classList.add('border-gray-100', 'dark:border-white/5', 'bg-white', 'dark:bg-black/20');
                     b.querySelector('.check-icon').classList.add('hidden');
-                    b.querySelector('.attr-text').classList.remove('text-[#181611]', 'dark:text-white', 'font-bold');
-                    b.querySelector('.attr-text').classList.add('text-gray-600', 'dark:text-gray-300');
+                    b.querySelector('.attr-text').classList.remove('text-[#181611]', 'dark:text-[#f4c025]', 'font-black');
+                    b.querySelector('.attr-text').classList.add('text-gray-600', 'dark:text-gray-300', 'font-semibold');
                 });
             }
 
             function selectButton(btn, group) {
                 deselectButtonInGroup(group);
                 
-                btn.classList.remove('border-gray-200', 'dark:border-white/10', 'border', 'bg-transparent');
-                btn.classList.add('border-primary', 'bg-primary/10', 'border-2', 'ring-2', 'ring-primary');
+                btn.classList.remove('border-gray-100', 'dark:border-white/5', 'bg-white', 'dark:bg-black/20');
+                btn.classList.add('border-[#f4c025]', 'bg-[#f4c025]/10');
                 btn.querySelector('.check-icon').classList.remove('hidden');
-                btn.querySelector('.attr-text').classList.remove('text-gray-600', 'dark:text-gray-300');
-                btn.querySelector('.attr-text').classList.add('text-[#181611]', 'dark:text-white', 'font-bold');
+                btn.querySelector('.attr-text').classList.remove('text-gray-600', 'dark:text-gray-300', 'font-semibold');
+                btn.querySelector('.attr-text').classList.add('text-[#181611]', 'dark:text-[#f4c025]', 'font-black');
             }
 
             function updateAvailability() {
@@ -1115,11 +1202,7 @@
                 return document.getElementById(id);
             }
 
-            var modal = byId('review-modal');
-            var panel = byId('review-modal-panel');
-            var ratingInput = byId('review_rating');
-            var ratingLabel = modal ? modal.querySelector('[data-rating-label]') : null;
-            var starsWrap = modal ? modal.querySelector('[data-rating-stars]') : null;
+
 
             // ===== TOAST ANIMATE =====
             var toastIds = ['review-toast-success', 'review-toast-error', 'review-toast-validation'];
@@ -1156,84 +1239,13 @@
                 }
             }
 
-            function setRating(value) {
-                if (ratingInput) ratingInput.value = String(value || '');
 
-                if (starsWrap) {
-                    var stars = starsWrap.querySelectorAll('.review-star');
-                    for (var i = 0; i < stars.length; i++) {
-                        var btn = stars[i];
-                        var v = Number(btn.getAttribute('data-value') || 0);
-                        if (v <= value) {
-                            btn.classList.add('text-primary');
-                            btn.classList.remove('text-slate-600');
-                        } else {
-                            btn.classList.add('text-slate-600');
-                            btn.classList.remove('text-primary');
-                        }
-                    }
-                }
-
-                if (ratingLabel) {
-                    var map = { 1: 'Rất tệ', 2: 'Tệ', 3: 'Bình thường', 4: 'Tốt', 5: 'Tuyệt vời' };
-                    ratingLabel.textContent = value ? value + '/5 — ' + (map[value] || '') : 'Chọn số sao để đánh giá';
-                }
-            }
-
-            function openModal() {
-                if (!modal || !panel) return;
-                modal.setAttribute('aria-hidden', 'false');
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                modal.classList.add('opacity-100', 'pointer-events-auto');
-
-                panel.classList.remove('opacity-0', 'translate-y-3', 'scale-95');
-                panel.classList.add('opacity-100', 'translate-y-0', 'scale-100');
-
-                var content = byId('review_content');
-                if (content && content.focus) content.focus();
-            }
-
-            function closeModal() {
-                if (!modal || !panel) return;
-                modal.setAttribute('aria-hidden', 'true');
-                modal.classList.remove('opacity-100', 'pointer-events-auto');
-                modal.classList.add('opacity-0', 'pointer-events-none');
-
-                panel.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
-                panel.classList.add('opacity-0', 'translate-y-3', 'scale-95');
-            }
-
-            // init stars as unselected
-            if (starsWrap) {
-                var stars = starsWrap.querySelectorAll('.review-star');
-                for (var i = 0; i < stars.length; i++) {
-                    stars[i].classList.add('text-slate-300');
-                }
-            }
 
             // Event delegation
             document.addEventListener('click', function (e) {
                 var target = e.target;
                 if (!(target instanceof Element)) return;
 
-                if (target.closest('#open-review-modal')) {
-                    e.preventDefault();
-                    openModal();
-                    return;
-                }
-
-                if (target.closest('[data-review-close]')) {
-                    e.preventDefault();
-                    closeModal();
-                    return;
-                }
-
-                var starBtn = target.closest('#review-modal .review-star');
-                if (starBtn) {
-                    e.preventDefault();
-                    var v = Number(starBtn.getAttribute('data-value') || 0);
-                    if (v >= 1 && v <= 5) setRating(v);
-                }
 
                 var helpfulBtn = target.closest('.btn-helpful');
                 if (helpfulBtn) {
@@ -1269,12 +1281,6 @@
                 }
             });
 
-            document.addEventListener('keydown', function (e) {
-                if (e.key !== 'Escape') return;
-                if (modal && modal.getAttribute('aria-hidden') === 'true') return;
-                if (modal) closeModal();
-            });
-
             // ===== FILTER PILLS =====
             var filterBtns = document.querySelectorAll('.review-filter-btn');
             var reviewCards = document.querySelectorAll('.review-card');
@@ -1286,11 +1292,11 @@
 
                     // Toggle active style
                     filterBtns.forEach(function(b) {
-                        b.classList.remove('border-red-500', 'text-red-500', 'bg-red-50', 'active');
+                        b.classList.remove('border-[#f4c025]', 'text-[#181611]', 'bg-[#f4c025]', 'shadow-[0_4px_10px_-2px_rgba(244,192,37,0.4)]', 'active');
                         b.classList.add('border-gray-200', 'text-gray-600', 'bg-white', 'dark:bg-white/5', 'dark:border-white/10', 'dark:text-gray-300');
                     });
-                    this.classList.add('border-red-500', 'text-red-500', 'bg-red-50', 'active');
-                    this.classList.remove('border-gray-200', 'text-gray-600', 'bg-white');
+                    this.classList.add('border-[#f4c025]', 'text-[#181611]', 'bg-[#f4c025]', 'shadow-[0_4px_10px_-2px_rgba(244,192,37,0.4)]', 'active');
+                    this.classList.remove('border-gray-200', 'text-gray-600', 'bg-white', 'dark:bg-white/5', 'dark:border-white/10', 'dark:text-gray-300', 'hover:border-[#f4c025]', 'hover:text-[#f4c025]', 'hover:bg-[#f4c025]/5');
 
                     var visible = 0;
                     reviewCards.forEach(function(card) {

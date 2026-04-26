@@ -20,10 +20,6 @@ class OrderController extends Controller
     // Hiển thị danh sách đơn hàng
     public function index(Request $request)
     {
-        if ($request->boolean('skip_review')) {
-            $request->session()->forget('review_order_id');
-            return redirect()->route('client.orders.index');
-        }
 
         $user = Auth::user();
 
@@ -59,20 +55,7 @@ class OrderController extends Controller
             ->paginate(10)
             ->appends(['status' => $statusParam]);
 
-        $reviewOrder = null;
-        $reviewOrderId = $request->session()->get('review_order_id');
-
-        if (is_numeric($reviewOrderId)) {
-            $reviewOrder = Order::with(['items', 'items.product'])
-                ->where('user_id', Auth::id())
-                ->find((int) $reviewOrderId);
-        }
-
-        if ($reviewOrderId !== null) {
-            $request->session()->forget('review_order_id');
-        }
-
-        return view('client.profiles.orders', compact('orders', 'reviewOrder', 'statusParam'));
+        return view('client.profiles.orders', compact('orders', 'statusParam'));
     }
 
     // Hiển thị chi tiết 1 đơn hàng (Trang TechNoir)
@@ -144,8 +127,7 @@ class OrderController extends Controller
             }
 
             return redirect()->back()
-                ->with('success', $message)
-                ->with('review_order_id', $order->id);
+                ->with('success', $message);
         }
 
         return redirect()->back()->with('error', 'Trạng thái đơn hàng không hợp lệ.');
@@ -410,5 +392,71 @@ class OrderController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Đã hủy yêu cầu hoàn hàng thành công.');
+    }
+
+    // Chức năng Mua lại (Repurchase)
+    public function repurchase(Request $request, $id)
+    {
+        $order = Order::with('items')->where('user_id', Auth::id())->findOrFail($id);
+        
+        $sessionToken = \Illuminate\Support\Facades\Session::getId();
+        $cart = \App\Models\Cart::firstOrCreate(
+            Auth::check() ? ['user_id' => Auth::id()] : ['session_id' => $sessionToken]
+        );
+
+        $addedCount = 0;
+        $addedItemIds = [];
+
+        foreach ($order->items as $item) {
+            $product = \App\Models\Product::where('sku', $item->product_sku)->first();
+            $variant = \App\Models\ProductVariant::where('sku', $item->product_sku)->first();
+
+            $productId = $product ? $product->id : ($variant ? $variant->product_id : null);
+            $variantId = $variant ? $variant->id : null;
+
+            if ($productId) {
+                // Kiểm tra stock thực tế hiện tại
+                $stock = $variant ? $variant->stock : ($product ? $product->stock : 0);
+                if ($stock <= 0) continue; // Hết hàng thì bỏ qua sản phẩm này
+
+                $cartItem = \App\Models\CartItem::where('cart_id', $cart->id)
+                    ->where('product_id', $productId)
+                    ->when($variantId, function ($q) use ($variantId) {
+                        return $q->where('product_variant_id', $variantId);
+                    }, function ($q) {
+                        return $q->whereNull('product_variant_id');
+                    })
+                    ->first();
+
+                if ($cartItem) {
+                    $newQty = $cartItem->quantity + $item->quantity;
+                    if ($newQty <= $stock) {
+                        $cartItem->increment('quantity', $item->quantity);
+                    } else {
+                        // Nếu vượt quá tồn kho thì set bằng tồn kho tối đa
+                        $cartItem->update(['quantity' => $stock]);
+                    }
+                    $addedCount++;
+                    $addedItemIds[] = $cartItem->id;
+                } else {
+                    $qtyToAdd = min($item->quantity, $stock);
+                    $newCartItem = \App\Models\CartItem::create([
+                        'cart_id' => $cart->id,
+                        'product_id' => $productId,
+                        'product_variant_id' => $variantId,
+                        'quantity' => $qtyToAdd,
+                    ]);
+                    $addedCount++;
+                    $addedItemIds[] = $newCartItem->id;
+                }
+            }
+        }
+
+        if ($addedCount > 0) {
+            session(['selected_cart_items' => $addedItemIds]);
+            return redirect()->route('client.checkout.index')->with('success', 'Đã chuẩn bị đơn hàng! Bạn có thể thanh toán ngay.');
+        } else {
+            return redirect()->route('client.orders.index')->with('error', 'Sản phẩm này hiện đã hết hàng hoặc không tồn tại.');
+        }
     }
 }

@@ -60,10 +60,12 @@ class ReviewController extends Controller
 
         $reviews = $query->paginate(15)->withQueryString();
 
+        // Cập nhật tất cả review đang chờ duyệt thành hiển thị trước khi load (nếu còn sót)
+        Review::where('status', Review::STATUS_PENDING)->update(['status' => Review::STATUS_APPROVED]);
+
         // Thống kê nhanh
         $stats = [
             'total'    => Review::count(),
-            'pending'  => Review::where('status', Review::STATUS_PENDING)->count(),
             'approved' => Review::where('status', Review::STATUS_APPROVED)->count(),
             'hidden'   => Review::where('status', Review::STATUS_HIDDEN)->count(),
             'average'  => round((float) Review::where('status', Review::STATUS_APPROVED)->avg('rating'), 1),
@@ -90,7 +92,7 @@ class ReviewController extends Controller
             return response()->json(['ok' => true, 'status' => Review::STATUS_APPROVED]);
         }
 
-        return back()->with('success', 'Đã duyệt đánh giá.');
+        return back()->with('success', 'Đã hiển thị đánh giá.');
     }
 
     /**

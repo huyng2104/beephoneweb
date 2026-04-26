@@ -93,99 +93,102 @@
                         </div>
                         <div>
                             <p class="font-bold text-on-surface">Đánh giá</p>
-                            <p class="text-sm text-zinc-500">Đang phát triển. Tặng điểm khi bạn viết đánh giá.</p>
+                            <p class="text-sm text-zinc-500">Nhận 1 BP cho mỗi đánh giá sản phẩm sau khi mua hàng.</p>
                         </div>
                     </div>
                 </div>
             </section>
 
             <section id="cua-hang-doi-qua" class="md:col-span-12 mt-8">
-                <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-3xl text-on-surface font-bold tracking-tight">Cửa hàng đổi quà</h2>
-                </div>
-
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @forelse($vouchers as $voucher)
+                    @forelse($vouchers as $index => $voucher)
                     @php
                         // Tính điểm để đổi Voucher
                         $redeemRate = $setting->redeem_rate ?: 1000;
                         $pointCost = $voucher->discount_type === 'fixed' ? ceil($voucher->discount_value / $redeemRate) : ceil(($voucher->max_discount ?: 50000) / $redeemRate);
+                        $bgColors = ['from-[#fef3c7] to-[#fde68a]', 'from-[#fef08a] to-[#facc15]', 'from-[#eab308] to-[#ca8a04]', 'from-[#fde047] to-[#eab308]'];
+                        $bgClass = $bgColors[$index % count($bgColors)];
                     @endphp
-                    <div class="bg-white rounded-xl overflow-hidden border border-zinc-100 hover:shadow-xl transition-shadow group flex flex-col">
-                        <div class="h-32 bg-zinc-900 flex items-center justify-center relative">
-                            <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#f4c025 1px, transparent 1px); background-size: 20px 20px;"></div>
-                            <span class="text-primary text-3xl font-bold relative z-10 tracking-tighter">{{ $voucher->code }}</span>
-                        </div>
-                        <div class="p-6 flex flex-col flex-grow">
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">VOUCHER</span>
-                            <h4 class="font-bold text-on-surface text-lg mb-1 leading-tight">{{ $voucher->name }}</h4>
-                            <p class="text-sm text-zinc-500 mb-4">
+                    <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col hover:-translate-y-1 transition-transform duration-300">
+                        <div class="h-28 bg-gradient-to-br {{ $bgClass }}"></div>
+                        <div class="p-5 flex flex-col flex-grow bg-white">
+                            <h4 class="font-bold text-[#181611] text-sm mb-1 leading-tight line-clamp-1">{{ $voucher->name }}</h4>
+                            <p class="text-xs text-gray-500 mb-6 line-clamp-1">
                                 @if($voucher->discount_type == 'fixed')
-                                    Giảm trực tiếp {{ number_format($voucher->discount_value) }}đ
+                                    Áp dụng cho đơn từ {{ number_format($voucher->min_order_value) }}đ
                                 @else
-                                    Giảm {{ $voucher->discount_value }}% (Tối đa {{ number_format($voucher->max_discount) }}đ)
+                                    Tối đa {{ number_format($voucher->max_discount) }}đ cho mọi đơn
                                 @endif
-                                <br>Đơn từ {{ number_format($voucher->min_order_value) }}đ
                             </p>
 
-                            <div class="mt-auto pt-4 border-t border-zinc-100 flex items-center justify-between">
-                                <span class="font-bold text-on-surface">{{ number_format($pointCost) }} BP</span>
+                            <div class="mt-auto flex items-center justify-between">
+                                <span class="font-bold text-[#eab308] text-lg">{{ number_format($pointCost) }}đ</span>
 
+                                @if($user->total_points >= $pointCost)
                                 <form action="{{ route('client.points.redeem') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="voucher_id" value="{{ $voucher->id }}">
-                                    <button type="submit" onclick="return confirm('Bạn có chắc muốn dùng {{ number_format($pointCost) }} điểm để đổi mã này không?')" class="bg-surface-container-low text-on-surface hover:bg-primary hover:text-on-primary px-4 py-2 rounded-lg text-sm font-bold transition-colors">
-                                        Đổi quà
+                                    <button type="submit" onclick="return confirm('Bạn có chắc muốn dùng {{ number_format($pointCost) }} điểm để đổi mã này không?')" class="bg-[#facc15] hover:bg-[#eab308] text-[#181611] px-5 py-1.5 rounded-full text-xs font-bold transition-colors">
+                                        Đổi ngay
                                     </button>
                                 </form>
+                                @else
+                                <button disabled class="bg-gray-100 text-gray-400 px-5 py-1.5 rounded-full text-xs font-bold cursor-not-allowed">
+                                    Chưa đủ điểm
+                                </button>
+                                @endif
                             </div>
                         </div>
                     </div>
                     @empty
-                    <div class="col-span-full p-8 text-center text-zinc-500 bg-white rounded-xl border border-zinc-100">
+                    <div class="col-span-full p-8 text-center text-zinc-500 bg-white rounded-2xl border border-gray-100">
                         Hiện tại chưa có mã giảm giá nào để đổi. Bạn quay lại sau nhé!
                     </div>
                     @endforelse
                 </div>
             </section>
 
-            <section class="md:col-span-12 mt-12 bg-white rounded-xl shadow-sm border border-zinc-100 overflow-hidden">
-                <div class="px-8 py-6 border-b border-zinc-100 flex justify-between items-center">
-                    <h2 class="text-xl text-on-surface font-bold">Giao dịch gần đây</h2>
+            <section class="md:col-span-12 mt-12">
+                <div class="flex justify-between items-center mb-6 px-2">
+                    <h2 class="text-2xl font-bold text-[#181611]">Lịch sử điểm thưởng</h2>
+                    <a href="#" class="text-[#eab308] hover:text-[#ca8a04] text-sm font-bold flex items-center transition-colors">
+                        Xem tất cả <span class="material-symbols-outlined text-[16px] ml-1">arrow_forward</span>
+                    </a>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="bg-surface-container-low">
-                                <th class="px-8 py-4 font-bold text-sm text-zinc-500 uppercase tracking-wider">Thời gian</th>
-                                <th class="px-8 py-4 font-bold text-sm text-zinc-500 uppercase tracking-wider">Nội dung</th>
-                                <th class="px-8 py-4 font-bold text-sm text-zinc-500 uppercase tracking-wider text-right">Thay đổi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-zinc-100 text-on-surface">
-                            @forelse($histories as $history)
-                            <tr class="hover:bg-zinc-50">
-                                <td class="px-8 py-5">
-                                    <p class="font-medium">{{ $history->created_at->format('d/m/Y') }}</p>
-                                    <p class="text-xs text-zinc-400">{{ $history->created_at->format('H:i') }}</p>
-                                </td>
-                                <td class="px-8 py-5">
-                                    <p class="font-bold text-on-surface">
-                                        @if($history->type == 'earn') Tích điểm @elseif($history->type == 'redeem') Đổi quà @else Quản trị viên cộng @endif
-                                    </p>
-                                    <p class="text-xs text-zinc-500">{{ $history->description }}</p>
-                                </td>
-                                <td class="px-8 py-5 text-right font-bold {{ $history->points > 0 ? 'text-green-600' : 'text-red-500' }}">
-                                    {{ $history->points > 0 ? '+' : '' }}{{ number_format($history->points) }} BP
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="3" class="px-8 py-10 text-center text-zinc-500">Bạn chưa có giao dịch điểm nào!</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+
+                <div class="bg-white rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-[#fafafa] border-b border-gray-100">
+                                    <th class="px-8 py-4 font-semibold text-sm text-gray-500 w-[15%]">Ngày</th>
+                                    <th class="px-8 py-4 font-semibold text-sm text-gray-500">Nội dung giao dịch</th>
+                                    <th class="px-8 py-4 font-semibold text-sm text-gray-500 text-right w-[20%]">Biến động</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @forelse($histories as $history)
+                                <tr class="hover:bg-gray-50/50 transition-colors">
+                                    <td class="px-8 py-5">
+                                        <p class="text-sm font-semibold text-[#181611]">{{ $history->created_at->format('d/m/Y') }}</p>
+                                    </td>
+                                    <td class="px-8 py-5">
+                                        <p class="text-sm font-semibold text-[#181611]">
+                                            {{ $history->description }}
+                                        </p>
+                                    </td>
+                                    <td class="px-8 py-5 text-right font-bold text-sm {{ $history->points > 0 ? 'text-[#10b981]' : 'text-[#ef4444]' }}">
+                                        {{ $history->points > 0 ? '+' : '' }}{{ number_format($history->points) }}đ
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="3" class="px-8 py-10 text-center text-zinc-500">Bạn chưa có giao dịch điểm nào!</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </div>

@@ -223,6 +223,7 @@
                                                 $userReview = \App\Models\Review::with(['images', 'repliedBy'])
                                                     ->where('user_id', auth()->id())
                                                     ->where('product_id', $item->product_id)
+                                                    ->where('order_id', $order->id)
                                                     ->first();
                                                 $hasReviewed = $userReview !== null;
                                             @endphp
@@ -231,8 +232,8 @@
                                             @if($order->status == \App\Models\Order::STATUS_RECEIVED)
                                                 {{-- Chỉ cho phép đánh giá nếu CHƯA HOÀN HÀNG (kiểm tra cả đơn và item cụ thể) --}}
                                                 @if(!$hasReviewed && $order->return_status == \App\Models\Order::RETURN_NONE && $item->return_status == \App\Models\OrderItem::RETURN_NONE)
-                                                    <button type="button" onclick="document.getElementById('review-modal-{{ $item->product_id }}').classList.remove('hidden'); document.getElementById('review-modal-{{ $item->product_id }}').classList.add('flex');" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 font-bold rounded-lg hover:bg-red-600 hover:text-white transition-colors text-xs whitespace-nowrap inline-flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-[13px]">rate_review</span> Đánh giá
+                                                    <button type="button" onclick="document.getElementById('review-modal-{{ $item->product_id }}').classList.remove('hidden'); document.getElementById('review-modal-{{ $item->product_id }}').classList.add('flex');" class="px-4 py-1.5 bg-[#f4c025] text-black shadow-[0_4px_10px_-2px_rgba(244,192,37,0.4)] border border-[#f4c025] font-bold rounded-lg hover:brightness-105 hover:-translate-y-0.5 transition-all text-xs whitespace-nowrap inline-flex items-center gap-1">
+                                                        <span class="material-symbols-outlined text-[14px]">rate_review</span> Đánh giá
                                                     </button>
                                                 @elseif($hasReviewed)
                                                     <button type="button" onclick="document.getElementById('view-review-modal-{{ $item->product_id }}').classList.remove('hidden'); document.getElementById('view-review-modal-{{ $item->product_id }}').classList.add('flex');" class="px-3 py-1.5 bg-green-50 text-green-600 border border-green-200 font-bold rounded-lg hover:bg-green-600 hover:text-white transition-colors text-xs whitespace-nowrap inline-flex items-center gap-1">
@@ -320,7 +321,7 @@
                                                 </button>
                                                 
                                                 <h2 class="text-lg font-bold text-[#181611] dark:text-white flex items-center gap-2 mb-1 border-b border-gray-100 dark:border-white/10 pb-3">
-                                                    <span class="material-symbols-outlined text-red-500">rate_review</span>
+                                                    <span class="material-symbols-outlined text-[#f4c025]">rate_review</span>
                                                     Đánh giá sản phẩm
                                                 </h2>
                                                 
@@ -336,10 +337,11 @@
 
                                                 <form action="{{ route('products.reviews.store', $item->product_id) }}" method="POST" enctype="multipart/form-data">
                                                     @csrf
+                                                    <input type="hidden" name="order_id" value="{{ $order->id }}">
                                                     
                                                     <div class="mb-4">
                                                         <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Chất lượng sản phẩm <span class="text-red-500">*</span></label>
-                                                        <select name="rating" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-[#181611] dark:bg-black/20 dark:border-white/10 dark:text-white focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none" required>
+                                                        <select name="rating" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-[#181611] dark:bg-black/20 dark:border-white/10 dark:text-white focus:border-[#f4c025] focus:ring-1 focus:ring-[#f4c025] outline-none" required>
                                                             <option value="">-- Chọn số sao --</option>
                                                             <option value="5">5 Sao - Tuyệt vời</option>
                                                             <option value="4">4 Sao - Tốt</option>
@@ -351,19 +353,19 @@
 
                                                     <div class="mb-4">
                                                         <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Đánh giá chi tiết <span class="text-red-500">*</span></label>
-                                                        <textarea name="comment" rows="3" class="w-full rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none bg-white dark:bg-black/20 p-3 text-sm text-[#181611] dark:text-white dark:border-white/10 resize-none" placeholder="Hãy chia sẻ những trải nghiệm thực tế với sản phẩm này (tối thiểu 10 ký tự)..." required minlength="10"></textarea>
+                                                        <textarea name="comment" rows="3" class="w-full rounded-xl border border-gray-200 focus:border-[#f4c025] focus:ring-1 focus:ring-[#f4c025] outline-none bg-white dark:bg-black/20 p-3 text-sm text-[#181611] dark:text-white dark:border-white/10 resize-none" placeholder="Hãy chia sẻ những trải nghiệm thực tế với sản phẩm này (tối thiểu 10 ký tự)..." required minlength="10"></textarea>
                                                     </div>
 
                                                     <div class="mb-6">
                                                         <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Thêm hình ảnh (Tùy chọn, tối đa 5 ảnh)</label>
-                                                        <input type="file" name="images[]" multiple accept="image/jpeg,image/png,image/webp" class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-red-50 disabled:file:bg-gray-100 dark:file:bg-white/10 file:text-red-600 hover:file:bg-red-100 dark:hover:file:bg-white/20 transition cursor-pointer">
+                                                        <input type="file" name="images[]" multiple accept="image/jpeg,image/png,image/webp" class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#f4c025]/20 disabled:file:bg-gray-100 dark:file:bg-white/10 file:text-[#181611] hover:file:bg-[#f4c025]/40 dark:hover:file:bg-white/20 transition cursor-pointer">
                                                     </div>
 
                                                     <div class="flex gap-3 justify-end items-center pt-4 border-t border-gray-100 dark:border-white/10">
                                                         <button type="button" onclick="document.getElementById('review-modal-{{ $item->product_id }}').classList.add('hidden'); document.getElementById('review-modal-{{ $item->product_id }}').classList.remove('flex');" class="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-gray-300 transition-colors">
                                                             Hủy bỏ
                                                         </button>
-                                                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold shadow-sm hover:bg-red-600 transition-colors inline-flex items-center gap-1.5 focus:scale-[0.98]">
+                                                        <button type="submit" class="px-6 py-2.5 rounded-xl bg-[#f4c025] text-[#181611] text-sm font-bold shadow-[0_4px_14px_0_rgba(244,192,37,0.39)] hover:brightness-105 hover:-translate-y-0.5 transition-all inline-flex items-center gap-1.5 focus:scale-[0.98]">
                                                             Hoàn tất đánh giá
                                                         </button>
                                                     </div>

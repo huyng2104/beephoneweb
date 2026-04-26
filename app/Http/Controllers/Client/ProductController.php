@@ -114,6 +114,15 @@ class ProductController extends Controller
                 $star => $reviews->where('rating', $star)->count(),
             ]);
 
+        $comments = \App\Models\ProductComment::with(['user.role', 'replies' => function ($q) {
+                $q->where('status', 1)->with('user.role');
+            }])
+            ->where('product_id', $product->id)
+            ->where('status', 1)
+            ->whereNull('parent_id')
+            ->latest()
+            ->get();
+
         return view('client.product-detail', compact(
             'product',
             'relatedProducts',
@@ -121,6 +130,7 @@ class ProductController extends Controller
             'userReview',
             'canReview',
             'ratingBreakdown',
+            'comments'
         ));
     }
 

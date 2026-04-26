@@ -28,107 +28,7 @@
             ];
         @endphp
 
-        {{-- MODAL ĐÁNH GIÁ SẢN PHẨM --}}
-        @if (!empty($reviewOrder) && $reviewOrder->items && $reviewOrder->items->count())
-            <div id="review-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4">
-                <div class="max-h-[86vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-gray-100 bg-white shadow-2xl dark:border-white/10 dark:bg-[#1a1a1a]">
-                    <div class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-gray-100 bg-white/90 px-6 py-4 backdrop-blur dark:border-white/10 dark:bg-[#1a1a1a]/90">
-                        <div>
-                            <h2 class="text-lg font-bold text-[#181611] dark:text-white sm:text-xl">Đánh giá sản phẩm</h2>
-                            <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                                Sau khi đánh giá xong, đánh giá sẽ hiển thị ở phần bình luận của sản phẩm và được gắn tag
-                                <span class="font-bold text-[#f4c025]">Đã mua</span>.
-                            </p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <a href="{{ route('client.orders.index', ['skip_review' => 1]) }}" class="inline-flex h-10 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-4 text-sm font-bold transition-colors hover:border-[#f4c025] hover:text-[#f4c025] dark:border-white/10 dark:bg-white/5">
-                                Bỏ qua
-                            </a>
-                            <button type="button" id="review-modal-close" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 transition-colors hover:border-[#f4c025] dark:border-white/10 dark:bg-white/5">
-                                <span class="material-symbols-outlined text-[22px] text-gray-700 dark:text-gray-200">close</span>
-                            </button>
-                        </div>
-                    </div>
 
-                    <div class="px-6 py-6">
-                        <div class="text-xs font-bold uppercase tracking-widest text-gray-400">
-                            Mã đơn: {{ $reviewOrder->order_code }}
-                        </div>
-
-                        <div class="mt-5 space-y-5">
-                            @foreach ($reviewOrder->items as $item)
-                                @php $product = $item->product; @endphp
-                                @if ($product)
-                                    @php $productParam = $product->slug ?: $product->id; @endphp
-                                    <div class="rounded-2xl border border-gray-100 bg-gray-50/60 p-5 dark:border-white/10 dark:bg-white/5">
-                                        <div class="flex items-start gap-4">
-                                            <div class="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:border-white/10 dark:bg-black/20">
-                                                <img src="{{ asset('storage/' . ($product->thumbnail ?? '')) }}" alt="{{ $product->name }}" class="h-full w-full object-cover">
-                                            </div>
-                                            <div class="min-w-0 flex-1">
-                                                <div class="flex flex-wrap items-start justify-between gap-3">
-                                                    <div class="min-w-0">
-                                                        <p class="line-clamp-2 font-bold text-[#181611] dark:text-white">{{ $item->product_name ?? $product->name }}</p>
-                                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Số lượng: {{ $item->quantity }}</p>
-                                                    </div>
-                                                    <a href="{{ route('client.product.detail', ['id' => $productParam]) }}#comments" class="text-sm font-bold text-[#f4c025] hover:underline">
-                                                        Xem sản phẩm
-                                                    </a>
-                                                </div>
-
-                                                <form action="{{ route('products.comments.store', $product) }}" method="POST" enctype="multipart/form-data" class="mt-4 grid gap-3">
-                                                    @csrf
-                                                    <input type="hidden" name="redirect_to" value="/don-mua">
-                                                    <input type="hidden" name="order_id" value="{{ $reviewOrder->id }}">
-
-                                                    <div class="grid gap-3 sm:grid-cols-2">
-                                                        <div>
-                                                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400">Số sao</label>
-                                                            <select name="rating" class="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-[#181611] dark:border-white/10 dark:bg-black/20 dark:text-white" required>
-                                                                <option value="">Chọn</option>
-                                                                @for ($i = 5; $i >= 1; $i--)
-                                                                    <option value="{{ $i }}">{{ $i }} sao</option>
-                                                                @endfor
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400">Ảnh (tùy chọn)</label>
-                                                            <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" class="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-[#f4c025]/30 file:px-4 file:py-2 file:text-xs file:font-bold file:text-[#181611] hover:file:bg-[#f4c025]/40 dark:border-white/10 dark:bg-black/20 dark:text-gray-300">
-                                                        </div>
-                                                    </div>
-
-                                                    <div>
-                                                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400">Nội dung</label>
-                                                        <textarea name="content" rows="3" required class="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-[#181611] dark:border-white/10 dark:bg-black/20 dark:text-white" placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
-                                                    </div>
-
-                                                    <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-[#f4c025] px-6 py-3 text-sm font-bold text-black shadow-[0_14px_30px_-14px_rgba(244,192,37,0.45)] transition-all hover:brightness-105 active:scale-95">
-                                                        GỬI ĐÁNH GIÁ
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    const modal = document.getElementById('review-modal');
-                    const closeBtn = document.getElementById('review-modal-close');
-                    if (!modal) return;
-                    function closeModal() { modal.remove(); }
-                    if (closeBtn) closeBtn.addEventListener('click', closeModal);
-                    modal.addEventListener('click', function (e) {
-                        if (e.target === modal) closeModal();
-                    });
-                });
-            </script>
-        @endif
 
         {{-- TIÊU ĐỀ --}}
         <div class="mb-6 flex flex-col justify-between gap-4 border-b border-gray-100 pb-4 dark:border-white/10 lg:flex-row lg:items-end">
@@ -300,11 +200,20 @@
                                     </button>
                                 @endif
 
+                                @if (in_array($order->status, [\App\Models\Order::STATUS_DELIVERED, \App\Models\Order::STATUS_RECEIVED, \App\Models\Order::STATUS_CANCELLED]))
+                                    <form action="{{ route('client.orders.repurchase', $order->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="px-6 py-2.5 bg-white border border-[#f4c025] text-[#181611] font-bold rounded-xl hover:bg-[#f4c025] transition-all text-sm shadow-[0_4px_10px_-2px_rgba(244,192,37,0.3)]">
+                                            Mua lại
+                                        </button>
+                                    </form>
+                                @endif
+
                                 @if ($order->status === \App\Models\Order::STATUS_DELIVERED)
                                     <form action="{{ route('client.orders.confirm', $order->id) }}" method="POST" class="inline">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="rounded-lg bg-green-500 px-6 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-green-600" onclick="return confirm('Bạn xác nhận đã nhận được hàng?')">
+                                        <button type="submit" class="rounded-xl bg-green-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-green-600" onclick="return confirm('Bạn xác nhận đã nhận được hàng?')">
                                             Đã nhận được hàng
                                         </button>
                                     </form>
@@ -341,8 +250,8 @@
             <div class="relative z-10 w-full max-w-md transform overflow-hidden rounded-3xl bg-white shadow-2xl transition-all scale-95 opacity-0 dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 cancel-modal-content">
                 <div class="px-6 py-6 sm:p-8">
                     <div class="mb-6 flex flex-col items-center text-center">
-                        <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-50 dark:bg-red-500/10">
-                            <span class="material-symbols-outlined text-[32px] text-red-500">warning</span>
+                        <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#f4c025]/10">
+                            <span class="material-symbols-outlined text-[32px] text-[#f4c025]">warning</span>
                         </div>
                         <h3 class="text-xl font-bold text-[#181611] dark:text-white">Xác nhận hủy đơn hàng</h3>
                         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
@@ -354,7 +263,7 @@
                         @csrf
                         @method('PATCH')
                         <div class="mb-6">
-                            <label class="mb-3 block text-sm font-bold text-[#181611] dark:text-white">Vui lòng chọn lý do hủy <span class="text-red-500">*</span></label>
+                            <label class="mb-3 block text-sm font-bold text-[#181611] dark:text-white">Vui lòng chọn lý do hủy <span class="text-[#f4c025]">*</span></label>
                             <div class="space-y-2.5 max-h-[30vh] overflow-y-auto custom-scrollbar pr-1">
                                 @php
                                     $reasons = [
@@ -379,7 +288,7 @@
                             <button type="button" onclick="closeCancelModal()" class="flex-1 rounded-xl border border-gray-200 bg-white py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-transparent dark:text-gray-300 dark:hover:bg-white/5">
                                 Quay lại
                             </button>
-                            <button type="submit" class="flex-1 rounded-xl bg-red-500 py-3 text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(239,68,68,0.5)] transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-[#1a1a1a]">
+                            <button type="submit" class="flex-1 rounded-xl bg-[#f4c025] py-3 text-sm font-bold text-[#181611] shadow-[0_4px_14px_0_rgba(244,192,37,0.39)] transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-[#f4c025] focus:ring-offset-2 dark:focus:ring-offset-[#1a1a1a]">
                                 Xác nhận hủy
                             </button>
                         </div>
