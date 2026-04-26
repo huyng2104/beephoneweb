@@ -72,13 +72,13 @@ class ReviewController extends Controller
 
         // Lưu ảnh đính kèm
         if ($request->hasFile('images')) {
-            $order = 0;
+            $sortOrder = 0;
             foreach ($request->file('images') as $image) {
                 $path = $image->store('reviews', 'public');
                 ReviewImage::create([
                     'review_id'  => $review->id,
                     'image_path' => $path,
-                    'sort_order' => $order++,
+                    'sort_order' => $sortOrder++,
                 ]);
             }
         }

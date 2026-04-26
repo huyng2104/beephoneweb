@@ -466,13 +466,21 @@ class CheckoutController extends Controller
      */
     public function success()
     {
-        if (!session('success') || !session('new_order_id')) {
+        $orderId = session('new_order_id');
+
+        // Nếu không có order trong session
+        if (!$orderId) {
             return redirect()->route('home');
         }
 
-        $order = Order::with('items')->find(session('new_order_id'));
+        $order = Order::with('items')->find($orderId);
 
         if (!$order) {
+            return redirect()->route('home');
+        }
+
+        // Kiểm tra quyền: chỉ có chủ đơn hoặc guest mới xọm được
+        if ($order->user_id && Auth::check() && $order->user_id !== Auth::id()) {
             return redirect()->route('home');
         }
 

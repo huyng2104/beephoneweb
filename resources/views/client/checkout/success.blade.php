@@ -1,6 +1,6 @@
 @extends('client.layouts.app')
 
-@section('title', 'Bee Phone - Đặt hàng thành công')
+@section('title', 'Đặt hàng thành công | Bee Phone')
 
 @section('content')
 <main class="max-w-[800px] mx-auto py-12 px-6 min-h-[80vh]">
@@ -55,21 +55,45 @@
                     </div>
                     <div class="flex justify-between text-sm">
                         <span class="text-[#8a8060] dark:text-gray-400">Phí vận chuyển:</span>
-                        <span class="text-green-600 font-bold">Miễn phí</span>
+                        @if(($order->shipping_fee ?? 0) > 0)
+                            <span class="font-bold text-[#181611] dark:text-white">{{ number_format($order->shipping_fee, 0, ',', '.') }}đ</span>
+                        @else
+                            <span class="text-green-600 font-bold">Miễn phí</span>
+                        @endif
                     </div>
                     
-                    @if($order->total_price > $order->total_amount)
+                    @if($order->total_price > $order->total_amount - ($order->shipping_fee ?? 0))
                     <div class="flex justify-between text-sm">
                         <span class="text-green-600 font-medium flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">loyalty</span> Giảm giá (Voucher):
                         </span>
-                        <span class="text-green-600 font-bold">-{{ number_format($order->total_price - $order->total_amount, 0, ',', '.') }}đ</span>
+                        <span class="text-green-600 font-bold">-{{ number_format($order->total_price + ($order->shipping_fee ?? 0) - $order->total_amount, 0, ',', '.') }}đ</span>
                     </div>
                     @endif
 
                     <div class="flex justify-between items-center text-lg font-bold border-t border-[#e6e3db] dark:border-white/10 pt-4 mt-2">
                         <span class="text-[#181611] dark:text-white">Tổng thanh toán:</span>
                         <span class="text-primary text-2xl">{{ number_format($order->total_amount, 0, ',', '.') }}đ</span>
+                    </div>
+
+                    {{-- Phương thức thanh toán --}}
+                    <div class="flex justify-between text-sm pt-2 border-t border-dashed border-[#e6e3db] dark:border-white/10 mt-2">
+                        <span class="text-[#8a8060] dark:text-gray-400">Phương thức:</span>
+                        <span class="font-bold text-[#181611] dark:text-white">
+                            @if($order->payment_method === 'cod') 📦 Thanh lúc nhận hàng (COD)
+                            @elseif($order->payment_method === 'vnpay') 💳 VNPay
+                            @elseif($order->payment_method === 'wallet') 🐝 Ví Bee Pay
+                            @else {{ strtoupper($order->payment_method) }}
+                            @endif
+                        </span>
+                    </div>
+
+                    {{-- Trạng thái thanh toán --}}
+                    <div class="flex justify-between text-sm pt-2 mt-1">
+                        <span class="text-[#8a8060] dark:text-gray-400">Trạng thái thanh toán:</span>
+                        <span class="font-bold {{ $order->payment_status === 'paid' ? 'text-green-600' : 'text-primary' }}">
+                            {{ \App\Models\Order::paymentStatusLabels()[$order->payment_status] ?? 'Chờ thanh toán' }}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -80,8 +104,8 @@
                     Địa chỉ nhận hàng:
                 </h4>
                 <p class="text-sm text-[#8a8060] dark:text-gray-300 ml-7 leading-relaxed">
-                    {{ $order->recipient_address }}<br/>
-                    SĐT: <span class="font-bold">{{ $order->recipient_phone }}</span>
+                    {{ $order->shipping_address }}<br/>
+                    SĐT: <span class="font-bold">{{ $order->customer_phone }}</span>
                 </p>
             </div>
 
@@ -105,23 +129,6 @@
                 <div class="size-8 bg-[#e6e3db] dark:bg-white/10 rounded-full flex items-center justify-center hover:bg-primary transition-colors cursor-pointer"><span class="material-symbols-outlined text-sm text-[#181611] dark:text-white">mail</span></div>
             </div>
         </div>
-        </div>
-
-        @if(!empty($order) && $order->items && $order->items->count())
-            <div class="bg-white dark:bg-[#1a1a1a] p-8 rounded-[2rem] shadow-xl border border-gray-100 dark:border-white/5">
-                <div class="flex items-center justify-between gap-4 flex-wrap">
-                    <h2 class="text-2xl font-bold text-[#181611] dark:text-white">Đánh giá sản phẩm</h2>
-                    <div class="text-xs font-bold uppercase tracking-widest text-gray-400">
-                        Mã đơn: {{ $order->order_code }}
-                    </div>
-                </div>
-                <p class="mt-2 text-gray-600 dark:text-gray-300">
-                    Sau khi đánh giá xong, đánh giá sẽ hiển thị ở phần comment của sản phẩm.
-                </p>
-
-                
-            </div>
-        @endif
     </div>
 </main>
 
