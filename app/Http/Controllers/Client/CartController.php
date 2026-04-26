@@ -103,20 +103,32 @@ class CartController extends Controller
     public function index()
     {
         $cart = $this->getCart();
+
         // Lấy tất cả sản phẩm trong giỏ, kèm theo thông tin Product và Variant
-        $cartItems = CartItem::with(['product', 'variant.attributeValues.attribute'])
+        $allItems = CartItem::with(['product', 'variant.attributeValues.attribute'])
             ->where('cart_id', $cart->id)
             ->latest()
             ->get();
 
-        // Tính tổng tiền (Giá mượt mà, ưu tiên giá sale)
+        // Lọc bỏ các item có product bị xóa (null) hoặc variant không còn tồn tại
+        // để tránh lỗi "Attempt to read property on null"
+        $invalidItems = $allItems->filter(fn($item) => !$item->product || ($item->product_variant_id && !$item->variant));
+        if ($invalidItems->isNotEmpty()) {
+            CartItem::destroy($invalidItems->pluck('id'));
+        }
+        $cartItems = $allItems->filter(fn($item) => $item->product && (!$item->product_variant_id || $item->variant))->values();
+
+        // Tính tổng tiền (ưu tiên giá sale)
         $totalPrice = 0;
         foreach ($cartItems as $item) {
-            $price = 0;
             if ($item->variant) {
-                $price = $item->variant->sale_price > 0 ? $item->variant->sale_price : $item->variant->price;
+                $price = ($item->variant->sale_price > 0 && $item->variant->sale_price < $item->variant->price)
+                    ? $item->variant->sale_price
+                    : $item->variant->price;
             } else {
-                $price = $item->product->sale_price > 0 ? $item->product->sale_price : $item->product->price;
+                $price = ($item->product->sale_price > 0 && $item->product->sale_price < $item->product->price)
+                    ? $item->product->sale_price
+                    : $item->product->price;
             }
             $totalPrice += $price * $item->quantity;
         }

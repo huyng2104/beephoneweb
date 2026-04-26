@@ -37,20 +37,27 @@ class ProductController extends Controller
             ->values();
 
         $bestSellers = (clone $baseQuery)
-            ->with(['variants', 'images'])
+            ->with(['variants'])
+            ->when($keyword !== '', function ($q) use ($keyword) {
+                $q->where('name', 'like', '%' . $keyword . '%');
+            })
             ->orderByDesc('id')
-            ->limit(6)
+            ->limit(4)
             ->get()
             ->map(function ($product) {
-                $variant = $product->variants->first();
-                $thumbnail = optional($product->images->first())->image_url;
+                $variant = $product->variants->where('status', 'active')->first() ?? $product->variants->first();
+                // Ảnh thumbnail lấy từ field thumbnail của product (lưu trực tiếp)
+                $thumb = $product->thumbnail;
+                $thumbnailUrl = $thumb
+                    ? (str_starts_with($thumb, 'http') ? $thumb : asset('storage/' . $thumb))
+                    : null;
 
                 return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'price' => $variant ? ($variant->sale_price ?: $variant->price) : 0,
-                    'thumbnail' => $thumbnail ? asset('storage/' . $thumbnail) : null,
-                    'url' => route('client.product.detail', ['id' => $product->slug ?: $product->id]),
+                    'id'        => $product->id,
+                    'name'      => $product->name,
+                    'price'     => $variant ? (($variant->sale_price > 0 && $variant->sale_price < $variant->price) ? $variant->sale_price : $variant->price) : 0,
+                    'thumbnail' => $thumbnailUrl,
+                    'url'       => route('client.product.detail', ['id' => $product->slug ?: $product->id]),
                 ];
             })
             ->values();
@@ -138,6 +145,15 @@ class ProductController extends Controller
     {
         // 1. Khởi tạo query gốc
         $query = Product::with(['brand', 'categories', 'variants'])->where('status', 'active');
+
+        // 1.5. LỌC THEO TỪ KHÓA TÌM KIẾM
+        if ($request->filled('search')) {
+            $keyword = $request->search;
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'like', "%{$keyword}%")
+                  ->orWhere('sku', 'like', "%{$keyword}%");
+            });
+        }
 
         // 2. Lọc theo Danh mục (Hỗ trợ cả slug và ID)
         if ($request->has('category') && $request->category != '') {

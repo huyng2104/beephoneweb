@@ -236,6 +236,47 @@
     </script>
     @endauth
 
+    {{-- ===================================================== --}}
+    {{-- GLOBAL CART TOAST: THÊM VÀO GIỎ HÀNG THÀNH CÔNG     --}}
+    {{-- ===================================================== --}}
+    <script>
+    /**
+     * Hiện toast "Đã thêm vào giỏ hàng" - gọi từ bất cứ đâu
+     * @param {string} message - Nội dung hiển thị (mặc định "Đã thêm vào giỏ hàng!")
+     */
+    window.showCartToast = function(message) {
+        message = message || 'Đã thêm vào giỏ hàng!';
+
+        // Xóa toast cũ nếu còn
+        const old = document.getElementById('global-cart-toast');
+        if (old) old.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'global-cart-toast';
+        toast.style.cssText = 'position:fixed;top:20px;right:-320px;z-index:99999;display:flex;align-items:center;gap:12px;' +
+            'background:#10B981;color:#fff;padding:14px 22px;border-radius:14px;font-weight:700;font-size:14px;' +
+            'box-shadow:0 6px 24px rgba(16,185,129,0.35);transition:right 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);max-width:300px;';
+
+        toast.innerHTML = `
+            <span style="font-family:'Material Symbols Outlined';font-size:22px;font-variation-settings:'FILL' 1">check_circle</span>
+            <span>${message}</span>
+        `;
+
+        document.body.appendChild(toast);
+
+        // Trượt vào
+        requestAnimationFrame(() => {
+            setTimeout(() => { toast.style.right = '20px'; }, 10);
+        });
+
+        // Tự ẩn sau 3s
+        setTimeout(() => {
+            toast.style.right = '-320px';
+            setTimeout(() => toast.remove(), 450);
+        }, 3000);
+    };
+    </script>
+
     @stack('js')
 
     {{-- ===================================================== --}}
