@@ -16,51 +16,114 @@ class ChatbotController extends Controller
     {
         $request->validate(['message' => 'required|string']);
 
-        $userMessage = $request->message;
+        $userMessage = trim($request->message);
 
-        // ==========================================
-        // 1. KIỂM TRA FAQ TRƯỚC (CÁCH 1)
-        // ==========================================
         $faq = $this->searchFaq($userMessage);
         if ($faq) {
-            return response()->json([
+            $payload = [
                 'reply' => $faq->answer,
                 'type' => 'faq',
-                'products' => $this->getSuggestedProducts($userMessage),
+            ];
+
+            if ($this->isProductQuery($userMessage)) {
+                $payload = array_merge($payload, $this->resolveSuggestedProductPayload($userMessage));
+            } else {
+                $payload['products'] = [];
+                $payload['best_sellers'] = [];
+            }
+
+            return response()->json($payload);
+        }
+
+        if ($this->isProductQuery($userMessage)) {
+            $products = $this->getSuggestedProducts($userMessage);
+            
+            if (empty($products)) {
+                $similarProducts = $this->findSimilarProducts($userMessage);
+                $reply = count($similarProducts) > 0
+                    ? 'Dạ em chưa tìm thấy sản phẩm chính xác. Nhưng em tìm được một số sản phẩm tương tự bên dưới. Anh/chị có quan tâm không ạ?'
+                    : 'Dạ em chưa tìm thấy sản phẩm anh/chị đang tìm. Anh/chị có thể thử mô tả rõ hơn hoặc liên hệ nhân viên để được tư vấn chi tiết nhé ạ.';
+                
+                return response()->json([
+                    'reply' => $reply,
+                    'type' => 'product-notfound',
+                    'products' => $similarProducts,
+                    'best_sellers' => count($similarProducts) ? $this->getBestSellingProducts() : [],
+                ]);
+            }
+
+            return response()->json([
+                'reply' => 'Dạ, em đã tìm được một số sản phẩm phù hợp. Anh/chị vui lòng bấm vào để xem chi tiết hoặc thử tiếp với tên mẫu/hãng rõ hơn nhé ạ.',
+                'type' => 'product',
+                'products' => $products,
                 'best_sellers' => $this->getBestSellingProducts(),
             ]);
         }
 
-        // ==========================================
-        // 2. NẾU KHÔNG MATCH FAQ, GỌI GEMINI
-        // ==========================================
-        // Lấy tất cả Key trong .env vào 1 mảng
+        $reply = $this->callGemini($userMessage);
+        if ($reply === null) {
+            return response()->json([
+                'reply' => 'Dạ em chưa hiểu ý anh/chị lắm ạ, anh/chị có thể hỏi rõ hơn về bảo hành, giao hàng hoặc sản phẩm được không ạ?',
+                'type' => 'error',
+                'products' => [],
+                'best_sellers' => [],
+            ]);
+        }
+
+        return response()->json([
+            'reply' => $reply,
+            'type' => $this->isPolicyQuery($userMessage) ? 'policy' : 'ai',
+            'products' => [],
+            'best_sellers' => [],
+        ]);
+    }
+
+    private function callGemini(string $message): ?string
+    {
         $keys = [
             env('GEMINI_API_KEY_1'),
             env('GEMINI_API_KEY_2'),
-            env('GEMINI_API_KEY_3')
+            env('GEMINI_API_KEY_3'),
+            env('GEMINI_API_KEY_4'),
         ];
-        // Lọc bỏ các key rỗng
-        $validKeys = array_filter($keys, fn($k) => !empty($k));
 
-        // Nếu không có key nào, không gọi Gemini
+        $validKeys = array_values(array_filter($keys, fn($key) => !empty($key)));
         if (empty($validKeys)) {
-            return response()->json([
-                'reply' => 'Hệ thống AI chưa được cấu hình API chìa khóa. Vui lòng thử lại sau hoặc liên hệ quản trị.',
-                'type' => 'error',
-                'products' => $this->getSuggestedProducts($userMessage),
-                'best_sellers' => $this->getBestSellingProducts(),
-            ]);
+            return null;
         }
 
-        // Random bốc đại 1 key ra để xài -> Tránh quá tải 1 key
         $apiKey = $validKeys[array_rand($validKeys)];
+        $prompt = $this->buildGeminiPrompt($message);
 
-        // ==========================================
-        // 1. CẨM NANG CHÍNH SÁCH CỬA HÀNG BEEPHONE
-        // (Bro có thể tự sửa lại nội dung này cho khớp với đồ án)
-        // ==========================================
-        $storePolicies = "
+        try {
+            $response = Http::withoutVerifying()->withHeaders([
+                'Content-Type' => 'application/json',
+            ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
+                'contents' => [
+                    ['parts' => [['text' => $prompt]]]
+                ]
+            ]);
+
+            if ($response->failed()) {
+                return null;
+            }
+
+            $result = $response->json();
+            $reply = $result['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            if (!is_string($reply) || trim($reply) === '') {
+                return null;
+            }
+
+            return trim(str_replace(['**', '*'], '', $reply));
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function buildGeminiPrompt(string $message): string
+    {
+        if ($this->isPolicyQuery($message)) {
+            $storePolicies = "
 CHÍNH SÁCH BẢO HÀNH:
 - Máy mới chính hãng: Bảo hành 12 tháng tại các trung tâm bảo hành của hãng trên toàn quốc. Lỗi 1 đổi 1 trong 30 ngày đầu tiên nếu có lỗi từ nhà sản xuất.
 - Máy cũ/Like New: Bảo hành 6 tháng tại BeePhone. Lỗi 1 đổi 1 trong 15 ngày đầu tiên.
@@ -86,79 +149,44 @@ CHƯƠNG TRÌNH KHUYẾN MÃI & TÍCH ĐIỂM (BEE POINT):
 - Đổi điểm: Dùng Bee Point để đổi lấy các mã giảm giá (Voucher) cực xịn trong mục 'Ví Bee Point'.
 ";
 
-        // ==========================================
-        // 2. PROMPT "THIẾT QUÂN LUẬT" CHO AI
-        // ==========================================
-        $prompt = "Bạn là trợ lý ảo chăm sóc khách hàng của hệ thống điện thoại BeePhone. Nhiệm vụ duy nhất của bạn là giải đáp các thắc mắc của khách hàng về CHÍNH SÁCH của cửa hàng.
-
-Dưới đây là Cẩm nang chính sách của BeePhone:
-\"\"\"
-" . $storePolicies . "
-\"\"\"
-
-QUY TẮC TRẢ LỜI (BẮT BUỘC PHẢI TUÂN THỦ):
-1. Dựa hoàn toàn vào 'Cẩm nang chính sách' bên trên để trả lời. Không được tự bịa ra chính sách khác.
-2. NẾU KHÁCH HỎI VỀ SẢN PHẨM CỤ THỂ (VD: iPhone 15 giá bao nhiêu, Samsung có hàng không, Tư vấn mua máy...): BẮT BUỘC phải từ chối khéo léo và đáp rằng: 'Dạ, em là trợ lý chuyên giải đáp chính sách cửa hàng. Để xem giá và tình trạng hàng hóa, anh/chị vui lòng gõ tên máy vào thanh tìm kiếm trên Website giúp em nhé ạ! 🥰'
-3. Luôn xưng hô là 'em' và gọi khách là 'anh/chị'. Thái độ cực kỳ lịch sự, thân thiện và nhiệt tình.
-4. Trả lời cực kỳ NGẮN GỌN, xúc tích, đi thẳng vào vấn đề khách hỏi.
-5. Tuyệt đối KHÔNG dùng các ký tự markdown như ** hay * trong câu trả lời để tránh lỗi hiển thị.
-
-Câu hỏi của khách: " . $userMessage;
-
-        // ==========================================
-        // 3. GỌI API GEMINI 2.5 FLASH
-        // ==========================================
-        try {
-            $response = Http::withoutVerifying()->withHeaders([
-                'Content-Type' => 'application/json',
-            ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
-                'contents' => [
-                    ['parts' => [['text' => $prompt]]]
-                ]
-            ]);
-
-            if ($response->failed()) {
-                if ($response->status() == 429) {
-                    return response()->json([
-                        'reply' => 'Dạ hiện tại lượng khách truy cập BeePhone đang quá đông, anh/chị vui lòng chờ em 10 giây rồi nhắn lại nhé ạ! 🥰',
-                        'products' => $this->getSuggestedProducts($userMessage),
-                        'best_sellers' => $this->getBestSellingProducts(),
-                    ]);
-                }
-                return response()->json([
-                    'reply' => 'Lỗi API thật sự là: ' . $response->body(),
-                    'products' => $this->getSuggestedProducts($userMessage),
-                    'best_sellers' => $this->getBestSellingProducts(),
-                ]);
-            }
-            
-            $result = $response->json();
-            
-            if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
-                $botReply = $result['candidates'][0]['content']['parts'][0]['text'];
-                // Dọn dẹp markdown nếu AI vẫn cố tình trả về
-                $botReply = str_replace(['**', '*'], '', $botReply);
-                return response()->json([
-                    'reply' => $botReply,
-                    'products' => $this->getSuggestedProducts($userMessage),
-                    'best_sellers' => $this->getBestSellingProducts(),
-                ]);
-            }
-
-            return response()->json([
-                'reply' => 'Dạ em chưa hiểu ý anh/chị lắm ạ, anh chị có thể hỏi rõ hơn về bảo hành, giao hàng hay thanh toán không ạ?',
-                'products' => $this->getSuggestedProducts($userMessage),
-                'best_sellers' => $this->getBestSellingProducts(),
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'reply' => 'Hệ thống AI đang bảo trì: ' . $e->getMessage(),
-                'products' => $this->getSuggestedProducts($userMessage),
-                'best_sellers' => $this->getBestSellingProducts(),
-            ]);
+            return "Bạn là trợ lý ảo chăm sóc khách hàng của BeePhone. Nhiệm vụ của bạn là giải đáp mọi thắc mắc liên quan đến chính sách, đổi trả, bảo hành, vận chuyển và thanh toán của BeePhone.\n\n"
+                . "Dựa hoàn toàn vào cẩm nang chính sách dưới đây để trả lời. Không được tự bịa thêm thông tin ngoài phạm vi chính sách.\n\n"
+                . "Cẩm nang chính sách:\n" . $storePolicies . "\n"
+                . "Câu hỏi của khách: {$message}";
         }
+
+        return "Bạn là trợ lý AI bán hàng của BeePhone. Nhiệm vụ của bạn là giúp khách hàng trả lời nhanh các câu hỏi về sản phẩm, mua hàng, thanh toán, giao hàng và dịch vụ.\n"
+            . "Trả lời ngắn gọn, lịch sự, thân thiện, bằng tiếng Việt, không dùng markdown.\n"
+            . "Nếu khách hỏi về sản phẩm, hãy trả lời bằng cách gợi ý cách tìm trên website hoặc cung cấp thông tin sơ bộ nhất có thể.\n"
+            . "Nếu không biết câu trả lời, hãy mời khách liên hệ nhân viên hỗ trợ.\n\n"
+            . "Câu hỏi của khách: {$message}";
     }
+
+    private function isPolicyQuery(string $message): bool
+    {
+        $normalized = $this->normalizeText($message);
+        if ($normalized === '') {
+            return false;
+        }
+
+        $keywords = [
+            'chính sách', 'bảo hành', 'đổi trả', 'hoàn tiền', 'vận chuyển', 'ship', 'giao hàng',
+            'thanh toán', 'trả góp', 'bảo mật', 'hướng dẫn', 'phiếu', 'giá', 'trả lại', 'hủy', 'tư vấn',
+            'khiếu nại', 'trường hợp', 'điều khoản', 'bảo hiểm', 'mua hàng', 'đơn hàng'
+        ];
+
+        foreach ($keywords as $keyword) {
+            if (str_contains($normalized, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // ==========================================
+    // HELPER: TÌM KIẾM FAQ MATCH KEYWORD
+    // ==========================================
 
     // ==========================================
     // HELPER: TÌM KIẾM FAQ MATCH KEYWORD
@@ -226,16 +254,158 @@ Câu hỏi của khách: " . $userMessage;
         return trim($text);
     }
 
+    private function isProductQuery(string $message): bool
+    {
+        $normalized = $this->normalizeText($message);
+        if ($normalized === '') {
+            return false;
+        }
+
+        $keywords = [
+            'iphone', 'samsung', 'xiaomi', 'oppo', 'vivo', 'realme', 'huawei', 'nokia',
+            'điện thoại', 'smartphone', 'máy', 'giá', 'mua', 'tư vấn', 'đề xuất', 'hot',
+            'xách tay', 'bán chạy', 'model', 'pro', 'plus', 'max', 'tai nghe', 'airpods', 'buds', 'headphone', 'headset', 'earbud', 'earbuds', 'earphone'
+        ];
+
+        foreach ($keywords as $keyword) {
+            if (str_contains($normalized, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function detectProductType(string $message): ?string
+    {
+        $normalized = $this->normalizeText($message);
+
+        $headphoneTerms = ['tai nghe', 'airpods', 'buds', 'earbud', 'earbuds', 'earphone', 'headphone', 'headset'];
+        foreach ($headphoneTerms as $term) {
+            if (str_contains($normalized, $term)) {
+                return 'headphone';
+            }
+        }
+
+        return null;
+    }
+
+    private function getSearchTokens(string $text): array
+    {
+        $normalized = $this->normalizeText($text);
+        if ($normalized === '') {
+            return [];
+        }
+
+        $stopwords = [
+            'mua', 'giá', 'tư', 'vấn', 'đề', 'xuất', 'hot', 'bán', 'chạy',
+            'xách', 'tay', 'có', 'không', 'giúp', 'anh', 'chị', 'em', 'nào',
+            'gì', 'cần', 'muốn', 'như', 'nên', 'nhất', 'hàng', 'shop', 'mới',
+            'cũ', 'phụ', 'kiện', 'sản', 'phẩm', 'mình', 'tôi', 'anhchị', 'anh/chị',
+            'vui', 'lòng', 'xem', 'thêm', 'chi', 'tiết', 'website', 'bấm', 'vào', 'ạ', 'nhé'
+        ];
+
+        $tokens = array_values(array_filter(explode(' ', $normalized), function ($token) use ($stopwords) {
+            return mb_strlen($token, 'UTF-8') >= 2 && !in_array($token, $stopwords, true);
+        }));
+
+        return array_unique($tokens);
+    }
+
+    private function findSimilarProducts(string $message, int $limit = 3): array
+    {
+        $normalized = $this->normalizeText($message);
+        $productType = $this->detectProductType($message);
+
+        if ($productType === 'headphone') {
+            $query = Product::query()
+                ->with(['brand:id,name', 'variants:id,product_id,price,sale_price', 'images:id,product_id,path'])
+                ->where('status', 'active')
+                ->where(function ($q) {
+                    $q->where('name', 'like', '%tai nghe%')
+                        ->orWhere('name', 'like', '%airpods%')
+                        ->orWhere('name', 'like', '%buds%')
+                        ->orWhere('name', 'like', '%headphone%');
+                })
+                ->where('name', 'not like', '%iphone%')
+                ->where('name', 'not like', '%samsung%')
+                ->where('name', 'not like', '%điện thoại%');
+
+            $products = $query->latest('id')->limit($limit)->get();
+        } else {
+            $brands = ['iphone', 'samsung', 'xiaomi', 'oppo', 'vivo', 'realme', 'huawei', 'nokia'];
+            $foundBrand = null;
+
+            foreach ($brands as $brand) {
+                if (str_contains($normalized, $brand)) {
+                    $foundBrand = $brand;
+                    break;
+                }
+            }
+
+            if ($foundBrand) {
+                $query = Product::query()
+                    ->with(['brand:id,name', 'variants:id,product_id,price,sale_price', 'images:id,product_id,path'])
+                    ->where('status', 'active')
+                    ->where(function ($q) use ($foundBrand) {
+                        $q->where('name', 'like', '%' . $foundBrand . '%')
+                            ->orWhere('description', 'like', '%' . $foundBrand . '%');
+                    });
+
+                $products = $query->latest('id')->limit($limit)->get();
+            } else {
+                $products = Product::query()
+                    ->with(['brand:id,name', 'variants:id,product_id,price,sale_price', 'images:id,product_id,path'])
+                    ->where('status', 'active')
+                    ->latest('id')
+                    ->limit($limit)
+                    ->get();
+            }
+        }
+
+        return $products->map(function (Product $product) {
+            $variant = $product->variants->first();
+            $price = $variant ? ($variant->sale_price ?: $variant->price) : 0;
+            $thumbnail = optional($product->images->first())->path ?: $product->thumbnail;
+
+            return [
+                'name' => $product->name,
+                'url' => route('client.product.detail', ['id' => $product->slug ?: $product->id]),
+                'price' => $price,
+                'thumbnail' => $thumbnail ? asset('storage/' . ltrim($thumbnail, '/')) : null,
+            ];
+        })->values()->all();
+    }
+
     private function getSuggestedProducts(string $message, int $limit = 3): array
     {
         $normalized = $this->normalizeText($message);
-        $tokens = array_values(array_filter(explode(' ', $normalized), fn($t) => mb_strlen($t, 'UTF-8') >= 2));
+        $tokens = $this->getSearchTokens($message);
+
+        if (empty($tokens)) {
+            return [];
+        }
 
         $query = Product::query()
             ->with(['brand:id,name', 'variants:id,product_id,price,sale_price', 'images:id,product_id,path'])
             ->where('status', 'active');
 
-        if (!empty($tokens)) {
+        $productType = $this->detectProductType($message);
+        if ($productType === 'headphone') {
+            $headphoneTerms = ['tai nghe', 'airpods', 'buds', 'earbud', 'earbuds', 'earphone', 'headphone', 'headset'];
+            $query->where(function ($q) use ($headphoneTerms) {
+                foreach ($headphoneTerms as $term) {
+                    $q->orWhere('name', 'like', '%' . $term . '%')
+                        ->orWhere('description', 'like', '%' . $term . '%');
+                }
+            });
+
+            $phoneExcludeTerms = ['iphone', 'samsung', 'xiaomi', 'oppo', 'vivo', 'realme', 'huawei', 'nokia', 'điện thoại', 'smartphone', 'máy'];
+            foreach ($phoneExcludeTerms as $term) {
+                $query->where('name', 'not like', '%' . $term . '%')
+                    ->where('description', 'not like', '%' . $term . '%');
+            }
+        } else {
             $query->where(function ($q) use ($tokens) {
                 foreach ($tokens as $token) {
                     $q->orWhere('name', 'like', '%' . $token . '%')
@@ -258,6 +428,15 @@ Câu hỏi của khách: " . $userMessage;
                 'thumbnail' => $thumbnail ? asset('storage/' . ltrim($thumbnail, '/')) : null,
             ];
         })->values()->all();
+    }
+
+    private function resolveSuggestedProductPayload(string $message): array
+    {
+        $products = $this->getSuggestedProducts($message);
+        return [
+            'products' => $products,
+            'best_sellers' => count($products) ? $this->getBestSellingProducts() : [],
+        ];
     }
 
     private function getBestSellingProducts(int $limit = 3): array

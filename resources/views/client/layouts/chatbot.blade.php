@@ -25,6 +25,11 @@
             </div>
             <div class="bg-white dark:bg-slate-700 p-3 rounded-2xl rounded-tl-none shadow-sm text-slate-800 dark:text-white max-w-[80%]">
                 Dạ em chào anh/chị! Em là trợ lý AI của BeePhone. Anh/chị đang cần hỗ trợ về sản phẩm hay dịch vụ nào ạ? Anh/chị có thể hỏi về bảo hành, kỹ thuật, đặt hàng hoặc bất cứ điều gì liên quan đến BeePhone nhé!
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <button class="quick-reply-btn text-xs bg-gray-100 dark:bg-slate-600 text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full hover:bg-[#f4c025] hover:text-[#181611] transition-colors" data-message="chính sách bảo hành">Chính sách bảo hành</button>
+                    <button class="quick-reply-btn text-xs bg-gray-100 dark:bg-slate-600 text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full hover:bg-[#f4c025] hover:text-[#181611] transition-colors" data-message="mua tai nghe">Mua tai nghe</button>
+                    <button class="quick-reply-btn text-xs bg-gray-100 dark:bg-slate-600 text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full hover:bg-[#f4c025] hover:text-[#181611] transition-colors" data-message="giao hàng mất bao lâu">Giao hàng</button>
+                </div>
             </div>
         </div>
     </div>
@@ -165,7 +170,11 @@
                         <span class="material-symbols-outlined text-white text-sm">support_agent</span>
                     </div>
                     <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-2xl rounded-tl-none shadow-sm text-blue-900 dark:text-blue-100 max-w-[80%]">
-                        <p class="text-xs font-semibold opacity-80 mb-1">${escapeHtml(senderName || 'Nhân viên hỗ trợ')} • ${escapeHtml(createdAt || '')}</p>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-semibold text-blue-600">${escapeHtml(senderName || 'Nhân viên hỗ trợ')}</span>
+                            <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">Nhân viên</span>
+                        </div>
+                        <p class="text-xs opacity-80 mb-1">${escapeHtml(createdAt || '')}</p>
                         <p>${escapeHtml(message)}</p>
                     </div>
                 </div>
@@ -336,13 +345,48 @@
                 success: function(response) {
                     $('#' + loadingId).remove();
 
+                    let typeBadge = '';
+                    if (response.type) {
+                        const typeLabels = {
+                            'faq': 'FAQ',
+                            'product': 'Sản phẩm',
+                            'product-notfound': 'Tương tự',
+                            'policy': 'Chính sách',
+                            'ai': 'AI',
+                            'error': 'Lỗi'
+                        };
+                        const typeLabel = typeLabels[response.type] || response.type;
+                        const typeColors = {
+                            'faq': 'bg-blue-100 text-blue-800',
+                            'product': 'bg-green-100 text-green-800',
+                            'product-notfound': 'bg-yellow-100 text-yellow-800',
+                            'policy': 'bg-purple-100 text-purple-800',
+                            'ai': 'bg-orange-100 text-orange-800',
+                            'error': 'bg-red-100 text-red-800'
+                        };
+                        const typeColor = typeColors[response.type] || 'bg-gray-100 text-gray-800';
+                        typeBadge = `<span class="inline-block px-2 py-1 text-xs font-medium rounded-full ${typeColor} ml-2">${typeLabel}</span>`;
+                    }
+
+                    let sourceLabel = '';
+                    if (response.type === 'ai' || response.type === 'policy' || response.type === 'product' || response.type === 'product-notfound') {
+                        sourceLabel = '<p class="text-[11px] mt-2 text-slate-500 dark:text-slate-400">Nguồn: AI</p>';
+                    } else if (response.type === 'faq') {
+                        sourceLabel = '<p class="text-[11px] mt-2 text-slate-500 dark:text-slate-400">Nguồn: FAQ</p>';
+                    }
+
                     let replyHtml = `
                         <div class="flex items-start gap-2">
                             <div class="w-8 h-8 rounded-full bg-[#f4c025] flex items-center justify-center shrink-0">
                                 <span class="material-symbols-outlined text-[#181611] text-sm">smart_toy</span>
                             </div>
                             <div class="bg-white dark:bg-slate-700 p-3 rounded-2xl rounded-tl-none shadow-sm text-slate-800 dark:text-white max-w-[80%]">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-semibold text-[#f4c025]">BeePhone AI</span>
+                                    ${typeBadge}
+                                </div>
                                 ${response.reply}
+                                ${sourceLabel}
                             </div>
                         </div>
                     `;
