@@ -130,13 +130,11 @@ class ProductController extends Controller
             });
         }
 
-<<<<<<< Updated upstream
-=======
         if ($request->has('categories') && is_array($request->categories)) {
             $query->whereHas('categories', function ($q) use ($request) {
                 $q->whereIn('category_id', $request->categories);
             });
-        }
+        }   
 
         // 2.5. Tìm kiếm sản phẩm
         if ($request->filled('search')) {
@@ -148,7 +146,6 @@ class ProductController extends Controller
             });
         }
 
->>>>>>> Stashed changes
         // 3. Lọc theo Nổi bật
         if ($request->has('featured') && $request->featured == 1) {
             $query->where('is_featured', true);
