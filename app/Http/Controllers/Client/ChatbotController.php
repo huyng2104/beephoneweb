@@ -39,16 +39,11 @@ class ChatbotController extends Controller
             $products = $this->getSuggestedProducts($userMessage);
             
             if (empty($products)) {
-                $similarProducts = $this->findSimilarProducts($userMessage);
-                $reply = count($similarProducts) > 0
-                    ? 'Dạ em chưa tìm thấy sản phẩm chính xác. Nhưng em tìm được một số sản phẩm tương tự bên dưới. Anh/chị có quan tâm không ạ?'
-                    : 'Dạ em chưa tìm thấy sản phẩm anh/chị đang tìm. Anh/chị có thể thử mô tả rõ hơn hoặc liên hệ nhân viên để được tư vấn chi tiết nhé ạ.';
-                
                 return response()->json([
-                    'reply' => $reply,
+                    'reply' => 'Dạ em chưa tìm thấy sản phẩm anh/chị đang tìm. Cửa hàng em hiện chưa bán mặt hàng này. Anh/chị có thể thử tìm kiếm sản phẩm khác hoặc liên hệ nhân viên để được tư vấn thêm nhé ạ.',
                     'type' => 'product-notfound',
-                    'products' => $similarProducts,
-                    'best_sellers' => count($similarProducts) ? $this->getBestSellingProducts() : [],
+                    'products' => [],
+                    'best_sellers' => [],
                 ]);
             }
 
@@ -259,6 +254,19 @@ CHƯƠNG TRÌNH KHUYẾN MÃI & TÍCH ĐIỂM (BEE POINT):
         $normalized = $this->normalizeText($message);
         if ($normalized === '') {
             return false;
+        }
+
+        // Kiểm tra từ chối trước (sản phẩm không bán)
+        $notAllowed = [
+            'tủ', 'lạnh', 'tủ lạnh', 'máy lạnh', 'máy giặt', 'máy sấy', 'lò', 'lò nướng',
+            'tv', 'ti vi', 'tivi', 'tele', 'truyền hình', 'laptop', 'máy tính', 'desktop',
+            'tấm', 'pin', 'sạc', 'cáp', 'dây', 'quạt', 'bếp', 'nồi', 'chảo', 'tủ quần áo'
+        ];
+
+        foreach ($notAllowed as $item) {
+            if (str_contains($normalized, $item)) {
+                return false;
+            }
         }
 
         $keywords = [
