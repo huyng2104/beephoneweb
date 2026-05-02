@@ -7,24 +7,15 @@
 
         @php
             $statusLabels = \App\Models\Order::statusLabels();
-            $returnStatusLabels = \App\Models\Order::returnStatusLabels();
-            $statusClasses = [
-                \App\Models\Order::STATUS_PENDING => 'text-yellow-700 bg-yellow-100',
-                \App\Models\Order::STATUS_PACKING => 'text-blue-700 bg-blue-100',
-                \App\Models\Order::STATUS_SHIPPING => 'text-indigo-700 bg-indigo-100',
-                \App\Models\Order::STATUS_DELIVERED => 'text-emerald-700 bg-emerald-100',
-                \App\Models\Order::STATUS_RECEIVED => 'text-green-700 bg-green-100',
-                \App\Models\Order::STATUS_CANCELLED => 'text-red-700 bg-red-100',
-                \App\Models\Order::STATUS_FAILED_DELIVERY => 'text-pink-700 bg-pink-100',
-            ];
-            $returnClasses = [
-                \App\Models\Order::RETURN_NONE => 'hidden',
-                \App\Models\Order::RETURN_REQUESTED => 'text-amber-700 bg-amber-100',
-                \App\Models\Order::RETURN_APPROVED => 'text-blue-700 bg-blue-100',
-                \App\Models\Order::RETURN_REJECTED => 'text-red-700 bg-red-100',
-                \App\Models\Order::RETURN_CUSTOMER_SHIPPED => 'text-indigo-700 bg-indigo-100',
-                \App\Models\Order::RETURN_RECEIVED => 'text-cyan-700 bg-cyan-100',
-                \App\Models\Order::RETURN_REFUNDED => 'text-green-700 bg-green-100',
+            $returnStatusLabels = \App\Models\ReturnRequest::statusLabels();
+
+            $rrStatusColors = [
+                'pending'   => 'text-amber-700 bg-amber-100',
+                'approved'  => 'text-blue-700 bg-blue-100',
+                'rejected'  => 'text-red-700 bg-red-100',
+                'picking'   => 'text-indigo-700 bg-indigo-100',
+                'received'  => 'text-cyan-700 bg-cyan-100',
+                'completed' => 'text-green-700 bg-green-100',
             ];
         @endphp
 
@@ -67,7 +58,7 @@
                 <a href="{{ route('client.orders.index', ['status' => 'all']) }}" class="{{ $currentStatus === 'all' ? 'bg-[#181611] text-[#f4c025] dark:bg-[#f4c025] dark:text-[#181611] shadow-md border-transparent' : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-[#181611] hover:text-[#181611] dark:hover:border-[#f4c025] dark:hover:text-[#f4c025]' }} border px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300">Tất cả</a>
                 <a href="{{ route('client.orders.index', ['status' => 'pending_payment']) }}" class="{{ $currentStatus === 'pending_payment' ? 'bg-red-50 text-red-600 border-red-200 shadow-sm' : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-red-400 hover:text-red-500' }} border px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300">Chờ thanh toán</a>
                 <a href="{{ route('client.orders.index', ['status' => 'processing']) }}" class="{{ $currentStatus === 'processing' ? 'bg-[#181611] text-[#f4c025] dark:bg-[#f4c025] dark:text-[#181611] shadow-md border-transparent' : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-[#181611] hover:text-[#181611] dark:hover:border-[#f4c025] dark:hover:text-[#f4c025]' }} border px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300">Đang xử lý</a>
-                <a href="{{ route('client.orders.index', ['status' => 'shipping']) }}" class="{{ $currentStatus === 'shipping' ? 'bg-indigo-50 text-indigo-600 border-indigo-200 shadow-sm' : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-600' }} border px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300">Đang vận chuyển</a>
+                <a href="{{ route('client.orders.index', ['status' => 'delivering']) }}" class="{{ $currentStatus === 'delivering' ? 'bg-indigo-50 text-indigo-600 border-indigo-200 shadow-sm' : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-600' }} border px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300">Đang vận chuyển</a>
                 <a href="{{ route('client.orders.index', ['status' => 'completed']) }}" class="{{ $currentStatus === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 shadow-sm' : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-emerald-400 hover:text-emerald-500' }} border px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300">Hoàn thành</a>
                 <a href="{{ route('client.orders.index', ['status' => 'return']) }}" class="{{ $currentStatus === 'return' ? 'bg-amber-50 text-amber-700 border-amber-200 shadow-sm' : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-amber-400 hover:text-amber-600' }} border px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300">Hoàn hàng trả tiền</a>
                 <a href="{{ route('client.orders.index', ['status' => 'cancelled']) }}" class="{{ $currentStatus === 'cancelled' ? 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 shadow-sm' : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-gray-400 hover:text-gray-800 dark:hover:text-white' }} border px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300">Đã hủy</a>
@@ -77,15 +68,23 @@
             <div class="space-y-6">
                 @foreach ($orders as $order)
                     @php
-                        $statusClass = $statusClasses[$order->status] ?? 'text-slate-700 bg-slate-100';
-                        $returnClass = $returnClasses[$order->return_status] ?? 'text-slate-700 bg-slate-100';
+                        $s = $order->status;
+                        $statusClass = match(true) {
+                            $s === 'pending' => 'text-yellow-700 bg-yellow-100',
+                            $s === 'ready_to_pick' => 'text-blue-700 bg-blue-100',
+                            in_array($s, ['picking','money_collect_picking','picked']) => 'text-sky-700 bg-sky-100',
+                            in_array($s, ['storing','transporting','sorting']) => 'text-violet-700 bg-violet-100',
+                            in_array($s, ['delivering','money_collect_delivering']) => 'text-indigo-700 bg-indigo-100',
+                            in_array($s, ['delivered', 'received', 'completed']) => 'text-emerald-700 bg-emerald-100',
+                            in_array($s, ['delivery_fail','waiting_to_return','return','return_transporting','return_sorting','returning','return_fail','returned']) => 'text-orange-700 bg-orange-100',
+                            in_array($s, ['exception','damage','lost']) => 'text-rose-700 bg-rose-100',
+                            in_array($s, ['cancel','cancelled']) => 'text-red-700 bg-red-100',
+                            default => 'text-slate-700 bg-slate-100',
+                        };
+                        // Badge hoàn trả từ ReturnRequest
+                        $latestReturn = $order->returnRequests->first();
+                        $returnClass = $latestReturn ? ($rrStatusColors[$latestReturn->status] ?? 'text-slate-700 bg-slate-100') : null;
                         $totalAmount = $order->total_amount ?? $order->total_price ?? 0;
-                        $returnImageUrl = null;
-                        if ($order->return_image) {
-                            $returnImageUrl = \Illuminate\Support\Str::startsWith($order->return_image, ['http://', 'https://', 'uploads/'])
-                                ? asset($order->return_image)
-                                : asset('storage/' . $order->return_image);
-                        }
                     @endphp
 
                     <div class="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-colors hover:border-[#f4c025] dark:border-white/10 dark:bg-white/5">
@@ -106,9 +105,9 @@
                                 <span class="rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border {{ $statusClass }}">
                                     {{ $statusLabels[$order->status] ?? $order->status }}
                                 </span>
-                                @if($order->return_status != \App\Models\Order::RETURN_NONE)
-                                    <span class="rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border {{ $returnClass }}">
-                                        <span class="material-symbols-outlined text-[13px] inline-block align-middle mr-1">assignment_return</span>{{ $returnStatusLabels[$order->return_status] ?? $order->return_status }}
+                                @if($latestReturn)
+                                    <span class="rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[13px]">assignment_return</span>Có yêu cầu hoàn
                                     </span>
                                 @endif
                                 <span class="rounded-lg px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider border ml-1 border-gray-200 bg-gray-100 text-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">
@@ -188,13 +187,13 @@
                                 </a>
 
                                 @if($order->status != 'cancelled' && $order->payment_status === 'pending' && in_array($order->payment_method, ['vnpay', 'vnp']))
-                                    <a href="{{ route('client.checkout.retry', $order->id) }}" class="px-6 py-2.5 bg-[#f4c025] text-[#181611] font-bold rounded-xl hover:scale-105 transition-transform text-sm shadow-[0_4px_14px_0_rgba(244,192,37,0.39)]">
-                                        Thanh toán ngay khoản thiếu
+                                    <a href="{{ route('client.checkout.retry', $order->id) }}" class="px-6 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 border border-blue-100 dark:border-blue-500/20 hover:bg-blue-600 hover:text-white transition-all font-bold text-sm flex items-center gap-2 shadow-sm">
+                                        <span class="material-symbols-outlined text-[20px]">payment</span> Thanh toán lại
                                     </a>
                                 @endif
                                
 
-                                @if ($order->status === \App\Models\Order::STATUS_PENDING)
+                                @if (in_array($order->status, [\App\Models\Order::STATUS_PENDING, \App\Models\Order::STATUS_READY_TO_PICK, \App\Models\Order::STATUS_PICKING]))
                                     <button type="button" onclick="openCancelModal('{{ $order->order_code }}', '{{ route('client.orders.cancel', $order->id) }}')" class="px-6 py-2.5 rounded-xl border border-red-200 bg-red-50 text-sm font-semibold text-red-600 transition hover:bg-red-500 hover:text-white dark:border-red-900/50 dark:bg-red-900/20 dark:hover:bg-red-600">
                                         Hủy đơn
                                     </button>

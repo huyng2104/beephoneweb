@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <span class="material-symbols-outlined text-[20px]">manage_accounts</span> Tài khoản
                                         của tôi
                                     </a>
-                                    <a href="#"
+                                    <a href="{{ route('client.orders.index') }}"
                                         class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#f5f3f0] dark:hover:bg-white/5 hover:text-primary rounded-lg transition-colors">
                                         <span class="material-symbols-outlined text-[20px]">local_mall</span> Đơn mua
                                     </a>

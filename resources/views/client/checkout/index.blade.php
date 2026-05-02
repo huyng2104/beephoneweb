@@ -5,15 +5,16 @@
 @section('content')
 @php
     // LẤY CẤU HÌNH PHÍ SHIP TỪ ADMIN
-    $shipping_fee = (int) (\App\Models\Setting::where('key', 'shipping_fee')->first()?->value ?? 30000);
+    // Ban đầu chưa có địa chỉ nên để phí ship = -1 (để ẩn)
+    $shipping_fee = -1; 
     $free_shipping_threshold = (int) (\App\Models\Setting::where('key', 'free_shipping_threshold')->first()?->value ?? 500000);
 
     // XÁC ĐỊNH PHÍ SHIP THỰC TẾ
-    $applied_shipping_fee = ($totalPrice >= $free_shipping_threshold) ? 0 : $shipping_fee;
+    $applied_shipping_fee = 0;
 
     // CHUYỂN LOGIC TÍNH TIỀN LÊN ĐẦU ĐỂ DÙNG CHO PHẦN CHẶN COD
     $discount = session()->has('voucher') ? session('voucher')['discount_amount'] : 0;
-    $finalTotal = $totalPrice - $discount + $applied_shipping_fee;
+    $finalTotal = $totalPrice - $discount; // Chưa cộng phí ship
     if($finalTotal < 0) $finalTotal = 0;
     
     // MỐC CHẶN SHIP COD (Ví dụ: 30.000.000đ)
@@ -52,7 +53,7 @@
     @endif
 
     {{-- FORM ĐẶT HÀNG CHÍNH --}}
-    <form action="{{ route('client.checkout.process') }}" method="POST" class="flex flex-col lg:flex-row gap-8">
+    <form id="checkout-form" action="{{ route('client.checkout.process') }}" method="POST" class="flex flex-col lg:flex-row gap-8">
         @csrf
         
         <div class="flex-grow space-y-6">
@@ -105,6 +106,9 @@
 
                         {{-- INPUT ẨN ĐỂ SUBMIT --}}
                         <input type="hidden" name="shipping_address" id="shipping_address_hidden" value="{{ old('shipping_address') }}">
+                        <input type="hidden" name="ghn_district_id" id="to_district_id" value="">
+                        <input type="hidden" name="ghn_ward_code" id="to_ward_code" value="">
+                        <input type="hidden" name="shipping_fee" id="shipping_fee_input" value="">
 
                         {{-- 4 Ô NHẬP ĐỊA CHỈ --}}
                         <div id="address-fields" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -207,7 +211,7 @@
                                 $vnpayChecked = ($settings_vnpay['enabled'] && !($settings_cod['enabled'] && $isCodAllowed)) ? 'checked' : '';
                             @endphp
                             <input type="radio" name="payment_method" value="vnpay" {{ $vnpayChecked }} class="w-5 h-5 text-primary focus:ring-primary">
-                            <img src="data:image/png;base64,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" alt="VNPAY" class="w-10 h-10 object-contain bg-white rounded p-1">
+                            <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Icon-VNPAY-QR.png" alt="VNPAY" class="w-10 h-10 object-contain bg-white rounded p-1">
                             <div>
                                 <p class="font-bold text-[#181611] dark:text-white">Thanh toán qua VNPAY</p>
                                 <p class="text-sm text-gray-500">Hỗ trợ thẻ ATM, Internet Banking, mã QR...</p>
@@ -373,14 +377,22 @@
                     <div class="flex justify-between items-center text-gray-500 dark:text-gray-400">
                         <div class="flex flex-col">
                             <span>Phí vận chuyển</span>
-                            @if($applied_shipping_fee == 0)
-                                <p class="text-[10px] text-green-600 font-bold uppercase">(Đơn trên {{ number_format($free_shipping_threshold, 0, ',', '.') }}₫ nên Freeship)</p>
+                            @if($shipping_fee == -1)
+                                <p id="shipping-fee-notice" class="text-[10px] text-gray-400 font-bold uppercase">(Chọn địa chỉ để tính phí)</p>
+                            @elseif($applied_shipping_fee == 0)
+                                <p id="shipping-fee-notice" class="text-[10px] text-green-600 font-bold uppercase">(Đơn trên {{ number_format($free_shipping_threshold, 0, ',', '.') }}₫ nên Freeship)</p>
                             @else
-                                <p class="text-[10px] text-amber-600 font-bold uppercase">(Freeship cho đơn trên {{ number_format($free_shipping_threshold, 0, ',', '.') }}₫)</p>
+                                <p id="shipping-fee-notice" class="text-[10px] text-amber-600 font-bold uppercase">(Freeship cho đơn trên {{ number_format($free_shipping_threshold, 0, ',', '.') }}₫)</p>
                             @endif
                         </div>
-                        <span class="font-bold {{ $applied_shipping_fee == 0 ? 'text-green-600' : 'text-[#181611] dark:text-white' }}">
-                            {{ $applied_shipping_fee == 0 ? 'Miễn phí' : number_format($shipping_fee, 0, ',', '.') . '₫' }}
+                        <span id="shipping-fee-display" class="font-bold {{ $shipping_fee == -1 ? 'text-gray-400' : ($applied_shipping_fee == 0 ? 'text-green-600' : 'text-[#181611] dark:text-white') }}">
+                            @if($shipping_fee == -1)
+                                ---
+                            @elseif($applied_shipping_fee == 0)
+                                Miễn phí
+                            @else
+                                {{ number_format($shipping_fee, 0, ',', '.') }}₫
+                            @endif
                         </span>
                     </div>
                 </div>
@@ -404,7 +416,7 @@
                     <div class="flex justify-between items-end">
                         <span class="text-lg font-bold text-[#181611] dark:text-white">Tổng cộng</span>
                         <div class="text-right">
-                            <span class="text-3xl font-bold text-red-500">{{ number_format($finalTotal, 0, ',', '.') }}₫</span>
+                            <span id="final-total-display" class="text-3xl font-bold text-red-500">{{ number_format($finalTotal, 0, ',', '.') }}₫</span>
                             <p class="text-[10px] text-gray-400 uppercase font-bold mt-1">Đã bao gồm VAT</p>
                         </div>
                     </div>
@@ -520,39 +532,52 @@
     }
 
     // ==========================================
-    // ĐỊA CHỈ - API PROVINCES
+    // ĐỊA CHỈ - API PROVINCES (GHN)
     // ==========================================
-    const API_BASE = 'https://provinces.open-api.vn/api';
+    const GHN_TOKEN = '{{ env('GHN_TOKEN') }}';
+    const GHN_SHOP_ID = '{{ env('GHN_SHOP_ID') }}';
+    // Đảm bảo URL kết thúc bằng / nếu có config
+    let baseGhnUrl = '{{ env('GHN_API_URL', 'https://dev-online-gateway.ghn.vn/shiip/public-api/v2/') }}';
+    if (!baseGhnUrl.endsWith('/')) baseGhnUrl += '/';
+    
+    // GHN Public API cấu trúc có thể là master-data ở bản cũ, nhưng ở v2 thường là /master-data/
+    // Ta dùng theo document mặc định:
+    const GHN_MASTER_DATA_URL = 'https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/';
+    const GHN_FEE_URL = baseGhnUrl + 'shipping-order/fee';
+
     let usingDefault = false;
 
     // Load danh sách tỉnh/thành khi trang load
     async function loadProvinces() {
         try {
-            const res = await fetch(`${API_BASE}/p/`);
+            const res = await fetch(`${GHN_MASTER_DATA_URL}province`, {
+                headers: { 'token': GHN_TOKEN }
+            });
             const data = await res.json();
             const select = document.getElementById('addr_province');
-            data.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.code;
-                opt.textContent = p.name;
-                select.appendChild(opt);
-            });
+            if (data.data) {
+                data.data.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.ProvinceID;
+                    opt.textContent = p.ProvinceName;
+                    select.appendChild(opt);
+                });
+            }
         } catch(e) {
             console.error('Không load được danh sách tỉnh:', e);
         }
     }
 
     // Load quận/huyện theo mã tỉnh
-    async function loadDistricts(provinceCode) {
+    async function loadDistricts(provinceId) {
         const districtSelect = document.getElementById('addr_district');
         const wardSelect = document.getElementById('addr_ward');
 
-        // Reset dropdowns con
         districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
         wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
         wardSelect.disabled = true;
 
-        if (!provinceCode) {
+        if (!provinceId) {
             districtSelect.disabled = true;
             buildFullAddress();
             return;
@@ -562,15 +587,19 @@
         districtSelect.innerHTML = '<option value="">Đang tải...</option>';
 
         try {
-            const res = await fetch(`${API_BASE}/p/${provinceCode}?depth=2`);
+            const res = await fetch(`${GHN_MASTER_DATA_URL}district?province_id=${provinceId}`, {
+                headers: { 'token': GHN_TOKEN }
+            });
             const data = await res.json();
             districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
-            data.districts.forEach(d => {
-                const opt = document.createElement('option');
-                opt.value = d.code;
-                opt.textContent = d.name;
-                districtSelect.appendChild(opt);
-            });
+            if (data.data) {
+                data.data.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.DistrictID;
+                    opt.textContent = d.DistrictName;
+                    districtSelect.appendChild(opt);
+                });
+            }
             districtSelect.disabled = false;
         } catch(e) {
             districtSelect.innerHTML = '<option value="">-- Lỗi tải dữ liệu --</option>';
@@ -580,25 +609,29 @@
     }
 
     // Load phường/xã theo mã quận/huyện
-    async function loadWards(districtCode) {
+    async function loadWards(districtId) {
         const wardSelect = document.getElementById('addr_ward');
         wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
         wardSelect.disabled = true;
 
-        if (!districtCode) { buildFullAddress(); return; }
+        if (!districtId) { buildFullAddress(); return; }
 
         wardSelect.innerHTML = '<option value="">Đang tải...</option>';
 
         try {
-            const res = await fetch(`${API_BASE}/d/${districtCode}?depth=2`);
+            const res = await fetch(`${GHN_MASTER_DATA_URL}ward?district_id=${districtId}`, {
+                headers: { 'token': GHN_TOKEN }
+            });
             const data = await res.json();
             wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
-            data.wards.forEach(w => {
-                const opt = document.createElement('option');
-                opt.value = w.code;
-                opt.textContent = w.name;
-                wardSelect.appendChild(opt);
-            });
+            if (data.data) {
+                data.data.forEach(w => {
+                    const opt = document.createElement('option');
+                    opt.value = w.WardCode;
+                    opt.textContent = w.WardName;
+                    wardSelect.appendChild(opt);
+                });
+            }
             wardSelect.disabled = false;
         } catch(e) {
             wardSelect.innerHTML = '<option value="">-- Lỗi tải dữ liệu --</option>';
@@ -625,6 +658,17 @@
 
         document.getElementById('shipping_address_hidden').value = full;
 
+        // Cập nhật ID cho GHN
+        const districtId = distSel?.value;
+        const wardCode = wardSel?.value;
+        document.getElementById('to_district_id').value = districtId || '';
+        document.getElementById('to_ward_code').value = wardCode || '';
+
+        // Tính phí ship nếu đủ thông tin
+        if (districtId && wardCode) {
+            calculateShippingFee(districtId, wardCode);
+        }
+
         const preview = document.getElementById('address-preview');
         const previewText = document.getElementById('address-preview-text');
         if (full) {
@@ -635,13 +679,185 @@
         }
     }
 
+    // Cập nhật giao diện tiền phí
+    function updateUIPrices(newShippingFee) {
+        const freeShippingThreshold = {{ $free_shipping_threshold }};
+        const baseTotalPrice = {{ $totalPrice }};
+        const discountAmount = {{ $discount }};
+        
+        let appliedFee = 0;
+        const feeDisplay = document.getElementById('shipping-fee-display');
+        const feeNotice = document.getElementById('shipping-fee-notice');
+
+        if (newShippingFee === -1) {
+            // Trạng thái chưa có địa chỉ -> Ẩn phí ship
+            if (feeDisplay) {
+                feeDisplay.className = 'font-bold text-gray-400';
+                feeDisplay.textContent = '---';
+            }
+            if (feeNotice) {
+                feeNotice.className = 'text-[10px] text-gray-400 font-bold uppercase';
+                feeNotice.textContent = '(Chọn địa chỉ để tính phí)';
+            }
+        } else {
+            // Trạng thái đã có phí ship
+            appliedFee = (baseTotalPrice >= freeShippingThreshold) ? 0 : newShippingFee;
+            
+            if (feeDisplay) {
+                if (appliedFee === 0) {
+                    feeDisplay.className = 'font-bold text-green-600';
+                    feeDisplay.textContent = 'Miễn phí';
+                } else {
+                    feeDisplay.className = 'font-bold text-[#181611] dark:text-white';
+                    feeDisplay.textContent = new Intl.NumberFormat('vi-VN').format(newShippingFee) + '₫';
+                }
+            }
+
+            if (feeNotice) {
+                if (appliedFee === 0) {
+                    feeNotice.className = 'text-[10px] text-green-600 font-bold uppercase';
+                    feeNotice.textContent = `(Đơn trên ${new Intl.NumberFormat('vi-VN').format(freeShippingThreshold)}₫ nên Freeship)`;
+                } else {
+                    feeNotice.className = 'text-[10px] text-amber-600 font-bold uppercase';
+                    feeNotice.textContent = `(Freeship cho đơn trên ${new Intl.NumberFormat('vi-VN').format(freeShippingThreshold)}₫)`;
+                }
+            }
+        }
+        
+        // Cập nhật input hidden để gửi lên backend
+        const inputFee = document.getElementById('shipping_fee_input');
+        if (inputFee) inputFee.value = (newShippingFee === -1) ? '' : appliedFee;
+
+        // Tính tổng tiền cuối cùng
+        let finalTotal = baseTotalPrice - discountAmount + appliedFee;
+        if (finalTotal < 0) finalTotal = 0;
+
+        const finalTotalDisplay = document.getElementById('final-total-display');
+        if (finalTotalDisplay) {
+            finalTotalDisplay.textContent = new Intl.NumberFormat('vi-VN').format(finalTotal) + '₫';
+        }
+    }
+
+    // Tính phí ship qua GHN
+    async function calculateShippingFee(districtId, wardCode) {
+        try {
+            const res = await fetch(GHN_FEE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'token': GHN_TOKEN
+                },
+                body: JSON.stringify({
+                    shop_id: parseInt(GHN_SHOP_ID),
+                    to_district_id: parseInt(districtId),
+                    to_ward_code: wardCode,
+                    weight: {{ env('GHN_DEFAULT_WEIGHT', 500) }},
+                    length: {{ env('GHN_DEFAULT_LENGTH', 10) }},
+                    width: {{ env('GHN_DEFAULT_WIDTH', 10) }},
+                    height: {{ env('GHN_DEFAULT_HEIGHT', 10) }},
+                    service_type_id: {{ env('GHN_SERVICE_TYPE_ID', 2) }}
+                })
+            });
+            const data = await res.json();
+            if (data.code === 200) {
+                let fee = data.data.total;
+                updateUIPrices(fee);
+            } else {
+                console.error('GHN API Error:', data.message);
+                updateUIPrices(-1);
+                alert('Lỗi GHN API: ' + data.message);
+            }
+        } catch(e) {
+            console.error('Lỗi tính phí ship:', e);
+            updateUIPrices(-1);
+        }
+    }
+
+    function updateUIPrices(newShippingFee) {
+        const freeShippingThreshold = {{ $free_shipping_threshold }};
+        const baseTotalPrice = {{ $totalPrice }};
+        const discountAmount = {{ $discount }};
+        
+        // Xác định có freeship không
+        let appliedFee = (baseTotalPrice >= freeShippingThreshold) ? 0 : newShippingFee;
+        
+        // Cập nhật DOM hiển thị phí ship
+        const feeDisplay = document.getElementById('shipping-fee-display');
+        if (feeDisplay) {
+            if (appliedFee === 0) {
+                feeDisplay.className = 'font-bold text-green-600';
+                feeDisplay.textContent = 'Miễn phí';
+            } else {
+                feeDisplay.className = 'font-bold text-[#181611] dark:text-white';
+                feeDisplay.textContent = new Intl.NumberFormat('vi-VN').format(newShippingFee) + '₫';
+            }
+        }
+
+        const feeNotice = document.getElementById('shipping-fee-notice');
+        if (feeNotice) {
+            if (appliedFee === 0) {
+                feeNotice.className = 'text-[10px] text-green-600 font-bold uppercase';
+                feeNotice.textContent = `(Đơn trên ${new Intl.NumberFormat('vi-VN').format(freeShippingThreshold)}₫ nên Freeship)`;
+            } else {
+                feeNotice.className = 'text-[10px] text-amber-600 font-bold uppercase';
+                feeNotice.textContent = `(Freeship cho đơn trên ${new Intl.NumberFormat('vi-VN').format(freeShippingThreshold)}₫)`;
+            }
+        }
+        
+        // Cập nhật input hidden để gửi lên backend
+        const inputFee = document.getElementById('shipping_fee_input');
+        if (inputFee) inputFee.value = appliedFee;
+
+        // Tính tổng tiền cuối cùng
+        let finalTotal = baseTotalPrice - discountAmount + appliedFee;
+        if (finalTotal < 0) finalTotal = 0;
+
+        const finalTotalDisplay = document.getElementById('final-total-display');
+        if (finalTotalDisplay) {
+            finalTotalDisplay.textContent = new Intl.NumberFormat('vi-VN').format(finalTotal) + '₫';
+        }
+    }
+
+    // ==========================================
+    // SUBMIT FORM THẲNG LÊN BACKEND (không qua GHN)
+    // GHN chỉ được tạo khi Admin duyệt đơn ở trang quản trị
+    // ==========================================
+
+    // Hàm chuẩn hóa chuỗi để so sánh
+    function normalizeStr(str) {
+        if (!str) return '';
+        return str.toLowerCase()
+            .replace(/^(tỉnh|thành phố|tp|quận|q|huyện|h|thị xã|tx|phường|p|xã|thị trấn|tt)[\s\.]+/i, '')
+            .replace(/-/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    // Hàm kiểm tra khớp chuỗi chính xác (hỗ trợ NameExtension của GHN)
+    function checkMatch(userStr, apiItem, nameKey) {
+        const u = normalizeStr(userStr);
+        const g = normalizeStr(apiItem[nameKey]);
+        if (u === g) return true;
+        
+        if (apiItem.NameExtension && Array.isArray(apiItem.NameExtension)) {
+            for (let ext of apiItem.NameExtension) {
+                if (u === normalizeStr(ext)) return true;
+            }
+        }
+        return false;
+    }
+
     // Nút "Dùng ngay" - dùng địa chỉ mặc định từ profile
-    function useDefaultAddress() {
+    async function useDefaultAddress() {
         const defaultAddr = document.getElementById('default-address-text')?.textContent.trim();
         if (!defaultAddr) return;
 
         usingDefault = true;
         document.getElementById('shipping_address_hidden').value = defaultAddr;
+
+        // Đặt ID về rỗng do không xác định được mã vùng của GHN từ text tự do
+        document.getElementById('to_district_id').value = '';
+        document.getElementById('to_ward_code').value = '';
 
         // Ẩn form địa chỉ + divider, hiện preview
         const fields = document.getElementById('address-fields');
@@ -662,6 +878,64 @@
             btn.classList.replace('bg-blue-500', 'bg-gray-400');
             btn.classList.replace('hover:bg-blue-600', 'hover:bg-gray-500');
         }
+
+        // Đang tải...
+        updateUIPrices(-1);
+        const feeDisplay = document.getElementById('shipping-fee-display');
+        if (feeDisplay) feeDisplay.textContent = 'Đang tính...';
+
+        // Tự động bóc tách để tính phí GHN
+        const parts = defaultAddr.split(',').map(p => p.trim());
+        if (parts.length >= 3) {
+            const provinceName = parts[parts.length - 1];
+            const districtName = parts[parts.length - 2];
+            const wardName = parts[parts.length - 3];
+
+            try {
+                let res = await fetch(`${GHN_MASTER_DATA_URL}province`, { headers: { 'token': GHN_TOKEN } });
+                let data = await res.json();
+                let provinces = data.data || [];
+                // Ưu tiên khớp chính xác tên chính (để tránh vụ Hà Nội 02 có alias Hà Nội trong Sandbox GHN)
+                let province = provinces.find(p => normalizeStr(p.ProvinceName) === normalizeStr(provinceName)) 
+                            || provinces.find(p => checkMatch(provinceName, p, 'ProvinceName'));
+                
+                if (province) {
+                    res = await fetch(`${GHN_MASTER_DATA_URL}district?province_id=${province.ProvinceID}`, { headers: { 'token': GHN_TOKEN } });
+                    data = await res.json();
+                    let districts = data.data || [];
+                    let district = districts.find(d => normalizeStr(d.DistrictName) === normalizeStr(districtName))
+                                || districts.find(d => checkMatch(districtName, d, 'DistrictName'));
+
+                    if (district) {
+                        res = await fetch(`${GHN_MASTER_DATA_URL}ward?district_id=${district.DistrictID}`, { headers: { 'token': GHN_TOKEN } });
+                        data = await res.json();
+                        let wards = data.data || [];
+                        let ward = wards.find(w => normalizeStr(w.WardName) === normalizeStr(wardName))
+                                || wards.find(w => checkMatch(wardName, w, 'WardName'));
+
+                        if (ward) {
+                            document.getElementById('to_district_id').value = district.DistrictID;
+                            document.getElementById('to_ward_code').value = ward.WardCode;
+                            await calculateShippingFee(district.DistrictID, ward.WardCode);
+                            return; // Thành công
+                        } else {
+                            console.error('Không tìm thấy Ward:', wardName);
+                        }
+                    } else {
+                        console.error('Không tìm thấy District:', districtName);
+                    }
+                } else {
+                    console.error('Không tìm thấy Province:', provinceName);
+                }
+            } catch(e) {
+                console.error('Lỗi khi bóc tách địa chỉ mặc định:', e);
+            }
+        }
+
+        // Nếu bóc tách thất bại hoặc API lỗi, không gán 30k nữa mà bắt chọn lại
+        updateUIPrices(-1);
+        alert('Không thể bóc tách tự động mã vùng GHN. Vui lòng nhập địa chỉ giao hàng bằng tay!');
+        cancelDefaultAddress();
     }
 
     // Huỷ dùng địa chỉ mặc định → hiện lại form chọn
@@ -684,7 +958,13 @@
             btn.classList.replace('hover:bg-gray-500', 'hover:bg-blue-600');
         }
 
-        buildFullAddress();
+        const distSel  = document.getElementById('addr_district');
+        const wardSel  = document.getElementById('addr_ward');
+        if (distSel?.value && wardSel?.value) {
+            buildFullAddress();
+        } else {
+            updateUIPrices(-1); // Đưa về trạng thái chưa tính phí
+        }
     }
 
     // Validate địa chỉ trước khi submit form
