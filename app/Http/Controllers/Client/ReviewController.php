@@ -39,7 +39,7 @@ class ReviewController extends Controller
         if ($user) {
             $order = Order::where('id', $validated['order_id'])
                 ->where('user_id', $user->id)
-                ->where('status', Order::STATUS_RECEIVED)
+                ->whereIn('status', [Order::STATUS_RECEIVED, Order::STATUS_DELIVERED])
                 ->whereHas('items', fn ($q) => $q->where('product_id', $product->id))
                 ->first();
         }

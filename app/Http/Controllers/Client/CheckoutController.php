@@ -11,6 +11,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderStatusHistory;
 use App\Models\Voucher;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
@@ -87,6 +88,12 @@ class CheckoutController extends Controller
             'payment_method.in'      => 'Phương thức thanh toán không hợp lệ!',
             'wallet_pin.required_if' => 'Vui lòng nhập mã PIN ví để xác thực thanh toán!',
             'wallet_pin.digits'      => 'Mã PIN ví bắt buộc phải có chính xác 6 chữ số!',
+        ]);
+
+        \Illuminate\Support\Facades\Log::debug('[Checkout] GHN fields from form', [
+            'ghn_district_id' => $request->ghn_district_id,
+            'ghn_ward_code'   => $request->ghn_ward_code,
+            'shipping_address' => $request->shipping_address,
         ]);
 
         $cart = Cart::with(['items.product', 'items.variant.attributeValues.attribute'])
@@ -176,6 +183,8 @@ class CheckoutController extends Controller
                 'recipient_address' => $request->shipping_address,
                 'shipping_address' => $request->shipping_address,
                 'address' => $request->shipping_address,
+                'ghn_district_id' => $request->ghn_district_id ?? null,
+                'ghn_ward_code'   => $request->ghn_ward_code ?? null,
                 'status' => 'pending',
                 'return_status' => 'none',
                 'payment_method' => $request->payment_method, 
@@ -183,6 +192,7 @@ class CheckoutController extends Controller
                 'ordered_at' => now(),
                 'total_price' => 0, 
                 'total_amount' => 0,
+                'tracking_number' => $request->ghn_order_code ?? null,
             ]);
 
             // 2.2 Chuyển Item từ Cart sang Order & Trừ tồn kho
@@ -255,6 +265,12 @@ class CheckoutController extends Controller
 
             // --- TÍNH PHÍ SHIP ---
             $shippingFeeSetting = (int) (\App\Models\Setting::where('key', 'shipping_fee')->first()?->value ?? 30000);
+            
+            // Nếu có phí ship từ frontend truyền lên (API GHN), dùng nó
+            if ($request->has('shipping_fee') && is_numeric($request->shipping_fee)) {
+                $shippingFeeSetting = (int) $request->shipping_fee;
+            }
+
             $freeShippingThreshold = (int) (\App\Models\Setting::where('key', 'free_shipping_threshold')->first()?->value ?? 500000);
             $appliedShippingFee = ($totalPrice >= $freeShippingThreshold) ? 0 : $shippingFeeSetting;
 
@@ -264,6 +280,23 @@ class CheckoutController extends Controller
             $order->update([
                 'total_amount' => $finalAmount,
                 'shipping_fee' => $appliedShippingFee,
+            ]);
+
+            // ==========================================
+            // LƯU LỊCH SỬ TRẠNG THÁI + GHI CHÚ ĐƠN HÀNG
+            // Ghi nhận trạng thái ban đầu là "Chờ duyệt" (pending)
+            // Không tự động đẩy đơn sang GHN — admin sẽ xử lý thủ công
+            // ==========================================
+            $historyNote = 'Đơn hàng được đặt bởi khách hàng. Trạng thái: Chờ duyệt.';
+            if (!empty($request->note)) {
+                $historyNote .= ' Ghi chú của khách: ' . $request->note;
+            }
+
+            OrderStatusHistory::create([
+                'order_id' => $order->id,
+                'user_id'  => Auth::id() ?? null,
+                'status'   => Order::STATUS_PENDING,
+                'note'     => $historyNote,
             ]);
 
             // 2.4 LOGIC THANH TOÁN BẰNG VÍ BEE PAY
@@ -308,6 +341,20 @@ class CheckoutController extends Controller
 
             session()->forget('voucher'); 
             session()->forget('selected_cart_items');
+
+            // Ghi lịch sử hoạt động: Đặt hàng
+            if (Auth::check()) {
+                activity('order')
+                    ->causedBy(Auth::user())
+                    ->performedOn($order)
+                    ->withProperties([
+                        'order_code'     => $orderCode,
+                        'total_amount'   => $finalAmount,
+                        'payment_method' => $request->payment_method,
+                        'shipping_fee'   => $appliedShippingFee,
+                    ])
+                    ->log('Đặt hàng thành công đơn #' . $orderCode);
+            }
 
             DB::commit();
 
@@ -452,12 +499,20 @@ class CheckoutController extends Controller
                 return redirect()->route('client.checkout.success')->with('success', 'Thanh toán VNPAY thành công!');
             } else {
                 if ($order) {
-                    $order->update(['status' => 'cancelled']);
+                    $order->update([
+                        'status' => 'cancelled',
+                        'cancellation_reason' => 'Khách hàng hủy thanh toán VNPAY',
+                        'cancelled_at' => now(),
+                    ]);
+
+                    if (\Illuminate\Support\Facades\Auth::check()) {
+                        return redirect()->route('client.orders.show', $order->id)->with('error', 'Thanh toán thất bại hoặc đã bị hủy!');
+                    }
                 }
-                return redirect()->route('client.checkout.index')->with('error', 'Thanh toán thất bại!');
+                return redirect()->route('home')->with('error', 'Thanh toán thất bại hoặc đã bị hủy!');
             }
         } else {
-            return redirect()->route('client.checkout.index')->with('error', 'Lỗi bảo mật VNPAY!');
+            return redirect()->route('home')->with('error', 'Lỗi bảo mật VNPAY!');
         }
     }
 

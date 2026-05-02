@@ -47,7 +47,14 @@
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
     <div class="flex min-h-screen">
         @include('admin.layouts.sidebar')
-        <main class="flex-1 ml-64">
+        <main class="flex-1 lg:ml-64 min-w-0">
+            {{-- Hamburger button (mobile only) --}}
+            <div class="lg:hidden flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-background-dark sticky top-0 z-30">
+                <button onclick="openSidebar()" class="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <span class="material-symbols-outlined text-[24px]">menu</span>
+                </button>
+                <span class="text-sm font-bold text-slate-900 dark:text-white">Bee Phone Admin</span>
+            </div>
             @include('admin.layouts.header')
             @yield('content')
         </main>

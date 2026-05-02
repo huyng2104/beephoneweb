@@ -419,34 +419,17 @@
 
             <!-- Shipping Section -->
             <div id="shipping" class="tab-pane hidden space-y-8 animate-fade-in">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl">
-                    <div class="p-8 bg-white border-2 border-slate-100 rounded-[40px] space-y-6 shadow-sm hover:shadow-md transition-all">
-                        <div class="flex items-center justify-between">
-                            <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-3xl flex items-center justify-center">
-                                <span class="material-symbols-outlined text-4xl">local_shipping</span>
-                            </div>
-                            <span class="bg-blue-100 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">Mặc định</span>
-                        </div>
-                        <div class="space-y-2">
-                            <h4 class="font-bold text-slate-800 text-xl tracking-tight">Phí vận chuyển</h4>
-                            <p class="text-sm text-slate-400 font-medium">Chi phí khách hàng phải trả cho mỗi đơn hàng giao tận nơi.</p>
-                        </div>
-                        <div class="flex items-center gap-4 bg-slate-50 p-2 rounded-3xl border border-slate-100">
-                            <input type="number" name="settings[shipping_fee]" value="{{ $settings['shipping_fee']->value ?? 30000 }}" class="w-full bg-transparent border-none focus:ring-0 px-6 py-4 font-bold text-2xl text-slate-800">
-                            <span class="pr-8 text-slate-400 font-bold uppercase text-sm">VNĐ</span>
-                        </div>
-                    </div>
-
+                <div class="max-w-lg">
                     <div class="p-8 bg-white border-2 border-slate-100 rounded-[40px] space-y-6 shadow-sm hover:shadow-md transition-all">
                         <div class="flex items-center justify-between">
                             <div class="w-16 h-16 bg-green-50 text-green-500 rounded-3xl flex items-center justify-center">
                                 <span class="material-symbols-outlined text-4xl">redeem</span>
                             </div>
-                            <span class="bg-green-100 text-green-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">Khuyến mãi</span>
+                            <span class="bg-green-100 text-green-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">Miễn phí vận chuyển</span>
                         </div>
                         <div class="space-y-2">
                             <h4 class="font-bold text-slate-800 text-xl tracking-tight">Miễn phí từ mức</h4>
-                            <p class="text-sm text-slate-400 font-medium">Đơn hàng đạt giá trị này sẽ không tính phí vận chuyển.</p>
+                            <p class="text-sm text-slate-400 font-medium">Đơn hàng đạt giá trị này sẽ được miễn phí vận chuyển hoàn toàn.</p>
                         </div>
                         <div class="flex items-center gap-4 bg-slate-50 p-2 rounded-3xl border border-slate-100">
                             <input type="number" name="settings[free_shipping_threshold]" value="{{ $settings['free_shipping_threshold']->value ?? 500000 }}" class="w-full bg-transparent border-none focus:ring-0 px-6 py-4 font-bold text-2xl text-slate-800">

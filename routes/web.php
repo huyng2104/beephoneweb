@@ -139,9 +139,9 @@ Route::middleware('check.verified')->group(function () {
         Route::patch('/don-mua/{id}/xac-nhan', [ClientOrderController::class, 'confirmReceived'])->name('client.orders.confirm');
         Route::patch('/don-mua/{id}/huy', [ClientOrderController::class, 'cancel'])->name('client.orders.cancel');
         Route::patch('/don-mua/{id}/giao-lai', [ClientOrderController::class, 'requestRedelivery'])->name('client.orders.redeliver');
-        Route::patch('/don-mua/item/{itemId}/hoan-hang', [ClientOrderController::class, 'requestReturn'])->name('client.orders.return');
-        Route::patch('/don-mua/item/{itemId}/gui-hang-hoan', [ClientOrderController::class, 'markReturnShipped'])->name('client.orders.return.shipped');
-        Route::patch('/don-mua/item/{itemId}/huy-hoan-hang', [ClientOrderController::class, 'cancelReturn'])->name('client.orders.return.cancel');
+        Route::post('/don-mua/{id}/hoan-hang', [ClientOrderController::class, 'storeReturnRequest'])->name('client.orders.return');
+        Route::patch('/don-mua/return/{requestId}/gui-hang-hoan', [ClientOrderController::class, 'markReturnShipped'])->name('client.orders.return.shipped');
+        Route::patch('/don-mua/return/{requestId}/huy-hoan-hang', [ClientOrderController::class, 'cancelReturnRequest'])->name('client.orders.return.cancel');
         Route::post('/don-mua/{id}/mua-lai', [ClientOrderController::class, 'repurchase'])->name('client.orders.repurchase');
     });
 
@@ -412,11 +412,16 @@ Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function 
         Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
         Route::patch('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
         Route::patch('orders/{order}/refund-failed', [OrderController::class, 'refundFailedDelivery'])->name('orders.refund.failed');
-        Route::patch('orders/item/{itemId}/return-approve', [OrderController::class, 'approveReturn'])->name('orders.return.approve');
-        Route::patch('orders/item/{itemId}/return-reject', [OrderController::class, 'rejectReturn'])->name('orders.return.reject');
-        Route::patch('orders/item/{itemId}/return-received', [OrderController::class, 'markReturnReceived'])->name('orders.return.received');
-        Route::patch('orders/item/{itemId}/return-refund', [OrderController::class, 'refundReturn'])->name('orders.return.refund');
+        Route::patch('orders/return/{requestId}/approve', [OrderController::class, 'approveReturn'])->name('orders.return.approve');
+        Route::patch('orders/return/{requestId}/reject', [OrderController::class, 'rejectReturn'])->name('orders.return.reject');
+        Route::patch('orders/return/{requestId}/received', [OrderController::class, 'markReturnReceived'])->name('orders.return.received');
+        Route::patch('orders/return/{requestId}/refund', [OrderController::class, 'refundReturn'])->name('orders.return.refund');
+        Route::post('orders/return/{requestId}/tracking/sync', [OrderController::class, 'syncReturnNow'])->name('orders.return.tracking.sync');
         Route::get('orders/{order}/print-pdf', [OrderController::class, 'printPdf'])->name('orders.print.pdf');
+        Route::get('orders/{order}/print-ghn', [OrderController::class, 'printGhn'])->name('orders.print.ghn');
+        // Mã vận đơn GHN (thay thế webhook, dùng polling)
+        Route::patch('orders/{order}/tracking', [OrderController::class, 'updateTracking'])->name('orders.tracking.update');
+        Route::post('orders/{order}/tracking/sync', [OrderController::class, 'syncNow'])->name('orders.tracking.sync');
 
         // Posts
         Route::resource('posts', PostController::class);
