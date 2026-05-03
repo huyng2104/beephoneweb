@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\Brand;
+use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -53,10 +55,48 @@ class ChatbotController extends Controller
         $bestSellers = empty($suggestedProducts) ? $this->getBestSellingProducts() : [];
 
         // ==========================================
-        // 1. KIỂM TRA FAQ TRƯỚC (CÁCH 1)
+        // 0. KIỂM TRA KHÁCH HỎI VỀ SẢN PHẨM KHÔNG BÁN
         // ==========================================
-        $faq = $this->searchFaq($userMessage);
+        $notAllowedResponse = $this->checkNotAllowedProduct($userMessage);
+        if ($notAllowedResponse) {
+            return response()->json([
+                'reply' => $notAllowedResponse,
+                'type' => 'product-notfound',
+                'products' => [],
+                'best_sellers' => [],
+            ]);
+        }
+
+        // ==========================================
+        // 0.5. KIỂM TRA CÓ PHẢI HỎI SẢN PHẨM CỤ THỂ KHÔNG
+        // ==========================================
+        if ($this->isProductQuery($userMessage)) {
+            $products = $this->getSuggestedProducts($userMessage);
+            
+            if (!empty($products)) {
+                return response()->json([
+                    'reply' => 'Dạ, em đã tìm được một số sản phẩm phù hợp. Anh/chị vui lòng bấm vào để xem chi tiết nhé ạ!',
+                    'type' => 'product',
+                    'products' => $products,
+                    'best_sellers' => $this->getBestSellingProducts(),
+                ]);
+            }
+            // Nếu không tìm được, cứ tiếp tục kiểm tra FAQ & Gemini
+        }
+
+        // ==========================================
+        // 1. KIỂM TRA FAQ TRƯỚC
+        // ==========================================
+        $faq = $this->findBestFaqMatch($userMessage);
         if ($faq) {
+            // Chỉ thêm sản phẩm nếu hỏi về sản phẩm cụ thể, KHÔNG phải chính sách
+            $products = [];
+            $bestSellers = [];
+            if ($this->isProductQuery($userMessage) && !$this->isPolicyQuery($userMessage)) {
+                $products = $this->getSuggestedProducts($userMessage);
+                $bestSellers = $this->getBestSellingProducts();
+            }
+            
             return response()->json([
                 'reply' => $faq->answer,
                 'type' => 'faq',
@@ -153,7 +193,7 @@ Câu hỏi của khách: " . $userMessage;
 
 
         // ==========================================
-        // 3. GỌI API GEMINI 2.5 FLASH
+        // 3. GỌI API GEMINI VỚI RETRY MECHANISM
         // ==========================================
         try {
             $response = Http::withoutVerifying()->withHeaders([
@@ -197,61 +237,123 @@ Câu hỏi của khách: " . $userMessage;
                 'products' => $suggestedProducts,
                 'best_sellers' => $bestSellers,
             ]);
+        }
 
-        } catch (\Exception $e) {
+        // ==========================================
+        // 4. NẾU GEMINI THẤT BẠI, FALLBACK TỚI FAQ SEARCH
+        // ==========================================
+        $fallbackFaq = $this->findBestFaqMatch($userMessage);
+        if ($fallbackFaq) {
+            // Chỉ thêm sản phẩm nếu hỏi về sản phẩm cụ thể, KHÔNG phải chính sách
+            $products = [];
+            $bestSellers = [];
+            if ($this->isProductQuery($userMessage) && !$this->isPolicyQuery($userMessage)) {
+                $products = $this->getSuggestedProducts($userMessage);
+                $bestSellers = $this->getBestSellingProducts();
+            }
+            
             return response()->json([
                 'reply' => 'Hệ thống AI đang bảo trì: ' . $e->getMessage(),
                 'products' => $suggestedProducts,
                 'best_sellers' => $bestSellers,
             ]);
         }
+
+        // ==========================================
+        // 5. NẾU HẾT CÁC CÁCH, TRẢ LỖI THÂN THIỆN
+        // ==========================================
+        return response()->json([
+            'reply' => 'Dạ em chưa hiểu ý anh/chị lắm ạ, anh chị có thể hỏi rõ hơn về bảo hành, giao hàng hay thanh toán không ạ?',
+            'type' => 'error',
+            'products' => [],
+            'best_sellers' => [],
+        ]);
     }
 
     // ==========================================
-    // HELPER: TÌM KIẾM FAQ MATCH KEYWORD
+    // HELPER: GỌI GEMINI VỚI TỰ ĐỘNG RETRY
     // ==========================================
-    private function searchFaq($userMessage)
+    private function callGeminiWithRetry(string $userMessage, string $prompt, array $validKeys, int $maxRetries = 3): ?string
+    {
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            $apiKey = $validKeys[array_rand($validKeys)];
+            
+            try {
+                $response = Http::withoutVerifying()
+                    ->timeout(10)
+                    ->withHeaders(['Content-Type' => 'application/json'])
+                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
+                        'contents' => [
+                            ['parts' => [['text' => $prompt]]]
+                        ]
+                    ]);
+
+                // Nếu thành công
+                if ($response->successful()) {
+                    $result = $response->json();
+                    
+                    if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
+                        $botReply = $result['candidates'][0]['content']['parts'][0]['text'];
+                        // Dọn dẹp markdown
+                        $botReply = str_replace(['**', '*'], '', $botReply);
+                        return $botReply;
+                    }
+                }
+
+                // Nếu lỗi 429 hoặc 503, thử lại
+                if ($response->status() == 429 || $response->status() == 503) {
+                    if ($attempt < $maxRetries) {
+                        sleep(1); // Chờ 1 giây rồi thử lại
+                        continue;
+                    }
+                }
+
+                // Nếu lỗi auth, không cần retry
+                if ($response->status() == 401 || $response->status() == 403) {
+                    return null;
+                }
+
+            } catch (\Exception $e) {
+                // Nếu timeout hoặc lỗi connection, thử lại
+                if ($attempt < $maxRetries) {
+                    sleep(1);
+                    continue;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // ==========================================
+    // HELPER: TÌM FAQ TỐT NHẤT CÓ SẴN (FALLBACK)
+    // ==========================================
+    private function findBestFaqMatch(string $userMessage): ?SupportFaq
     {
         $normalizedMessage = $this->normalizeText($userMessage);
         if ($normalizedMessage === '') {
             return null;
         }
 
-        // Dùng cùng nguồn dữ liệu FAQ với trang admin
-        $faqs = SupportFaq::active()
-            ->ordered()
-            ->get();
-
+        $faqs = SupportFaq::active()->ordered()->get();
         $bestMatch = null;
-        $bestScore = 0.0;
+        $bestScore = 0;
 
         foreach ($faqs as $faq) {
-            $score = 0.0;
-            $question = $this->normalizeText((string) $faq->question);
+            $score = 0;
+            $normalizedQuestion = $this->normalizeText($faq->question);
 
-            // Ưu tiên match cụm từ đầy đủ trong keywords/question
-            if ($question !== '' && (str_contains($question, $normalizedMessage) || str_contains($normalizedMessage, $question))) {
-                $score += 2.5;
-            }
+            // So sánh trực tiếp
+            similar_text($normalizedMessage, $normalizedQuestion, $percent);
+            $score += $percent / 100 * 5;
 
+            // Kiểm tra từ khóa
             if (!empty($faq->keywords)) {
                 $keywords = array_map('trim', explode(',', $faq->keywords));
                 foreach ($keywords as $keyword) {
                     $kw = $this->normalizeText($keyword);
-                    if ($kw === '') {
-                        continue;
-                    }
-
-                    if (str_contains($kw, ' ')) {
-                        if (str_contains($normalizedMessage, $kw)) {
-                            $score += 3.0;
-                        }
-                    } else {
-                        if (preg_match('/\b' . preg_quote($kw, '/') . '\b/u', $normalizedMessage)) {
-                            $score += 2.0;
-                        } elseif (str_contains($normalizedMessage, $kw)) {
-                            $score += 1.0;
-                        }
+                    if (!empty($kw) && str_contains($normalizedMessage, $kw)) {
+                        $score += 2;
                     }
                 }
             }
@@ -265,6 +367,53 @@ Câu hỏi của khách: " . $userMessage;
         return $bestScore >= 1.5 ? $bestMatch : null;
     }
 
+    // ==========================================
+    // HELPER: KIỂM TRA SẢN PHẨM KHÔNG BÁN (DỰA VÀO DATABASE)
+    // ==========================================
+    private function checkNotAllowedProduct(string $message): ?string
+    {
+        $normalized = $this->normalizeText($message);
+        
+        // Lấy tất cả categories có sản phẩm active trong hệ thống
+        $validCategories = Category::query()
+            ->whereHas('products', function ($q) {
+                $q->where('status', 'active');
+            })
+            ->pluck('name')
+            ->map(fn($name) => $this->normalizeText($name))
+            ->toArray();
+
+        // Lấy tất cả brand name có sản phẩm active
+        $validBrands = Brand::query()
+            ->whereHas('products', function ($q) {
+                $q->where('status', 'active');
+            })
+            ->pluck('name')
+            ->map(fn($name) => $this->normalizeText($name))
+            ->toArray();
+
+        // Tổng hợp từ khóa sản phẩm được bán
+        $allowedKeywords = array_merge($validCategories, $validBrands, [
+            'điện thoại', 'smartphone', 'tai nghe', 'headphone', 'phụ kiện'
+        ]);
+
+        // Kiểm tra từ khóa không được phép
+        $notAllowedKeywords = [
+            'tủ lạnh', 'máy lạnh', 'máy giặt', 'máy sấy',
+            'lò nướng', 'ti vi', 'tivi', 'truyền hình',
+            'laptop', 'máy tính', 'desktop',
+            'loa', 'loa phát thanh', 'speaker', 'âm thanh'
+        ];
+
+        foreach ($notAllowedKeywords as $keyword) {
+            if (str_contains($normalized, $keyword)) {
+                return 'Dạ, cửa hàng em chuyên bán điện thoại, tai nghe và các phụ kiện. Em chưa bán ' . $keyword . '. Anh/chị có thể tìm hiểu các sản phẩm khác trên Website của em nhé ạ! 🥰';
+            }
+        }
+
+        return null;
+    }
+
     private function normalizeText(string $text): string
     {
         $text = mb_strtolower(trim($text), 'UTF-8');
@@ -272,6 +421,34 @@ Câu hỏi của khách: " . $userMessage;
         $text = preg_replace('/\s+/u', ' ', $text);
         return trim($text);
     }
+
+    // ==========================================
+    // HELPER: KIỂM TRA CÓ PHẢI HỎI VỀ SẢN PHẨM KHÔNG
+    // ==========================================
+    private function isProductQuery(string $message): bool
+    {
+        $normalized = $this->normalizeText($message);
+        if ($normalized === '') {
+            return false;
+        }
+
+        // Từ khóa sản phẩm được bán
+        $keywords = [
+            'iphone', 'samsung', 'xiaomi', 'oppo', 'vivo', 'realme', 'huawei', 'nokia',
+            'điện thoại', 'smartphone', 'mua', 'tư vấn', 'đề xuất', 'gợi ý', 'hot', 'bán chạy',
+            'tai nghe', 'airpods', 'buds', 'headphone', 'headset', 'earbud', 'earbuds', 'earphone',
+            'giá', 'bao nhiêu', 'hàng', 'có', 'stock'
+        ];
+
+        foreach ($keywords as $keyword) {
+            if (str_contains($normalized, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     private function getSuggestedProducts(string $message, int $limit = 3): array
     {
@@ -293,8 +470,51 @@ Câu hỏi của khách: " . $userMessage;
             }
         });
 
-        $products = $query->latest('id')->limit($limit)->get();
+        // 2. Fallback: Tìm kiếm theo brand name
+        $brands = Brand::query()
+            ->where(function ($q) use ($tokens) {
+                foreach ($tokens as $token) {
+                    $q->orWhere('name', 'like', '%' . $token . '%');
+                }
+            })
+            ->pluck('id')
+            ->toArray();
 
+        if (!empty($brands)) {
+            $products = Product::query()
+                ->with(['brand:id,name', 'variants:id,product_id,price,sale_price', 'images:id,product_id,path'])
+                ->where('status', 'active')
+                ->whereIn('brand_id', $brands)
+                ->latest('id')
+                ->limit($limit)
+                ->get();
+
+            if (!$products->isEmpty()) {
+                return $this->formatProducts($products);
+            }
+        }
+
+        // 3. Cuối cùng: Tìm theo product name (fallback cuối)
+        $products = Product::query()
+            ->with(['brand:id,name', 'variants:id,product_id,price,sale_price', 'images:id,product_id,path'])
+            ->where('status', 'active')
+            ->where(function ($q) use ($tokens) {
+                foreach ($tokens as $token) {
+                    $q->orWhere('name', 'like', '%' . $token . '%');
+                }
+            })
+            ->latest('id')
+            ->limit($limit)
+            ->get();
+
+        return !$products->isEmpty() ? $this->formatProducts($products) : [];
+    }
+
+    // ==========================================
+    // HELPER: Format danh sách sản phẩm
+    // ==========================================
+    private function formatProducts($products): array
+    {
         return $products->map(function (Product $product) {
             $variant = $product->variants->first();
             $price = $variant ? ($variant->sale_price ?: $variant->price) : 0;
