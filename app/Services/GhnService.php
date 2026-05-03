@@ -209,7 +209,7 @@ class GhnService
             ])->values()->toArray();
 
             $payload = [
-                'payment_type_id'  => 2,           // 2 = khách trả phí ship
+                'payment_type_id'  => 1,           // 1 = người bán trả phí ship
                 'note'             => $order->note ?? 'Không có ghi chú',
                 'required_note'    => 'CHOXEMHANGKHONGTHU',
                 'client_order_code'=> $order->order_code, // Mã đơn hàng nội bộ để map với GHN

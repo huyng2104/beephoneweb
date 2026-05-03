@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Sửa người dùng mới')
+@section('title', 'Sửa người dùng')
 
 @section('content')
 
@@ -12,7 +12,7 @@
                 @method('PUT')
                 <div class="mb-8">
                     <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Sửa người dùng
-                        mới</h1>
+                        </h1>
                     <p class="text-slate-500 mt-1">Điền đầy đủ các thông tin bên dưới để tạo tài khoản truy cập hệ
                         thống.</p>
                 </div>
@@ -184,7 +184,7 @@
                             @endphp
 
                             {{-- Bọc toàn bộ phần quyền vào 1 div có ID --}}
-                            <div id="custom_permissions_block" class="{{ $isHidden ? 'hidden' : 'block' }} mt-6">
+                            {{-- <div id="custom_permissions_block" class="{{ $isHidden ? 'hidden' : 'block' }} mt-6">
                                 <div
                                     class="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
                                     <h4 class="font-bold mb-4 flex items-center gap-2">
@@ -243,7 +243,7 @@
                                         @endforeach
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                         @endif
                         <div class="mt-8 flex items-center gap-4 pb-12">
                             <button

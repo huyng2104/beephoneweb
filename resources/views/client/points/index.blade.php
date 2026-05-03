@@ -101,7 +101,7 @@
 
             <section id="cua-hang-doi-qua" class="md:col-span-12 mt-8">
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                    @forelse($vouchers as $index => $voucher)
+                    @forelse($vouchers->where('points_required', '!=', 0)->where('voucher_status', 'Hoạt động') as $index => $voucher)
                     @php
                         // Tính điểm để đổi Voucher
                         $redeemRate = $setting->redeem_rate ?: 1000;

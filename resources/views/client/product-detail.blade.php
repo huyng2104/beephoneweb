@@ -189,7 +189,7 @@
                                             class="attr-btn relative border-2 border-gray-100 dark:border-white/5 bg-white dark:bg-black/20 rounded-xl py-2.5 px-3 flex items-center justify-center transition-all duration-200 hover:border-[#f4c025]/50 overflow-hidden"
                                             data-id="{{ $valId }}">
                                             <div class="check-icon absolute bottom-0 right-0 bg-[#f4c025] w-5 h-5 rounded-tl-xl flex items-center justify-center hidden">
-                                                <span class="material-symbols-outlined text-[13px] font-black text-[#181611] mr-[1px] mb-[1px]">check</span>
+                                                <span class="material-symbols-outlined text-[13px] fonte-bold text-[#181611] mr-[1px] mb-[1px]">check</span>
                                             </div>
                                             <span class="block font-semibold text-sm text-gray-600 dark:text-gray-300 attr-text transition-colors relative z-10">{{ $valName }}</span>
                                         </button>
@@ -283,19 +283,317 @@
         </section>
     </div>
 
-    {{-- SẢN PHẨM LIÊN QUAN --}}
-    @if($relatedProducts->isNotEmpty())
-    <div class="mt-20">
-        <h2 class="text-2xl font-bold mb-8 pb-3 border-b-4 border-primary inline-block uppercase text-[#181611] dark:text-white">
-            Sản phẩm liên quan
-        </h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            @foreach($relatedProducts as $relProduct)
-                @include('client.home.partials.product-card', ['product' => $relProduct])
-            @endforeach
+    {{-- ===== SẢN PHẨM TƯƠNG TỰ ===== --}}
+    @if($relatedProducts->isNotEmpty() || $sameBrandProducts->isNotEmpty() || $fallbackProducts->isNotEmpty())
+    <div class="mt-20" id="similar-products-section">
+        {{-- Header --}}
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div>
+                @if($fallbackProducts->isNotEmpty())
+                    <p class="text-xs font-bold text-primary uppercase tracking-widest mb-1">Dành cho bạn</p>
+                    <h2 class="text-2xl lg:text-3xl fonte-bold text-[#181611] dark:text-white">Có thể bạn thích</h2>
+                @else
+                    <p class="text-xs font-bold text-primary uppercase tracking-widest mb-1">Gợi ý cho bạn</p>
+                    <h2 class="text-2xl lg:text-3xl fonte-bold text-[#181611] dark:text-white">Sản phẩm tương tự</h2>
+                @endif
+            </div>
+            <a href="{{ route('client.products.index') }}"
+               class="inline-flex items-center gap-1.5 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors shrink-0">
+                Xem tất cả
+                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </a>
         </div>
+
+        {{-- Tabs (chỉ hiện nếu có cả 2 nguồn) --}}
+        @if($relatedProducts->isNotEmpty() && $sameBrandProducts->isNotEmpty())
+        <div class="flex gap-2 mb-6" id="similar-tabs">
+            <button class="similar-tab-btn active px-5 py-2 rounded-full text-sm font-bold border-2 border-primary bg-primary text-black transition-all" data-tab="category">
+                <span class="material-symbols-outlined text-[15px] align-middle mr-1" style="font-variation-settings:'FILL' 1">category</span>
+                Cùng danh mục
+            </button>
+            <button class="similar-tab-btn px-5 py-2 rounded-full text-sm font-bold border-2 border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:border-primary hover:text-primary transition-all" data-tab="brand">
+                <span class="material-symbols-outlined text-[15px] align-middle mr-1" style="font-variation-settings:'FILL' 1">storefront</span>
+                Cùng thương hiệu
+            </button>
+        </div>
+        @endif
+
+        {{-- Slider Cùng danh mục --}}
+        @if($relatedProducts->isNotEmpty())
+        <div class="similar-tab-panel" id="panel-category">
+            <div class="relative">
+                {{-- Prev/Next buttons --}}
+                <button id="cat-prev" class="absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white dark:bg-[#2a2412] rounded-full shadow-lg border border-gray-100 dark:border-white/10 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-black transition-all opacity-0 pointer-events-none" aria-label="Trước">
+                    <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+                </button>
+                <button id="cat-next" class="absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white dark:bg-[#2a2412] rounded-full shadow-lg border border-gray-100 dark:border-white/10 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-black transition-all" aria-label="Tiếp">
+                    <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+                </button>
+
+                <div class="overflow-hidden rounded-2xl" id="cat-slider-wrapper">
+                    <div class="flex gap-4 transition-transform duration-500 ease-in-out" id="cat-slider-track" style="width: max-content;">
+                        @foreach($relatedProducts as $relProduct)
+                        <div class="similar-card w-[220px] sm:w-[240px]">
+                            @include('client.home.partials.product-card', ['product' => $relProduct])
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Dots --}}
+                <div class="flex justify-center gap-2 mt-5" id="cat-dots"></div>
+            </div>
+        </div>
+        @endif
+
+        {{-- Slider Cùng thương hiệu --}}
+        @if($sameBrandProducts->isNotEmpty())
+        <div class="similar-tab-panel {{ $relatedProducts->isNotEmpty() ? 'hidden' : '' }}" id="panel-brand">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                @foreach($sameBrandProducts as $bProduct)
+                    <div class="animate-fadeInUp" style="animation-delay: {{ $loop->index * 80 }}ms">
+                        @include('client.home.partials.product-card', ['product' => $bProduct])
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- Fallback: không có sản phẩm tương tự → hiển thị sản phẩm nổi bật --}}
+        @if($fallbackProducts->isNotEmpty())
+        <div id="panel-fallback">
+            <div class="relative">
+                {{-- Prev/Next buttons --}}
+                <button id="fallback-prev" class="absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white dark:bg-[#2a2412] rounded-full shadow-lg border border-gray-100 dark:border-white/10 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-black transition-all opacity-0 pointer-events-none" aria-label="Trước">
+                    <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+                </button>
+                <button id="fallback-next" class="absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white dark:bg-[#2a2412] rounded-full shadow-lg border border-gray-100 dark:border-white/10 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-black transition-all" aria-label="Tiếp">
+                    <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+                </button>
+
+                <div class="overflow-hidden rounded-2xl" id="fallback-slider-wrapper">
+                    <div class="flex gap-4 transition-transform duration-500 ease-in-out" id="fallback-slider-track" style="width: max-content;">
+                        @foreach($fallbackProducts as $fbProduct)
+                        <div class="similar-card w-[220px] sm:w-[240px]">
+                            @include('client.home.partials.product-card', ['product' => $fbProduct])
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="flex justify-center gap-2 mt-5" id="fallback-dots"></div>
+            </div>
+        </div>
+        @endif
+
     </div>
     @endif
+
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeInUp { animation: fadeInUp 0.5s ease both; }
+
+        .similar-tab-btn.active { border-color: #f4c025; background: #f4c025; color: #181611; }
+        .similar-tab-btn:not(.active) { background: transparent; }
+
+        #cat-slider-wrapper::-webkit-scrollbar { display: none; }
+
+        .dot-btn { width: 8px; height: 8px; border-radius: 50%; background: #e5e7eb; transition: all .3s; }
+        .dark .dot-btn { background: rgba(255,255,255,.15); }
+        .dot-btn.active { background: #f4c025; width: 24px; border-radius: 8px; }
+    </style>
+
+    <script>
+    (function() {
+        // ===== TABS =====
+        const tabBtns = document.querySelectorAll('.similar-tab-btn');
+        const panels  = document.querySelectorAll('.similar-tab-panel');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const target = btn.dataset.tab;
+                panels.forEach(p => {
+                    if (p.id === 'panel-' + target) p.classList.remove('hidden');
+                    else p.classList.add('hidden');
+                });
+            });
+        });
+
+        // ===== SLIDER CHO DANH MỤC =====
+        const track   = document.getElementById('cat-slider-track');
+        const wrapper = document.getElementById('cat-slider-wrapper');
+        const prevBtn = document.getElementById('cat-prev');
+        const nextBtn = document.getElementById('cat-next');
+        const dotsContainer = document.getElementById('cat-dots');
+
+        if (!track) return;
+
+        const cards        = track.querySelectorAll('.similar-card');
+        const totalCards   = cards.length;
+        if (totalCards === 0) return;
+
+        // Tính số card hiển thị dựa theo viewport
+        function getVisible() {
+            const w = window.innerWidth;
+            if (w >= 1280) return 4;
+            if (w >= 1024) return 3;
+            if (w >= 640)  return 2;
+            return 1;
+        }
+
+        let current  = 0;
+        let visible  = getVisible();
+        let maxIndex = Math.max(0, totalCards - visible);
+
+        function cardWidth() {
+            return cards[0] ? cards[0].offsetWidth + 16 : 256; // gap-4 = 16px
+        }
+
+        function buildDots() {
+            dotsContainer.innerHTML = '';
+            const pageCount = maxIndex + 1;
+            if (pageCount <= 1) return;
+            for (let i = 0; i < pageCount; i++) {
+                const d = document.createElement('button');
+                d.className = 'dot-btn' + (i === 0 ? ' active' : '');
+                d.addEventListener('click', () => goTo(i));
+                dotsContainer.appendChild(d);
+            }
+        }
+
+        function updateDots() {
+            dotsContainer.querySelectorAll('.dot-btn').forEach((d, i) => {
+                d.classList.toggle('active', i === current);
+            });
+        }
+
+        function updateButtons() {
+            prevBtn.classList.toggle('opacity-0',          current === 0);
+            prevBtn.classList.toggle('pointer-events-none', current === 0);
+            nextBtn.classList.toggle('opacity-0',          current >= maxIndex);
+            nextBtn.classList.toggle('pointer-events-none', current >= maxIndex);
+        }
+
+        function goTo(index) {
+            current = Math.max(0, Math.min(index, maxIndex));
+            track.style.transform = `translateX(-${current * cardWidth()}px)`;
+            updateButtons();
+            updateDots();
+        }
+
+        prevBtn.addEventListener('click', () => goTo(current - 1));
+        nextBtn.addEventListener('click', () => goTo(current + 1));
+
+        // Swipe support
+        let startX = 0;
+        wrapper.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+        wrapper.addEventListener('touchend', e => {
+            const dx = startX - e.changedTouches[0].clientX;
+            if (Math.abs(dx) > 50) goTo(current + (dx > 0 ? 1 : -1));
+        });
+
+        function recalc() {
+            visible  = getVisible();
+            maxIndex = Math.max(0, totalCards - visible);
+            current  = Math.min(current, maxIndex);
+            buildDots();
+            goTo(current);
+        }
+
+        window.addEventListener('resize', recalc);
+        recalc();
+
+        // Entrance animation cho các card
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.querySelectorAll('.similar-card').forEach((c, i) => {
+                        c.style.opacity = '0';
+                        c.style.transform = 'translateY(20px)';
+                        c.style.transition = `opacity .4s ease ${i*80}ms, transform .4s ease ${i*80}ms`;
+                        setTimeout(() => {
+                            c.style.opacity = '1';
+                            c.style.transform = 'translateY(0)';
+                        }, 50);
+                    });
+                    observer.disconnect();
+                }
+            });
+        }, { threshold: 0.1 });
+
+        const section = document.getElementById('similar-products-section');
+        if (section) observer.observe(section);
+
+        // ===== SLIDER FALLBACK (cùng logic, ID khác) =====
+        (function initFallbackSlider() {
+            const fTrack   = document.getElementById('fallback-slider-track');
+            const fWrapper = document.getElementById('fallback-slider-wrapper');
+            const fPrev    = document.getElementById('fallback-prev');
+            const fNext    = document.getElementById('fallback-next');
+            const fDots    = document.getElementById('fallback-dots');
+            if (!fTrack) return;
+
+            const fCards = fTrack.querySelectorAll('.similar-card');
+            if (fCards.length === 0) return;
+
+            function fGetVisible() {
+                const w = window.innerWidth;
+                if (w >= 1280) return 4;
+                if (w >= 1024) return 3;
+                if (w >= 640)  return 2;
+                return 1;
+            }
+
+            let fCur = 0, fVis = fGetVisible(), fMax = Math.max(0, fCards.length - fVis);
+            const fCardW = () => fCards[0] ? fCards[0].offsetWidth + 16 : 256;
+
+            function fBuildDots() {
+                fDots.innerHTML = '';
+                if (fMax < 1) return;
+                for (let i = 0; i <= fMax; i++) {
+                    const d = document.createElement('button');
+                    d.className = 'dot-btn' + (i === 0 ? ' active' : '');
+                    d.addEventListener('click', () => fGoTo(i));
+                    fDots.appendChild(d);
+                }
+            }
+            function fGoTo(i) {
+                fCur = Math.max(0, Math.min(i, fMax));
+                fTrack.style.transform = `translateX(-${fCur * fCardW()}px)`;
+                fPrev.classList.toggle('opacity-0', fCur === 0);
+                fPrev.classList.toggle('pointer-events-none', fCur === 0);
+                fNext.classList.toggle('opacity-0', fCur >= fMax);
+                fNext.classList.toggle('pointer-events-none', fCur >= fMax);
+                fDots.querySelectorAll('.dot-btn').forEach((d, idx) => d.classList.toggle('active', idx === fCur));
+            }
+
+            fPrev.addEventListener('click', () => fGoTo(fCur - 1));
+            fNext.addEventListener('click', () => fGoTo(fCur + 1));
+
+            let fStartX = 0;
+            fWrapper.addEventListener('touchstart', e => { fStartX = e.touches[0].clientX; }, { passive: true });
+            fWrapper.addEventListener('touchend', e => {
+                const dx = fStartX - e.changedTouches[0].clientX;
+                if (Math.abs(dx) > 50) fGoTo(fCur + (dx > 0 ? 1 : -1));
+            });
+
+            function fRecalc() {
+                fVis = fGetVisible();
+                fMax = Math.max(0, fCards.length - fVis);
+                fCur = Math.min(fCur, fMax);
+                fBuildDots();
+                fGoTo(fCur);
+            }
+            window.addEventListener('resize', fRecalc);
+            fRecalc();
+        })();
+    })();
+    </script>
+
 
     {{-- ===== ĐÁNH GIÁ KHÁCH HÀNG ===== --}}
     <div class="mt-16" id="reviews-section">
@@ -353,7 +651,7 @@
                 {{-- Điểm trung bình + Sao + Nút --}}
                 <div class="flex flex-col items-center gap-3 min-w-[140px]">
                     <div class="text-center">
-                        <p class="text-6xl font-black text-[#181611] dark:text-white leading-none">
+                        <p class="text-6xl font-bold text-[#181611] dark:text-white leading-none">
                             {{ $totalReviews > 0 ? number_format($avgRating, 1) : '—' }}
                             @if($totalReviews > 0)<span class="text-2xl font-bold text-gray-400">/5</span>@endif
                         </p>
@@ -944,7 +1242,7 @@
                     b.classList.remove('border-[#f4c025]', 'bg-[#f4c025]/10');
                     b.classList.add('border-gray-100', 'dark:border-white/5', 'bg-white', 'dark:bg-black/20');
                     b.querySelector('.check-icon').classList.add('hidden');
-                    b.querySelector('.attr-text').classList.remove('text-[#181611]', 'dark:text-[#f4c025]', 'font-black');
+                    b.querySelector('.attr-text').classList.remove('text-[#181611]', 'dark:text-[#f4c025]', 'fonte-bold');
                     b.querySelector('.attr-text').classList.add('text-gray-600', 'dark:text-gray-300', 'font-semibold');
                 });
             }
@@ -956,7 +1254,7 @@
                 btn.classList.add('border-[#f4c025]', 'bg-[#f4c025]/10');
                 btn.querySelector('.check-icon').classList.remove('hidden');
                 btn.querySelector('.attr-text').classList.remove('text-gray-600', 'dark:text-gray-300', 'font-semibold');
-                btn.querySelector('.attr-text').classList.add('text-[#181611]', 'dark:text-[#f4c025]', 'font-black');
+                btn.querySelector('.attr-text').classList.add('text-[#181611]', 'dark:text-[#f4c025]', 'fonte-bold');
             }
 
             function updateAvailability() {
