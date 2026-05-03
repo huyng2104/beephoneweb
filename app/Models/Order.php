@@ -18,11 +18,13 @@ class Order extends Model
         'customer_phone',
         'customer_email',
         'shipping_address',
+        'ghn_district_id',
+        'ghn_ward_code',
         'shipping_fee',
         'total_amount',
         'status',
-        'return_status',
         'note',
+        'tracking_number',
         'cancellation_reason',
         'ordered_at',
         'cancelled_at',
@@ -38,73 +40,99 @@ class Order extends Model
         'paid_at'     => 'datetime',
     ];
 
+    // ── Trạng thái nội bộ (không phải từ GHN) ─────────────────────────────────────
     public const STATUS_PENDING   = 'pending';
-    public const STATUS_PACKING   = 'packing';
-    public const STATUS_SHIPPING  = 'shipping';
-    public const STATUS_DELIVERED = 'delivered';
     public const STATUS_RECEIVED  = 'received';
     public const STATUS_CANCELLED = 'cancelled';
-    public const STATUS_FAILED_DELIVERY = 'failed_delivery';
 
-    public const RETURN_NONE = 'none';
-    public const RETURN_REQUESTED = 'requested';
-    public const RETURN_APPROVED = 'approved';
-    public const RETURN_REJECTED = 'rejected';
-    public const RETURN_CUSTOMER_SHIPPED = 'customer_shipped';
-    public const RETURN_RECEIVED = 'received';
-    public const RETURN_REFUNDED = 'refunded';
+    // ── Trạng thái GHN (lưu trực tiếp từ API) ─────────────────────────────────
+    public const STATUS_READY_TO_PICK            = 'ready_to_pick';
+    public const STATUS_PICKING                  = 'picking';
+    public const STATUS_MONEY_COLLECT_PICKING    = 'money_collect_picking';
+    public const STATUS_PICKED                   = 'picked';
+    public const STATUS_STORING                  = 'storing';
+    public const STATUS_TRANSPORTING             = 'transporting';
+    public const STATUS_SORTING                  = 'sorting';
+    public const STATUS_DELIVERING               = 'delivering';
+    public const STATUS_MONEY_COLLECT_DELIVERING = 'money_collect_delivering';
+    public const STATUS_DELIVERED                = 'delivered';
+    public const STATUS_DELIVERY_FAIL            = 'delivery_fail';
+    public const STATUS_WAITING_TO_RETURN        = 'waiting_to_return';
+    public const STATUS_RETURN                   = 'return';
+    public const STATUS_RETURN_TRANSPORTING      = 'return_transporting';
+    public const STATUS_RETURN_SORTING           = 'return_sorting';
+    public const STATUS_RETURNING                = 'returning';
+    public const STATUS_RETURN_FAIL              = 'return_fail';
+    public const STATUS_RETURNED                 = 'returned';
+    public const STATUS_EXCEPTION                = 'exception';
+    public const STATUS_DAMAGE                   = 'damage';
+    public const STATUS_LOST                     = 'lost';
+    public const STATUS_CANCEL                   = 'cancel';         // GHN hủy
+
 
     public static function statuses(): array
     {
         return [
             self::STATUS_PENDING,
-            self::STATUS_PACKING,
-            self::STATUS_SHIPPING,
+            self::STATUS_READY_TO_PICK,
+            self::STATUS_PICKING,
+            self::STATUS_MONEY_COLLECT_PICKING,
+            self::STATUS_PICKED,
+            self::STATUS_STORING,
+            self::STATUS_TRANSPORTING,
+            self::STATUS_SORTING,
+            self::STATUS_DELIVERING,
+            self::STATUS_MONEY_COLLECT_DELIVERING,
             self::STATUS_DELIVERED,
+            self::STATUS_DELIVERY_FAIL,
+            self::STATUS_WAITING_TO_RETURN,
+            self::STATUS_RETURN,
+            self::STATUS_RETURN_TRANSPORTING,
+            self::STATUS_RETURN_SORTING,
+            self::STATUS_RETURNING,
+            self::STATUS_RETURN_FAIL,
+            self::STATUS_RETURNED,
+            self::STATUS_EXCEPTION,
+            self::STATUS_DAMAGE,
+            self::STATUS_LOST,
+            self::STATUS_CANCEL,
             self::STATUS_RECEIVED,
             self::STATUS_CANCELLED,
-            self::STATUS_FAILED_DELIVERY,
         ];
     }
 
     public static function statusLabels(): array
     {
         return [
-            self::STATUS_PENDING => 'Chờ xử lý',
-            self::STATUS_PACKING => 'Đang đóng hàng',
-            self::STATUS_SHIPPING => 'Đang giao',
-            self::STATUS_DELIVERED => 'Giao thành công',
-            self::STATUS_RECEIVED => 'Đã nhận hàng',
-            self::STATUS_CANCELLED => 'Đã hủy',
-            self::STATUS_FAILED_DELIVERY => 'Giao thất bại (Bom hàng)',
+            self::STATUS_PENDING                   => 'Chờ xử lý',
+            self::STATUS_READY_TO_PICK             => 'Chờ lấy hàng',
+            self::STATUS_PICKING                   => 'Đang lấy hàng',
+            self::STATUS_MONEY_COLLECT_PICKING     => 'Đang lấy hàng',
+            self::STATUS_PICKED                    => 'Đã lấy hàng',
+            self::STATUS_STORING                   => 'Nhập kho trung chuyển',
+            self::STATUS_TRANSPORTING              => 'Đang luân chuyển',
+            self::STATUS_SORTING                   => 'Đang phân loại',
+            self::STATUS_DELIVERING                => 'Đang giao hàng',
+            self::STATUS_MONEY_COLLECT_DELIVERING  => 'Đang giao hàng',
+            self::STATUS_DELIVERED                 => 'Giao thành công',
+            self::STATUS_DELIVERY_FAIL             => 'Giao thất bại',
+            self::STATUS_WAITING_TO_RETURN         => 'Đang chờ giao lại',
+            self::STATUS_RETURN                    => 'Chờ hoàn hàng',
+            self::STATUS_RETURN_TRANSPORTING       => 'Đang luân chuyển hoàn',
+            self::STATUS_RETURN_SORTING            => 'Đang phân loại hoàn',
+            self::STATUS_RETURNING                 => 'Đang hoàn hàng',
+            self::STATUS_RETURN_FAIL               => 'Hoàn hàng thất bại',
+            self::STATUS_RETURNED                  => 'Đã hoàn hàng',
+            self::STATUS_EXCEPTION                 => 'Ngoại lệ',
+            self::STATUS_DAMAGE                    => 'Hàng bị hỏng',
+            self::STATUS_LOST                      => 'Hàng bị mất',
+            self::STATUS_CANCEL                    => 'Đã hủy (đơn GHN)',
+            self::STATUS_RECEIVED                  => 'Đã nhận hàng',
+            self::STATUS_CANCELLED                 => 'Đã hủy',
         ];
     }
 
-    public static function returnStatuses(): array
-    {
-        return [
-            self::RETURN_NONE,
-            self::RETURN_REQUESTED,
-            self::RETURN_APPROVED,
-            self::RETURN_REJECTED,
-            self::RETURN_CUSTOMER_SHIPPED,
-            self::RETURN_RECEIVED,
-            self::RETURN_REFUNDED,
-        ];
-    }
 
-    public static function returnStatusLabels(): array
-    {
-        return [
-            self::RETURN_NONE => 'Không hoàn hàng',
-            self::RETURN_REQUESTED => 'Đã gửi yêu cầu',
-            self::RETURN_APPROVED => 'Admin đã duyệt',
-            self::RETURN_REJECTED => 'Admin từ chối',
-            self::RETURN_CUSTOMER_SHIPPED => 'Khách đã gửi hàng hoàn',
-            self::RETURN_RECEIVED => 'Admin đã nhận hàng hoàn',
-            self::RETURN_REFUNDED => 'Đã hoàn tiền vào ví',
-        ];
-    }
 
     public static function paymentMethodLabels(): array
     {
@@ -129,13 +157,10 @@ class Order extends Model
     public static function nextStatusMap(): array
     {
         return [
-            self::STATUS_PENDING   => [self::STATUS_PACKING],
-            self::STATUS_PACKING   => [self::STATUS_SHIPPING],
-            self::STATUS_SHIPPING  => [self::STATUS_DELIVERED, self::STATUS_FAILED_DELIVERY],
-            self::STATUS_DELIVERED => [self::STATUS_RECEIVED, self::STATUS_FAILED_DELIVERY],
+            self::STATUS_PENDING   => [self::STATUS_READY_TO_PICK],
+            self::STATUS_DELIVERED => [self::STATUS_RECEIVED],
             self::STATUS_RECEIVED  => [],
             self::STATUS_CANCELLED => [],
-            self::STATUS_FAILED_DELIVERY => [self::STATUS_PACKING],
         ];
     }
 
@@ -148,46 +173,13 @@ class Order extends Model
         if ($nextStatus === self::STATUS_CANCELLED) {
             return in_array($this->status, [
                 self::STATUS_PENDING,
-                self::STATUS_PACKING,
-                self::STATUS_SHIPPING,
+                self::STATUS_READY_TO_PICK,
             ], true);
         }
 
         return in_array($nextStatus, self::nextStatusMap()[$this->status] ?? [], true);
     }
 
-    public function canRequestReturn(): bool
-    {
-        return $this->status === self::STATUS_RECEIVED
-            && $this->return_status === self::RETURN_NONE;
-    }
-
-    public function canApproveReturn(): bool
-    {
-        return in_array($this->status, [self::STATUS_DELIVERED, self::STATUS_RECEIVED], true)
-            && $this->return_status === self::RETURN_REQUESTED;
-    }
-
-    public function canRejectReturn(): bool
-    {
-        return $this->canApproveReturn();
-    }
-
-    public function canCustomerShipReturn(): bool
-    {
-        return $this->return_status === self::RETURN_APPROVED;
-    }
-
-    public function canMarkReturnReceived(): bool
-    {
-        return $this->return_status === self::RETURN_CUSTOMER_SHIPPED;
-    }
-
-    public function canRefundReturn(): bool
-    {
-        return $this->return_status === self::RETURN_RECEIVED
-            && $this->payment_status === 'paid';
-    }
 
     public function items(): HasMany
     {
@@ -196,7 +188,12 @@ class Order extends Model
 
     public function statusHistories(): HasMany
     {
-        return $this->hasMany(OrderStatusHistory::class)->orderByDesc('id');
+        return $this->hasMany(OrderStatusHistory::class)->orderByDesc('created_at')->orderByDesc('id');
+    }
+
+    public function returnRequests(): HasMany
+    {
+        return $this->hasMany(ReturnRequest::class)->orderByDesc('created_at');
     }
 
     public function user()

@@ -80,6 +80,12 @@ class ProfileController extends Controller
             }
             $user->update($data);
 
+            // Ghi lịch sử hoạt động: Cập nhật thông tin cá nhân
+            activity('profile')
+                ->causedBy($user)
+                ->performedOn($user)
+                ->log('Cập nhật thông tin cá nhân.');
+
             return back()->with([
                 'success' => 'Cập nhật thông tin thành công.'
             ]);
@@ -180,6 +186,13 @@ class ProfileController extends Controller
         $user->update([
             'password' => Hash::make($request->password)
         ]);
+
+        // Ghi lịch sử hoạt động: Đổi mật khẩu
+        activity('profile')
+            ->causedBy($user)
+            ->performedOn($user)
+            ->log('Đổi mật khẩu thành công.');
+
         return back()->with([
             'success' => 'Đổi mật khẩu thành công!'
         ]);

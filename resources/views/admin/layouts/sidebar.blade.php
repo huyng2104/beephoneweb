@@ -1,4 +1,4 @@
-<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col fixed h-full z-50">
+<aside id="admin-sidebar" class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col fixed h-full z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0">
     @php
         $logo = isset($site_settings['site_logo']) ? $site_settings['site_logo']->value : null;
     @endphp
@@ -20,15 +20,15 @@
 
     <nav class="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto custom-scrollbar">
         {{-- Bảng điều khiển --}}
-        <a class="{{ request()->is('admin') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+        <a class="{{ request()->is('admin') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
             href="{{ url('admin') }}">
             <span class="material-symbols-outlined">dashboard</span>
             <span>Bảng điều khiển</span>
         </a>
 
         {{-- NHÓM SẢN PHẨM (DROPDOWN) --}}
+        @canany(['product.view', 'attribute.view', 'category.view', 'brand.view'])
         @php
-            // Đã xóa phần lặp code ở đây
             $isProductGroupActive = request()->routeIs(
                 'admin.products.*',
                 'admin.attributes.*',
@@ -39,7 +39,7 @@
 
         <div>
             <button onclick="toggleSidebarMenu('menu-products', 'icon-products')"
-                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors {{ $isProductGroupActive ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }}">
+                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors {{ $isProductGroupActive ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }}">
                 <div class="flex items-center gap-3">
                     <span class="material-symbols-outlined">inventory_2</span>
                     <span>Sản phẩm</span>
@@ -54,7 +54,7 @@
                 class="overflow-hidden transition-all duration-300 ease-in-out {{ $isProductGroupActive ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0' }} flex flex-col space-y-1">
                 @can('product.view')
                     <a href="{{ route('admin.products.index') }}"
-                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.products.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.products.*') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
                         <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.products.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}"></div>
                         Danh sách SP
                     </a>
@@ -62,7 +62,7 @@
 
                 @can('attribute.view')
                     <a href="{{ route('admin.attributes.index') }}"
-                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.attributes.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.attributes.*') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
                         <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.attributes.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}"></div>
                         Thuộc tính
                     </a>
@@ -70,7 +70,7 @@
 
                 @can('category.view')
                     <a href="{{ route('admin.categories.index') }}"
-                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.categories.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.categories.*') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
                         <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.categories.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}"></div>
                         Danh mục
                     </a>
@@ -78,22 +78,33 @@
 
                 @can('brand.view')
                     <a href="{{ route('admin.brands.index') }}"
-                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.brands.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.brands.*') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
                         <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.brands.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}"></div>
                         Thương hiệu
                     </a>
                 @endcan
             </div>
         </div>
+        @endcanany
 
         {{-- Các Menu Khác --}}
         @can('order.view')
+            @php
+                $pendingOrders  = \App\Models\Order::where('status', 'pending')->count();
+                $pendingReturns = \App\Models\ReturnRequest::where('status', 'pending')->count();
+                $totalOrderBadge = $pendingOrders + $pendingReturns;
+            @endphp
             <div class="mb-1">
                 <div id="btn-toggle-orders"
-                    class="px-3 py-2.5 flex items-center justify-between text-sm cursor-pointer transition-colors {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.returns.*') ? 'bg-primary/10 text-primary font-bold rounded-lg' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium rounded-lg' }}">
+                    class="px-3 py-2.5 flex items-center justify-between text-sm cursor-pointer transition-colors {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.returns.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold rounded-lg' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium rounded-lg' }}">
                     <span class="flex items-center gap-3">
                         <span class="material-symbols-outlined">shopping_cart</span>
                         Quản lý đơn hàng
+                        @if($totalOrderBadge > 0)
+                            <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                                {{ $totalOrderBadge > 99 ? '99+' : $totalOrderBadge }}
+                            </span>
+                        @endif
                     </span>
 
                     <svg id="icon-arrow-orders" xmlns="http://www.w3.org/2000/svg"
@@ -108,21 +119,31 @@
 
                     <li>
                         <a href="{{ route('admin.orders.index') }}"
-                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.orders.*') && !request()->routeIs('admin.returns.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.orders.*') && !request()->routeIs('admin.returns.*') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
                             <div
                                 class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.orders.*') && !request()->routeIs('admin.returns.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
                             </div>
                             Danh sách đơn hàng
+                            @if($pendingOrders > 0)
+                                <span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                                    {{ $pendingOrders > 99 ? '99+' : $pendingOrders }}
+                                </span>
+                            @endif
                         </a>
                     </li>
 
                     <li>
                         <a href="{{ route('admin.returns.index') }}"
-                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.returns.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.returns.*') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
                             <div
                                 class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.returns.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
                             </div>
                             Yêu cầu hoàn hàng
+                            @if($pendingReturns > 0)
+                                <span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-orange-500 text-white text-[10px] font-bold">
+                                    {{ $pendingReturns > 99 ? '99+' : $pendingReturns }}
+                                </span>
+                            @endif
                         </a>
                     </li>
                 </ul>
@@ -131,7 +152,7 @@
 
         @can('customer.view')
             <div class="mb-1">
-                <a class="{{ request()->routeIs('admin.users.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                <a class="{{ request()->routeIs('admin.users.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
                     href="{{ route('admin.users.index') }}">
                     <span class="material-symbols-outlined">group</span>
                     <span>Người dùng</span>
@@ -140,63 +161,46 @@
         @endcan
 
         @can('roles.view')
+            @php $isPermissionGroupActive = request()->routeIs('admin.role.*', 'admin.member*', 'admin.permissions.*'); @endphp
             <div class="mb-1">
-                <div id="btn-toggle-permission"
-                    class="px-3 py-2 flex items-center justify-between text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white transition-colors">
-                    <span class="flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        Phân quyền
+                <button onclick="toggleSidebarMenu('menu-permission', 'icon-permission')"
+                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors {{ $isPermissionGroupActive ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }}">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <span>Phân quyền</span>
+                    </div>
+                    <span id="icon-permission"
+                        class="material-symbols-outlined text-[18px] transition-transform duration-300 {{ $isPermissionGroupActive ? 'rotate-180' : '' }}">
+                        expand_more
                     </span>
+                </button>
 
-                    <svg id="icon-arrow" xmlns="http://www.w3.org/2000/svg"
-                        class="w-4 h-4 transition-transform duration-200 {{ request()->routeIs('admin.role.*') || request()->routeIs('admin.member*') ? 'rotate-180' : '' }}"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                <div id="menu-permission"
+                    class="overflow-hidden transition-all duration-300 ease-in-out {{ $isPermissionGroupActive ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0' }} flex flex-col space-y-1">
+
+                    <a href="{{ route('admin.permissions.index') }}"
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.permissions.*') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.permissions.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}"></div>
+                        Danh sách quyền hạn
+                    </a>
+
+                    <a href="{{ route('admin.role.index') }}"
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.role.*') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.role.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}"></div>
+                        Quản lý nhóm
+                    </a>
+
+                    <a href="{{ route('admin.member') }}"
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.member*') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.member*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}"></div>
+                        Quản lý thành viên
+                    </a>
                 </div>
-
-                <ul id="menu-permission-sub"
-                    class="space-y-1 mt-1 list-none transition-all duration-300 {{ request()->routeIs('admin.role.*') || request()->routeIs('admin.member*') ? '' : 'hidden' }}">
-
-                    <li>
-                        <a href="{{ route('admin.permissions.index') }}"
-                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.permissions.index') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
-                            <div
-                                class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.permissions.index') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                            </div>
-                            Danh sách quyền hạn
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="{{ route('admin.role.index') }}"
-                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.role.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
-                            <div
-                                class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.role.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                            </div>
-                            Quản lý nhóm
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="{{ route('admin.member') }}"
-                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.member*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
-                            <div
-                                class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.member*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                            </div>
-                            Quản lý thành viên
-                        </a>
-                    </li>
-                </ul>
             </div>
         @endcan
 
         @can('voucher.view')
-            <a class="{{ request()->routeIs('admin.vouchers.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            <a class="{{ request()->routeIs('admin.vouchers.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
                 href="{{ route('admin.vouchers.index') }}">
                 <span class="material-symbols-outlined">confirmation_number</span>
                 <span>Voucher</span>
@@ -205,7 +209,7 @@
 
         {{-- Đánh giá sản phẩm --}}
         @can('comment.view')
-            <a class="{{ request()->routeIs('admin.reviews.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative"
+            <a class="{{ request()->routeIs('admin.reviews.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative"
                 href="{{ route('admin.reviews.index') }}">
                 <span class="material-symbols-outlined">rate_review</span>
                 <span>Đánh giá</span>
@@ -220,7 +224,7 @@
 
         {{-- Hỏi đáp sản phẩm --}}
         @can('comment.view')
-            <a class="{{ request()->routeIs('admin.comments.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative"
+            <a class="{{ request()->routeIs('admin.comments.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative"
                 href="{{ route('admin.comments.index') }}">
                 <span class="material-symbols-outlined">forum</span>
                 <span>Hỏi đáp</span>
@@ -229,7 +233,7 @@
         @endcan
 
         @can('posts.view')
-            <a class="{{ request()->routeIs('admin.posts.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            <a class="{{ request()->routeIs('admin.posts.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
                 href="{{ route('admin.posts.index') }}">
                 <span class="material-symbols-outlined">post</span>
                 <span>Bài viết</span>
@@ -237,7 +241,7 @@
         @endcan
 
         @can('banner.view')
-            <a class="{{ request()->routeIs('admin.banners.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            <a class="{{ request()->routeIs('admin.banners.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
                 href="{{ route('admin.banners.index') }}">
                 <span class="material-symbols-outlined">ad_units</span>
                 <span>Banner</span>
@@ -245,79 +249,53 @@
         @endcan
 
         @can('wallet.view')
-            @php $pendingWithdrawals = \App\Models\WithdrawalRequest::where('status', 'pending')->count(); @endphp
+            @php
+                $pendingWithdrawals = \App\Models\WithdrawalRequest::where('status', 'pending')->count();
+                $isWalletGroupActive = request()->routeIs('admin.wallet.*', 'admin.withdrawals.*');
+            @endphp
             <div class="mb-1">
-                <div id="btn-toggle-wallet"
-                    class="px-3 py-2 flex items-center justify-between text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white transition-colors">
-                    <span class="flex items-center gap-2">
-                        <span class="material-symbols-outlined w-5 h-5 flex items-center justify-center !text-[20px]">
-                            account_balance_wallet
-                        </span>
-                        Quản lý ví
+                <button onclick="toggleSidebarMenu('menu-wallet', 'icon-wallet')"
+                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors {{ $isWalletGroupActive ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }}">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined">account_balance_wallet</span>
+                        <span>Quản lý ví</span>
                         @if($pendingWithdrawals > 0)
-                        <span class="inline-flex items-center justify-center min-w-[18px] h-4.5 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold ml-1">
-                            {{ $pendingWithdrawals > 99 ? '99+' : $pendingWithdrawals }}
-                        </span>
+                            <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                                {{ $pendingWithdrawals > 99 ? '99+' : $pendingWithdrawals }}
+                            </span>
                         @endif
+                    </div>
+                    <span id="icon-wallet"
+                        class="material-symbols-outlined text-[18px] transition-transform duration-300 {{ $isWalletGroupActive ? 'rotate-180' : '' }}">
+                        expand_more
                     </span>
+                </button>
 
-                    <svg id="icon-arrow-wallet" xmlns="http://www.w3.org/2000/svg"
-                        class="w-4 h-4 transition-transform duration-200 {{ request()->routeIs('admin.wallet.*') || request()->routeIs('admin.withdrawals.*') ? 'rotate-180' : '' }}"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </div>
+                <div id="menu-wallet"
+                    class="overflow-hidden transition-all duration-300 ease-in-out {{ $isWalletGroupActive ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0' }} flex flex-col space-y-1">
 
-                <ul id="menu-wallet-sub"
-                    class="space-y-1 mt-1 list-none transition-all duration-300 {{ request()->routeIs('admin.wallet.*') || request()->routeIs('admin.withdrawals.*') ? '' : 'hidden' }}">
+                    <a href="{{ route('admin.wallet.index') }}"
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.wallet.*') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.wallet.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}"></div>
+                        Danh sách ví
+                    </a>
 
-                    <li>
-                        <a href="{{ route('admin.wallet.index') }}"
-                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.wallet.index') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
-                            <div
-                                class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.wallet.index') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                            </div>
-                            Danh sách ví
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="{{ route('admin.withdrawals.index') }}"
-                            class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.withdrawals.*') ? 'text-primary bg-primary/5 dark:bg-primary/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
-                            <div
-                                class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.withdrawals.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}">
-                            </div>
-                            <span>Yêu cầu rút tiền</span>
-                            @if($pendingWithdrawals > 0)
+                    <a href="{{ route('admin.withdrawals.index') }}"
+                        class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.withdrawals.*') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.withdrawals.*') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}"></div>
+                        <span>Yêu cầu rút tiền</span>
+                        @if($pendingWithdrawals > 0)
                             <span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold">
                                 {{ $pendingWithdrawals > 99 ? '99+' : $pendingWithdrawals }}
                             </span>
-                            @endif
-                        </a>
-                    </li>
-                </ul>
+                        @endif
+                    </a>
+                </div>
             </div>
         @endcan
 
-        <script>
-            document.getElementById('btn-toggle-orders')?.addEventListener('click', function() {
-                const menu = document.getElementById('menu-orders-sub');
-                const arrow = document.getElementById('icon-arrow-orders');
-
-                menu.classList.toggle('hidden');
-                arrow.classList.toggle('rotate-180');
-            });
-
-            document.getElementById('btn-toggle-wallet')?.addEventListener('click', function() {
-                const menu = document.getElementById('menu-wallet-sub');
-                const arrow = document.getElementById('icon-arrow-wallet');
-
-                menu.classList.toggle('hidden');
-                arrow.classList.toggle('rotate-180');
-            });
-        </script>
         @can('point.view')
-            <a class="{{ request()->routeIs('admin.points.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            <a class="{{ request()->routeIs('admin.points.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
                 href="{{ route('admin.points.index') }}">
                 <span class="material-symbols-outlined">stars</span>
                 <span>Điểm thưởng</span>
@@ -325,7 +303,7 @@
         @endcan
 
         @can('settings.view')
-            <a class="{{ request()->routeIs('admin.chatbot-faqs.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            <a class="{{ request()->routeIs('admin.chatbot-faqs.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
                 href="{{ route('admin.chatbot-faqs.index') }}">
                 <span class="material-symbols-outlined">smart_toy</span>
                 <span>Cài đặt Chatbot</span>
@@ -333,7 +311,7 @@
         @endcan
 
         @can('support.view')
-            <a class="{{ request()->routeIs('admin.tickets.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            <a class="{{ request()->routeIs('admin.tickets.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
                 href="{{ route('admin.tickets.index') }}">
                 <span class="material-symbols-outlined">support_agent</span>
                 <span>Hỗ trợ KH (Tickets)</span>
@@ -342,7 +320,7 @@
 
         @can('settings.view')
             <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
-                <a class="{{ request()->routeIs('admin.settings.*') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                <a class="{{ request()->routeIs('admin.settings.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
                     href="{{ route('admin.settings.index') }}">
                     <span class="material-symbols-outlined">settings</span>
                     <span>Cài đặt hệ thống</span>
@@ -397,6 +375,8 @@
     </div>
 </aside>
 
+{{-- Overlay backdrop (mobile only) --}}
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="closeSidebar()"></div>
 {{-- SCRIPTS XỬ LÝ DROPDOWN --}}
 <script>
     function toggleSidebarMenu(menuId, iconId) {
@@ -421,24 +401,29 @@
 </script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const btnToggle = document.getElementById("btn-toggle-permission");
-        const subMenu = document.getElementById("menu-permission-sub");
-        const arrowIcon = document.getElementById("icon-arrow");
+        // Toggle đơn hàng
+        const btnOrders = document.getElementById("btn-toggle-orders");
+        const menuOrders = document.getElementById("menu-orders-sub");
+        const arrowOrders = document.getElementById("icon-arrow-orders");
 
-        // Xử lý mũi tên xoay ban đầu nếu trang con đang hoạt động
-        if (subMenu && !subMenu.classList.contains('hidden')) {
-            arrowIcon.classList.add('rotate-180');
-        }
-
-        if(btnToggle) {
-            btnToggle.addEventListener("click", function() {
-                // Đóng/Mở Sub Menu
-                subMenu.classList.toggle("hidden");
-                // Xoay mũi tên lên/xuống
-                arrowIcon.classList.toggle("rotate-180");
+        if (btnOrders && menuOrders) {
+            btnOrders.addEventListener("click", function() {
+                menuOrders.classList.toggle("hidden");
+                if (arrowOrders) arrowOrders.classList.toggle("rotate-180");
             });
         }
     });
+</script>
+
+<script>
+    function openSidebar() {
+        document.getElementById('admin-sidebar').classList.remove('-translate-x-full');
+        document.getElementById('sidebar-overlay').classList.remove('hidden');
+    }
+    function closeSidebar() {
+        document.getElementById('admin-sidebar').classList.add('-translate-x-full');
+        document.getElementById('sidebar-overlay').classList.add('hidden');
+    }
 </script>
 
 <style>

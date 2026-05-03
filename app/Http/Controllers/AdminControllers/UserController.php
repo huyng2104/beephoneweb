@@ -181,7 +181,9 @@ class UserController extends Controller
 
     public function activities(Request $request, string $id)
     {
-        Gate::authorize('customer.view');
+        if (auth()->id() != $id) {
+            Gate::authorize('customer.view');
+        }
         $user = User::findOrFail($id);
         
         $query = Activity::with('subject')
@@ -221,7 +223,9 @@ class UserController extends Controller
 
     public function orders(Request $request, string $id)
     {
-        Gate::authorize('customer.view');
+        if (auth()->id() != $id) {
+            Gate::authorize('customer.view');
+        }
         $user = User::findOrFail($id);
         
         $query = $user->orders();
@@ -267,7 +271,9 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        Gate::authorize('customer.update');
+        if (auth()->id() != $id) {
+            Gate::authorize('customer.update');
+        }
         $roles = Role::select('id', 'name')->get();
         $user = User::findOrFail($id);
         $permissions = Permission::all();

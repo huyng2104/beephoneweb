@@ -260,32 +260,23 @@
                                                 <td class="px-4 py-4 text-slate-500 dark:text-slate-400">
                                                     {{ $order->created_at->format('d/m/Y') }}</td>
                                                 <td class="px-4 py-4 font-semibold text-slate-900 dark:text-slate-100">
-                                                    {{ number_format($order->total_price ?? 0) }}đ</td>
+                                                    {{ number_format($order->total_amount ?? 0) }}đ</td>
                                                 <td class="px-4 py-4">
                                                     @php
-                                                        $status_class = match ($order->status ?? 'pending') {
-                                                            'completed',
-                                                            'received'
-                                                                => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', // Gộp chung màu xanh lá
-                                                            'shipping'
-                                                                => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-                                                            'cancelled'
-                                                                => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                                                            'pending'
-                                                                => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', // Cố định màu vàng cho Chờ xác nhận
-                                                            default
-                                                                => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400', // Màu xám cho trường hợp lạ
+                                                        $s = $order->status ?? 'pending';
+                                                        $status_class = match (true) {
+                                                            $s === 'pending' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+                                                            $s === 'ready_to_pick' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                                                            in_array($s, ['picking','money_collect_picking','picked']) => 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
+                                                            in_array($s, ['storing','transporting','sorting']) => 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
+                                                            in_array($s, ['delivering','money_collect_delivering']) => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+                                                            in_array($s, ['delivered', 'received', 'completed']) => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                                                            in_array($s, ['delivery_fail','waiting_to_return','return','return_transporting','return_sorting','returning','return_fail','returned']) => 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+                                                            in_array($s, ['exception','damage','lost']) => 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
+                                                            in_array($s, ['cancel','cancelled']) => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                                                            default => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
                                                         };
-
-                                                        $status_text = match ($order->status ?? 'pending') {
-                                                            'pending' => 'Chờ xác nhận',
-                                                            'shipping' => 'Đang giao',
-                                                            'received' => 'Đã nhận',
-                                                            'completed' => 'Thành công',
-                                                            'cancelled' => 'Đã hủy',
-                                                            default
-                                                                => 'Chờ xử lý', // Đóng vai trò bao quát tất cả các trường hợp còn lại
-                                                        };
+                                                        $status_text = \App\Models\Order::statusLabels()[$s] ?? $s;
                                                     @endphp
                                                     <span
                                                         class="px-2.5 py-1 text-xs font-bold rounded-full {{ $status_class }}">

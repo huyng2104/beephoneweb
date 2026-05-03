@@ -11,6 +11,8 @@ class OrderStatusHistory extends Model
         'user_id',
         'status',
         'note',
+        'ghn_description',
+        'ghn_status_raw',
     ];
 // test commit order
     public function order()

@@ -508,14 +508,20 @@
                 }
             });
 
-            // --- LOGIC GỌI API ĐỊA CHÍNH VIỆT NAM ---
-            const host = "https://provinces.open-api.vn/api/";
+            // --- LOGIC GỌI API ĐỊA CHÍNH GHN ---
+            const GHN_TOKEN = '{{ env('GHN_TOKEN') }}';
+            const GHN_MASTER_DATA_URL = 'https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/';
 
             async function fetchProvinces() {
                 try {
-                    const response = await fetch(host + "?p=1");
+                    const response = await fetch(`${GHN_MASTER_DATA_URL}province`, {
+                        headers: { 'token': GHN_TOKEN }
+                    });
                     const data = await response.json();
-                    renderOptions("addr_province", data, "Tỉnh/Thành phố");
+                    if (data.data) {
+                        const items = data.data.map(item => ({ code: item.ProvinceID, name: item.ProvinceName }));
+                        renderOptions("addr_province", items, "Tỉnh/Thành phố");
+                    }
                 } catch (error) {
                     console.error("Lỗi lấy tỉnh thành:", error);
                 }
@@ -523,9 +529,14 @@
 
             async function fetchDistricts(provinceId) {
                 try {
-                    const response = await fetch(host + "p/" + provinceId + "?depth=2");
+                    const response = await fetch(`${GHN_MASTER_DATA_URL}district?province_id=${provinceId}`, {
+                        headers: { 'token': GHN_TOKEN }
+                    });
                     const data = await response.json();
-                    renderOptions("addr_district", data.districts, "Quận/Huyện");
+                    if (data.data) {
+                        const items = data.data.map(item => ({ code: item.DistrictID, name: item.DistrictName }));
+                        renderOptions("addr_district", items, "Quận/Huyện");
+                    }
                 } catch (error) {
                     console.error("Lỗi lấy quận huyện:", error);
                 }
@@ -533,9 +544,14 @@
 
             async function fetchWards(districtId) {
                 try {
-                    const response = await fetch(host + "d/" + districtId + "?depth=2");
+                    const response = await fetch(`${GHN_MASTER_DATA_URL}ward?district_id=${districtId}`, {
+                        headers: { 'token': GHN_TOKEN }
+                    });
                     const data = await response.json();
-                    renderOptions("addr_ward", data.wards, "Phường/Xã");
+                    if (data.data) {
+                        const items = data.data.map(item => ({ code: item.WardCode, name: item.WardName }));
+                        renderOptions("addr_ward", items, "Phường/Xã");
+                    }
                 } catch (error) {
                     console.error("Lỗi lấy phường xã:", error);
                 }

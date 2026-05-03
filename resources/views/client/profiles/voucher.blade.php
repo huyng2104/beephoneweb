@@ -10,12 +10,17 @@
         </header>
 
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-12 ">
-            @forelse ($user->userVouchers as $userVoucher)
+            @php
+                $displayVouchers = $user->userVouchers->reject(function($v) {
+                    return $v->pivot && $v->pivot->order_id && $v->pivot->used_at;
+                });
+            @endphp
+            @forelse ($displayVouchers as $userVoucher)
                 @php
                     $voucher = $userVoucher;
 
                     // KIỂM TRA: Nếu có order_id thì ép trạng thái hiển thị thành "Đã sử dụng"
-                    $displayStatus = $voucher->order_id ? 'Đã sử dụng' : $voucher->voucher_status;
+                    $displayStatus = ($voucher->pivot && $voucher->pivot->order_id) ? 'Đã sử dụng' : $voucher->voucher_status;
 
                     $statusClasses = match ($displayStatus) {
                         'Hoạt động' => 'bg-green-100 text-green-700 border-green-200',
@@ -88,9 +93,9 @@
                         <div class="flex space-x-3">
                             @if ($displayStatus == 'Đã sử dụng')
                                 {{-- Nút Xem đơn hàng nếu đã sử dụng --}}
-                                <a href="/don-hang/{{ $voucher->order_id }}"
+                                <a href="/don-hang/{{ $voucher->pivot->order_id ?? '' }}"
                                     class="flex-1 py-2 bg-purple-500 text-white font-bold rounded-lg text-sm hover:bg-purple-600 transition-colors active:scale-95 shadow-sm text-center">
-                                    Xem đơn #{{ $voucher->order_id }}
+                                    Xem đơn #{{ $voucher->pivot->order_id ?? '' }}
                                 </a>
                             @elseif (!$isInactive)
                                 {{-- Nút Dùng ngay nếu còn hiệu lực --}}
@@ -203,12 +208,12 @@
                                                 {{ $voucher->end_date ? \Carbon\Carbon::parse($voucher->end_date)->format('H:i - d/m/Y') : 'Vô thời hạn' }}
                                             </span>
                                         </div>
-                                        @if ($voucher->order_id)
+                                        @if ($voucher->pivot && $voucher->pivot->order_id)
                                             <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
                                                 <span class="text-gray-500 text-sm">Đã dùng cho đơn:</span>
-                                                <a href="/don-hang/{{ $voucher->order_id }}"
+                                                <a href="/don-hang/{{ $voucher->pivot->order_id }}"
                                                     class="font-bold text-purple-600 hover:underline">
-                                                    #{{ $voucher->order_id }}
+                                                    #{{ $voucher->pivot->order_id }}
                                                 </a>
                                             </div>
                                         @endif

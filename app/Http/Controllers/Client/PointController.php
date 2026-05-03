@@ -35,7 +35,13 @@ class PointController extends Controller
             })
             ->get();
 
-        return view('client.points.index', compact('user', 'histories', 'setting', 'vouchers'));
+        // Lấy danh sách ID voucher người dùng đã đổi/sở hữu
+        $userVoucherIds = DB::table('user_vouchers')
+            ->where('user_id', $user->id)
+            ->pluck('voucher_id')
+            ->toArray();
+
+        return view('client.points.index', compact('user', 'histories', 'setting', 'vouchers', 'userVoucherIds'));
     }
 
     // 2. Xử lý đổi điểm lấy Mã giảm giá
