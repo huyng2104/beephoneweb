@@ -20,11 +20,25 @@
 
     <nav class="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto custom-scrollbar">
         {{-- Bảng điều khiển --}}
-        <a class="{{ request()->is('admin') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ url('admin') }}">
-            <span class="material-symbols-outlined">dashboard</span>
-            <span>Bảng điều khiển</span>
+        <a class="{{ request()->is('admin') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            href="{{ route('admin.dashboard') }}">
+            <span class="material-symbols-outlined">monitoring</span>
+            <span>Thống kê Doanh thu</span>
         </a>
+
+        <a class="{{ request()->routeIs('admin.dashboard.orders') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            href="{{ route('admin.dashboard.orders') }}">
+            <span class="material-symbols-outlined">pie_chart</span>
+            <span>Thống kê Đơn hàng</span>
+        </a>
+
+        @can('customer.view')
+        <a class="{{ request()->routeIs('admin.dashboard.users') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            href="{{ route('admin.dashboard.users') }}">
+            <span class="material-symbols-outlined">groups</span>
+            <span>Thống kê Người dùng</span>
+        </a>
+        @endcan
 
         {{-- NHÓM SẢN PHẨM (DROPDOWN) --}}
         @canany(['product.view', 'attribute.view', 'category.view', 'brand.view'])
