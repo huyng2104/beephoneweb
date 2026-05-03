@@ -17,6 +17,40 @@ class ChatbotController extends Controller
         $request->validate(['message' => 'required|string']);
 
         $userMessage = $request->message;
+        $historyJson = $request->history;
+
+        // Xây dựng câu query tìm sản phẩm kèm ngữ cảnh
+        $searchQueryForProducts = $userMessage;
+        $historyText = "";
+        
+        if ($historyJson) {
+            $historyArr = json_decode($historyJson, true);
+            if (is_array($historyArr)) {
+                // Lấy câu hỏi cuối cùng của khách để nối vào query
+                $lastUserMsg = '';
+                foreach(array_reverse($historyArr) as $msg) {
+                    if (isset($msg['role']) && $msg['role'] == 'user') {
+                        $lastUserMsg = $msg['text'] ?? '';
+                        break;
+                    }
+                }
+                if (!empty($lastUserMsg)) {
+                    $searchQueryForProducts = $lastUserMsg . " " . $userMessage;
+                }
+
+                // Dựng text lịch sử để AI đọc hiểu ngữ cảnh
+                $recentHistory = array_slice($historyArr, -6);
+                foreach ($recentHistory as $msg) {
+                    if (isset($msg['role']) && isset($msg['text'])) {
+                        $roleName = $msg['role'] == 'user' ? 'Khách hàng' : 'Trợ lý AI';
+                        $historyText .= $roleName . ": " . $msg['text'] . "\n";
+                    }
+                }
+            }
+        }
+
+        $suggestedProducts = $this->getSuggestedProducts($searchQueryForProducts);
+        $bestSellers = empty($suggestedProducts) ? $this->getBestSellingProducts() : [];
 
         // ==========================================
         // 1. KIỂM TRA FAQ TRƯỚC (CÁCH 1)
@@ -26,8 +60,8 @@ class ChatbotController extends Controller
             return response()->json([
                 'reply' => $faq->answer,
                 'type' => 'faq',
-                'products' => $this->getSuggestedProducts($userMessage),
-                'best_sellers' => $this->getBestSellingProducts(),
+                'products' => $suggestedProducts,
+                'best_sellers' => $bestSellers,
             ]);
         }
 
@@ -48,8 +82,8 @@ class ChatbotController extends Controller
             return response()->json([
                 'reply' => 'Hệ thống AI chưa được cấu hình API chìa khóa. Vui lòng thử lại sau hoặc liên hệ quản trị.',
                 'type' => 'error',
-                'products' => $this->getSuggestedProducts($userMessage),
-                'best_sellers' => $this->getBestSellingProducts(),
+                'products' => $suggestedProducts,
+                'best_sellers' => $bestSellers,
             ]);
         }
 
@@ -89,21 +123,34 @@ CHƯƠNG TRÌNH KHUYẾN MÃI & TÍCH ĐIỂM (BEE POINT):
         // ==========================================
         // 2. PROMPT "THIẾT QUÂN LUẬT" CHO AI
         // ==========================================
-        $prompt = "Bạn là trợ lý ảo chăm sóc khách hàng của hệ thống điện thoại BeePhone. Nhiệm vụ duy nhất của bạn là giải đáp các thắc mắc của khách hàng về CHÍNH SÁCH của cửa hàng.
+        $productContext = $this->getProductContextForAI($searchQueryForProducts);
+
+        $prompt = "Bạn là trợ lý ảo chăm sóc khách hàng của hệ thống điện thoại BeePhone. Nhiệm vụ của bạn là giải đáp thắc mắc về CHÍNH SÁCH cửa hàng VÀ TƯ VẤN SẢN PHẨM.
+
+Dưới đây là LỊCH SỬ TRÒ CHUYỆN (dùng để hiểu đại từ 'nó', 'đó', 'máy này'... khách đang ám chỉ sản phẩm nào):
+\"\"\"
+" . ($historyText ?: "Chưa có lịch sử.") . "
+\"\"\"
 
 Dưới đây là Cẩm nang chính sách của BeePhone:
 \"\"\"
 " . $storePolicies . "
 \"\"\"
 
+Dưới đây là DỮ LIỆU KHO HÀNG TRỰC TIẾP dựa theo câu hỏi của khách (nếu có):
+\"\"\"
+" . ($productContext ?: "Không có thông tin sản phẩm nào khớp với câu hỏi.") . "
+\"\"\"
+
 QUY TẮC TRẢ LỜI (BẮT BUỘC PHẢI TUÂN THỦ):
-1. Dựa hoàn toàn vào 'Cẩm nang chính sách' bên trên để trả lời. Không được tự bịa ra chính sách khác.
-2. NẾU KHÁCH HỎI VỀ SẢN PHẨM CỤ THỂ (VD: iPhone 15 giá bao nhiêu, Samsung có hàng không, Tư vấn mua máy...): BẮT BUỘC phải từ chối khéo léo và đáp rằng: 'Dạ, em là trợ lý chuyên giải đáp chính sách cửa hàng. Để xem giá và tình trạng hàng hóa, anh/chị vui lòng gõ tên máy vào thanh tìm kiếm trên Website giúp em nhé ạ! 🥰'
-3. Luôn xưng hô là 'em' và gọi khách là 'anh/chị'. Thái độ cực kỳ lịch sự, thân thiện và nhiệt tình.
-4. Trả lời cực kỳ NGẮN GỌN, xúc tích, đi thẳng vào vấn đề khách hỏi.
-5. Tuyệt đối KHÔNG dùng các ký tự markdown như ** hay * trong câu trả lời để tránh lỗi hiển thị.
+1. Về chính sách: Dựa hoàn toàn vào 'Cẩm nang chính sách'. Không tự bịa.
+2. Về sản phẩm: Dựa hoàn toàn vào 'DỮ LIỆU KHO HÀNG TRỰC TIẾP'. Chỉ báo giá và tồn kho của những phiên bản có liệt kê bên trên. Phải thông báo rõ bản nào CÒN HÀNG, bản nào HẾT HÀNG.
+3. Nếu khách hỏi về sản phẩm mà trong DỮ LIỆU KHO HÀNG ghi là 'Không có thông tin...', hãy khéo léo đáp: 'Dạ, hiện em không tìm thấy thông tin máy này trong kho, anh/chị có thể gõ tên máy lên thanh tìm kiếm hoặc tham khảo gợi ý bên dưới giúp em nhé ạ! 🥰'
+4. Luôn xưng hô là 'em' và gọi khách là 'anh/chị'. Thái độ thân thiện, nhiệt tình.
+5. Trả lời NGẮN GỌN, đi thẳng vào vấn đề. KHÔNG dùng ký tự markdown như ** hay *.
 
 Câu hỏi của khách: " . $userMessage;
+
 
         // ==========================================
         // 3. GỌI API GEMINI 2.5 FLASH
@@ -121,14 +168,14 @@ Câu hỏi của khách: " . $userMessage;
                 if ($response->status() == 429) {
                     return response()->json([
                         'reply' => 'Dạ hiện tại lượng khách truy cập BeePhone đang quá đông, anh/chị vui lòng chờ em 10 giây rồi nhắn lại nhé ạ! 🥰',
-                        'products' => $this->getSuggestedProducts($userMessage),
-                        'best_sellers' => $this->getBestSellingProducts(),
+                        'products' => $suggestedProducts,
+                        'best_sellers' => $bestSellers,
                     ]);
                 }
                 return response()->json([
                     'reply' => 'Lỗi API thật sự là: ' . $response->body(),
-                    'products' => $this->getSuggestedProducts($userMessage),
-                    'best_sellers' => $this->getBestSellingProducts(),
+                    'products' => $suggestedProducts,
+                    'best_sellers' => $bestSellers,
                 ]);
             }
             
@@ -140,22 +187,22 @@ Câu hỏi của khách: " . $userMessage;
                 $botReply = str_replace(['**', '*'], '', $botReply);
                 return response()->json([
                     'reply' => $botReply,
-                    'products' => $this->getSuggestedProducts($userMessage),
-                    'best_sellers' => $this->getBestSellingProducts(),
+                    'products' => $suggestedProducts,
+                    'best_sellers' => $bestSellers,
                 ]);
             }
 
             return response()->json([
                 'reply' => 'Dạ em chưa hiểu ý anh/chị lắm ạ, anh chị có thể hỏi rõ hơn về bảo hành, giao hàng hay thanh toán không ạ?',
-                'products' => $this->getSuggestedProducts($userMessage),
-                'best_sellers' => $this->getBestSellingProducts(),
+                'products' => $suggestedProducts,
+                'best_sellers' => $bestSellers,
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'reply' => 'Hệ thống AI đang bảo trì: ' . $e->getMessage(),
-                'products' => $this->getSuggestedProducts($userMessage),
-                'best_sellers' => $this->getBestSellingProducts(),
+                'products' => $suggestedProducts,
+                'best_sellers' => $bestSellers,
             ]);
         }
     }
@@ -231,18 +278,20 @@ Câu hỏi của khách: " . $userMessage;
         $normalized = $this->normalizeText($message);
         $tokens = array_values(array_filter(explode(' ', $normalized), fn($t) => mb_strlen($t, 'UTF-8') >= 2));
 
+        if (empty($tokens)) {
+            return [];
+        }
+
         $query = Product::query()
             ->with(['brand:id,name', 'variants:id,product_id,price,sale_price', 'images:id,product_id,path'])
             ->where('status', 'active');
 
-        if (!empty($tokens)) {
-            $query->where(function ($q) use ($tokens) {
-                foreach ($tokens as $token) {
-                    $q->orWhere('name', 'like', '%' . $token . '%')
-                        ->orWhere('description', 'like', '%' . $token . '%');
-                }
-            });
-        }
+        $query->where(function ($q) use ($tokens, $normalized) {
+            $q->orWhere('name', 'like', '%' . $normalized . '%');
+            foreach ($tokens as $token) {
+                $q->orWhere('name', 'like', '%' . $token . '%');
+            }
+        });
 
         $products = $query->latest('id')->limit($limit)->get();
 
@@ -304,5 +353,58 @@ Câu hỏi của khách: " . $userMessage;
                 'thumbnail' => $thumbnail ? asset('storage/' . ltrim($thumbnail, '/')) : null,
             ];
         })->values()->all();
+    }
+
+    private function getProductContextForAI(string $message): string
+    {
+        $normalized = $this->normalizeText($message);
+        $tokens = array_values(array_filter(explode(' ', $normalized), fn($t) => mb_strlen($t, 'UTF-8') >= 2));
+
+        if (empty($tokens)) return "";
+
+        // Tìm từ khóa dài (như "iphone 15 pro max")
+        $query = Product::query()
+            ->with(['variants.attributeValues', 'brand'])
+            ->where('status', 'active');
+
+        $query->where(function ($q) use ($tokens, $normalized) {
+            // Match the whole string if possible, otherwise match by tokens
+            $q->orWhere('name', 'like', '%' . $normalized . '%');
+            foreach ($tokens as $token) {
+                $q->orWhere('name', 'like', '%' . $token . '%');
+            }
+        });
+
+        $products = $query->latest('id')->limit(3)->get();
+        
+        if ($products->isEmpty()) return "";
+
+        $context = "";
+        foreach ($products as $product) {
+            $brandName = optional($product->brand)->name ?? 'Không rõ';
+            $context .= "Sản phẩm: " . $product->name . " (Hãng: " . $brandName . ")\n";
+            $context .= "Các phiên bản hiện có trong kho:\n";
+            
+            if ($product->variants->isEmpty()) {
+                $context .= "- Đang cập nhật phiên bản.\n";
+                continue;
+            }
+
+            foreach ($product->variants as $variant) {
+                // Tách thuộc tính (VD: 256GB, Đen)
+                $attributes = $variant->attributeValues->pluck('value')->join(', ');
+                if (empty($attributes)) $attributes = "Bản tiêu chuẩn";
+                
+                $price = $variant->sale_price ?: $variant->price;
+                $priceStr = number_format($price, 0, ',', '.') . " VNĐ";
+                $stock = $variant->stock;
+                $stockStr = $stock > 0 ? "Còn {$stock} chiếc" : "Hết hàng";
+                
+                $context .= "- Bản {$attributes} | Giá: {$priceStr} | Tình trạng: {$stockStr}\n";
+            }
+            $context .= "\n";
+        }
+
+        return $context;
     }
 }

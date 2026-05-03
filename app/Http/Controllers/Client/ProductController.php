@@ -31,7 +31,7 @@ class ProductController extends Controller
             ->values();
 
         $trending = (clone $baseQuery)
-            ->orderByDesc('id')
+            ->orderByDesc('views')
             ->limit(6)
             ->pluck('name')
             ->values();
@@ -41,7 +41,7 @@ class ProductController extends Controller
             ->when($keyword !== '', function ($q) use ($keyword) {
                 $q->where('name', 'like', '%' . $keyword . '%');
             })
-            ->orderByDesc('id')
+            ->orderByDesc('views')
             ->limit(4)
             ->get()
             ->map(function ($product) {
@@ -75,6 +75,9 @@ class ProductController extends Controller
             ->where('slug', $slug)
             ->orWhere('id', $slug)
             ->firstOrFail();
+
+        // Tăng lượt xem sản phẩm
+        $product->increment('views');
 
         // Lấy sản phẩm liên quan (cùng danh mục đầu tiên)
         $firstCatId = $product->categories->first()?->id;
