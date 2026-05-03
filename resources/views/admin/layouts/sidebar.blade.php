@@ -20,25 +20,46 @@
 
     <nav class="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto custom-scrollbar">
         {{-- Bảng điều khiển --}}
-        <a class="{{ request()->is('admin') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ route('admin.dashboard') }}">
-            <span class="material-symbols-outlined">monitoring</span>
-            <span>Thống kê Doanh thu</span>
-        </a>
+        {{-- NHÓM THỐNG KÊ (DROPDOWN) --}}
+        @php
+            $isStatsGroupActive = request()->is('admin') || request()->routeIs('admin.dashboard.orders', 'admin.dashboard.users');
+        @endphp
+        <div>
+            <button onclick="toggleSidebarMenu('menu-stats', 'icon-stats')"
+                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors {{ $isStatsGroupActive ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }}">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined">monitoring</span>
+                    <span>Thống kê</span>
+                </div>
+                <span id="icon-stats"
+                    class="material-symbols-outlined text-[18px] transition-transform duration-300 {{ $isStatsGroupActive ? 'rotate-180' : '' }}">
+                    expand_more
+                </span>
+            </button>
 
-        <a class="{{ request()->routeIs('admin.dashboard.orders') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ route('admin.dashboard.orders') }}">
-            <span class="material-symbols-outlined">pie_chart</span>
-            <span>Thống kê Đơn hàng</span>
-        </a>
+            <div id="menu-stats"
+                class="overflow-hidden transition-all duration-300 ease-in-out {{ $isStatsGroupActive ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0' }} flex flex-col space-y-1">
+                <a href="{{ route('admin.dashboard') }}"
+                    class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->is('admin') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                    <div class="w-1.5 h-1.5 rounded-full {{ request()->is('admin') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}"></div>
+                    Doanh thu
+                </a>
 
-        @can('customer.view')
-        <a class="{{ request()->routeIs('admin.dashboard.users') ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }} flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            href="{{ route('admin.dashboard.users') }}">
-            <span class="material-symbols-outlined">groups</span>
-            <span>Thống kê Người dùng</span>
-        </a>
-        @endcan
+                <a href="{{ route('admin.dashboard.orders') }}"
+                    class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.dashboard.orders') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                    <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.dashboard.orders') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}"></div>
+                    Đơn hàng
+                </a>
+
+                @can('customer.view')
+                <a href="{{ route('admin.dashboard.users') }}"
+                    class="pl-11 pr-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 {{ request()->routeIs('admin.dashboard.users') ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                    <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('admin.dashboard.users') ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600' }}"></div>
+                    Người dùng
+                </a>
+                @endcan
+            </div>
+        </div>
 
         {{-- NHÓM SẢN PHẨM (DROPDOWN) --}}
         @canany(['product.view', 'attribute.view', 'category.view', 'brand.view'])

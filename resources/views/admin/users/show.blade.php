@@ -222,6 +222,7 @@
                         </div>
                     </div>
 
+                    @if(Auth::id() == $user->id || Gate::check('order.view'))
                     <div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-primary/10 shadow-sm">
                         <div class="p-8">
                             <div class="flex items-center justify-between mb-6">
@@ -304,11 +305,13 @@
                             </div>
                         </div>
                     </div>
+                    @endif
 
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-slate-900 rounded-xl p-6 mb-8 border border-primary/10 shadow-sm">
+        @if(Auth::id() == $user->id || Gate::check('activity.view'))
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-6 mb-8 border border-primary/10 shadow-sm">
     <div class="flex-1">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
@@ -617,6 +620,7 @@
 
     </div>
 </div>
+        @endif
         </main>
 
 
