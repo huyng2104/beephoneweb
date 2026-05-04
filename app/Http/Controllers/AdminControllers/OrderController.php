@@ -108,6 +108,10 @@ class OrderController extends Controller
 
         $nextStatus = $validated['status'];
 
+        if ($order->status === $nextStatus) {
+            return back()->with('info', 'Đơn hàng đã được xử lý');
+        }
+
         if ($nextStatus === Order::STATUS_CANCELLED) {
             throw ValidationException::withMessages([
                 'status' => 'Vui lòng dùng chức năng hủy đơn để nhập lý do hủy.',
@@ -137,7 +141,7 @@ class OrderController extends Controller
             'order_id' => $order->id,
             'user_id' => Auth::id(),
             'status' => $nextStatus,
-            'note' => 'Cập nhật trạng thái bởi quản trị viên',
+            'note' => 'Đơn hàng đang được chuẩn bị',
         ]);
 
         // ==========================================
@@ -159,7 +163,7 @@ class OrderController extends Controller
                         'order_id' => $order->id,
                         'user_id'  => Auth::id(),
                         'status'   => Order::STATUS_READY_TO_PICK,
-                        'note'     => 'Đã tạo vận đơn GHN thành công. Mã vận đơn: ' . $ghnOrderCode,
+                        'note'     => 'Đơn hàng đang chờ đơn vị vận chuyển lấy hàng.',
                     ]);
                 } else {
                     $ghnWarning = 'Đã duyệt đơn nhưng tạo vận đơn GHN thất bại. Vui lòng tạo thủ công và nhập mã vận đơn.';
@@ -235,11 +239,28 @@ class OrderController extends Controller
             ]);
         }
 
+        $ghn = null;
+        // Kiểm tra trạng thái thực tế bên GHN nếu đã có mã vận đơn
+        if ($order->tracking_number) {
+            $ghn = app(\App\Services\GhnService::class);
+            $ghnOrder = $ghn->getOrderDetail($order->tracking_number);
+            
+            if ($ghnOrder) {
+                $ghnStatus = strtolower(trim($ghnOrder['status'] ?? ''));
+                // Chỉ cho phép hủy nếu trạng thái GHN là ready_to_pick, picking, money_collect_picking hoặc đã hủy bên GHN
+                if (!in_array($ghnStatus, ['ready_to_pick', 'picking', 'money_collect_picking', 'cancel', 'cancelled'])) {
+                    return back()->with('error', 'Đơn hàng đang trong quá trình vận chuyển không thể hủy.');
+                }
+            } else {
+                // Nếu không lấy được thông tin từ GHN, tạm thời chặn để an toàn
+                return back()->with('error', 'Không thể xác thực trạng thái đơn hàng từ GHN. Vui lòng thử lại sau.');
+            }
+        }
+
         \Illuminate\Support\Facades\DB::beginTransaction();
         try {
             // NẾU ĐƠN ĐÃ CÓ MÃ VẬN ĐƠN THÌ PHẢI GỌI GHN ĐỂ HỦY
-            if ($order->tracking_number) {
-                $ghn = app(\App\Services\GhnService::class);
+            if ($order->tracking_number && $ghn) {
                 $ghn->cancelOrder($order->tracking_number);
             }
 
@@ -263,7 +284,12 @@ class OrderController extends Controller
                 
             if ($userVoucher) {
                 \App\Models\Voucher::where('id', $userVoucher->voucher_id)->decrement('used_count');
-                \Illuminate\Support\Facades\DB::table('user_vouchers')->where('order_id', $order->id)->delete();
+                \Illuminate\Support\Facades\DB::table('user_vouchers')
+                    ->where('order_id', $order->id)
+                    ->update([
+                        'order_id' => null,
+                        'used_at' => null
+                    ]);
             }
 
             // 2. HOÀN SỐ LƯỢNG SẢN PHẨM / BIẾN THỂ VÀO KHO
@@ -431,7 +457,7 @@ class OrderController extends Controller
 
         if (! $returnRequest->canApprove()) {
             throw ValidationException::withMessages([
-                'return_admin_note' => 'Yêu cầu này chưa ở bước chờ duyệt.',
+                'return_admin_note' => 'Yêu cầu này đã được xử lý.',
             ]);
         }
 
@@ -463,6 +489,13 @@ class OrderController extends Controller
             'user_id' => Auth::id(),
             'status' => $returnStatus,
             'note' => $msgAdmin,
+        ]);
+
+        OrderStatusHistory::create([
+            'order_id' => $returnRequest->order_id,
+            'user_id' => Auth::id(),
+            'status' => 'Hoàn trả',
+            'note' => 'Admin đã duyệt yêu cầu hoàn trả [' . $returnRequest->return_code . ']',
         ]);
 
         // ==========================================

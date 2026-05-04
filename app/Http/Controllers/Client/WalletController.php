@@ -21,7 +21,14 @@ class WalletController extends Controller
     // ==================================================
     public function createDeposit(Request $request)
     {
-        $request->validate(['amount' => 'required|numeric|min:10000']);
+        $request->validateWithBag('deposit', [
+            'amount' => 'required|numeric|min:10000|max:100000000'
+        ], [
+            'amount.required' => 'Vui lòng nhập số tiền cần nạp.',
+            'amount.numeric' => 'Số tiền nạp phải là một số hợp lệ.',
+            'amount.min' => 'Số tiền nạp tối thiểu là 10.000 VNĐ.',
+            'amount.max' => 'Số tiền nạp tối đa là 100.000.000 VNĐ.',
+        ]);
         $user = Auth::user();
 
         // TẠO MÃ GIAO DỊCH TẠM THỜI
@@ -487,7 +494,15 @@ class WalletController extends Controller
             return back()->with('error', 'Bạn chưa kích hoạt ví.');
         }
 
-        $request->validate([
+        if ($wallet->status === 'locked') {
+            return back()->with('error', 'Ví của bạn đang bị khóa. Lý do: ' . $wallet->lock_reason);
+        }
+
+        if ($wallet->locked_until && now()->lessThan($wallet->locked_until)) {
+            return back()->with('error', 'Ví của bạn đang bị khóa tạm thời đến ' . \Carbon\Carbon::parse($wallet->locked_until)->format('H:i d/m/Y'));
+        }
+
+        $request->validateWithBag('changeWalletPin', [
             'old_wallet_pin' => 'required|numeric|digits:6',
             'wallet_pin' => 'required|numeric|digits:6|confirmed',
         ], [
@@ -501,7 +516,28 @@ class WalletController extends Controller
         ]);
 
         if (!Hash::check($request->old_wallet_pin, $wallet->wallet_pin)) {
-            return back()->with('error', 'Mã PIN hiện tại không chính xác.');
+            $wallet->increment('pin_attempts');
+
+            if ($wallet->pin_attempts >= 5) {
+                $wallet->update([
+                    'locked_until' => now()->addMinutes(15),
+                    'status'      => 'locked',
+                    'lock_reason' => 'Nhập sai mã PIN quá 5 lần.'
+                ]);
+
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'old_wallet_pin' => 'Bạn đã nhập sai mã PIN 5 lần. Ví của bạn đã bị khóa!',
+                ])->errorBag('changeWalletPin');
+            }
+
+            $remaining = 5 - $wallet->pin_attempts;
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'old_wallet_pin' => "Mã PIN hiện tại không chính xác. Bạn còn $remaining lần thử.",
+            ])->errorBag('changeWalletPin');
+        }
+
+        if ($wallet->pin_attempts > 0) {
+            $wallet->update(['pin_attempts' => 0]);
         }
 
         try {

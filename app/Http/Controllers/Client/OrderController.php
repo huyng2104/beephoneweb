@@ -147,13 +147,30 @@ class OrderController extends Controller
 
         $order = Order::with('items')->where('user_id', Auth::id())->findOrFail($id);
 
-        if (in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_READY_TO_PICK, Order::STATUS_PICKING])) {
+        if (in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_READY_TO_PICK, Order::STATUS_PICKING, Order::STATUS_MONEY_COLLECT_PICKING])) {
             
+            $ghn = null;
+            // Kiểm tra trạng thái thực tế bên GHN nếu đã có mã vận đơn
+            if ($order->tracking_number) {
+                $ghn = app(\App\Services\GhnService::class);
+                $ghnOrder = $ghn->getOrderDetail($order->tracking_number);
+                
+                if ($ghnOrder) {
+                    $ghnStatus = strtolower(trim($ghnOrder['status'] ?? ''));
+                    // Chỉ cho phép hủy nếu trạng thái GHN là ready_to_pick, picking, money_collect_picking hoặc đã hủy bên GHN
+                    if (!in_array($ghnStatus, ['ready_to_pick', 'picking', 'money_collect_picking', 'cancel', 'cancelled'])) {
+                        return redirect()->back()->with('error', 'Đơn hàng đang trong quá trình vận chuyển không thể hủy.');
+                    }
+                } else {
+                    // Nếu không lấy được thông tin từ GHN, tạm thời chặn để an toàn
+                    return redirect()->back()->with('error', 'Không thể xác thực trạng thái đơn hàng từ GHN. Vui lòng thử lại sau.');
+                }
+            }
+
             \Illuminate\Support\Facades\DB::beginTransaction();
             try {
                 // NẾU ĐƠN ĐÃ CÓ MÃ VẬN ĐƠN THÌ PHẢI GỌI GHN ĐỂ HỦY
-                if ($order->tracking_number) {
-                    $ghn = app(\App\Services\GhnService::class);
+                if ($order->tracking_number && $ghn) {
                     $ghn->cancelOrder($order->tracking_number);
                 }
                 $order->status = Order::STATUS_CANCELLED;
@@ -171,6 +188,9 @@ class OrderController extends Controller
                     ])
                     ->log('Hủy đơn hàng #' . $order->order_code);
 
+                $isRefunded = false;
+                $refundAmount = 0;
+
                 // 1. HOÀN VOUCHER (nếu có sử dụng)
                 $userVoucher = \Illuminate\Support\Facades\DB::table('user_vouchers')
                     ->where('order_id', $order->id)
@@ -178,7 +198,12 @@ class OrderController extends Controller
                     
                 if ($userVoucher) {
                     \App\Models\Voucher::where('id', $userVoucher->voucher_id)->decrement('used_count');
-                    \Illuminate\Support\Facades\DB::table('user_vouchers')->where('order_id', $order->id)->delete();
+                    \Illuminate\Support\Facades\DB::table('user_vouchers')
+                        ->where('order_id', $order->id)
+                        ->update([
+                            'order_id' => null,
+                            'used_at' => null
+                        ]);
                 }
 
                 // 2. HOÀN SỐ LƯỢNG SẢN PHẨM / BIẾN THỂ VÀO KHO
@@ -212,8 +237,23 @@ class OrderController extends Controller
                             'reference_id' => $order->id,
                             'status' => 'completed',
                         ]);
+
+                        $isRefunded = true;
+                        $refundAmount = $order->total_amount;
                     }
                 }
+
+                $historyNote = 'Khách hàng đã tự hủy đơn. Lý do: ' . $request->cancellation_reason;
+                if ($isRefunded) {
+                    $historyNote .= '. Đã hoàn ' . number_format($refundAmount) . ' ₫ vào ví.';
+                }
+
+                \App\Models\OrderStatusHistory::create([
+                    'order_id' => $order->id,
+                    'user_id' => Auth::id(),
+                    'status' => Order::STATUS_CANCELLED,
+                    'note' => $historyNote,
+                ]);
 
                 // ==========================================
                 // BẮN THÔNG BÁO CHO TẤT CẢ ADMIN
@@ -335,28 +375,23 @@ class OrderController extends Controller
         }
 
         // Tính discount_amount thực tế (nếu có) để phân bổ
-        $subtotal = $order->items->sum('line_total');
+        $subtotal = $order->items->sum('line_total'); // Tổng tiền đơn hàng (tiền hàng)
         $shippingFee = $order->shipping_fee ?? 0;
-        $discountAmount = ($subtotal + $shippingFee) - $order->total_amount;
+        $discountAmount = ($subtotal + $shippingFee) - $order->total_amount; // Số tiền được giảm
         if ($discountAmount < 0) $discountAmount = 0;
 
-        $totalRefund = 0;
-        foreach ($selectedItems as &$s) {
-            $lineTotal = $s['item']->line_total;
-            $qty = $s['qty'];
-            $lineUnit = $lineTotal / $s['item']->quantity;
-            
-            // Tính số tiền giảm giá phân bổ cho 1 sản phẩm này
-            $itemDiscount = 0;
-            if ($subtotal > 0) {
-                $itemDiscount = ($lineUnit / $subtotal) * $discountAmount;
-            }
-            
-            $refundAmt = ($lineUnit - $itemDiscount) * $qty;
-            $s['refund_amount'] = max(0, $refundAmt);
-            $totalRefund += $s['refund_amount'];
+        // Lấy tổng tiền tạm tính của sản phẩm hoàn
+        $returnSubtotal = 0;
+        foreach ($selectedItems as $s) {
+            $lineUnit = $s['item']->line_total / $s['item']->quantity;
+            $returnSubtotal += ($lineUnit * $s['qty']);
         }
-        unset($s);
+
+        // Tính số tiền hoàn: lấy tổng tiền tạm tính của SP hoàn chia cho tổng tiền đơn hàng nhân với số tiền được giảm
+        $allocatedDiscount = 0;
+        if ($subtotal > 0) {
+            $allocatedDiscount = ($returnSubtotal / $subtotal) * $discountAmount;
+        }
 
         // Tính phí ship trả hàng (từ khách về kho)
         $returnShippingFee = 0;
@@ -377,10 +412,36 @@ class OrderController extends Controller
             $returnShippingFee = 30000; // Mặc định nếu thiếu địa chỉ
         }
 
-        // Trừ phí ship trả hàng vào số tiền hoàn của khách
-        $deductedShippingFee = $returnShippingFee;
-        $totalRefund -= $deductedShippingFee;
+        // Phân bổ lại refund_amount cho từng item để lưu vào DB (xử lý làm tròn)
+        $totalRefundBeforeShip = $returnSubtotal - $allocatedDiscount;
+        $remainingRefund = round($totalRefundBeforeShip);
         
+        $totalItems = count($selectedItems);
+        $i = 0;
+        
+        foreach ($selectedItems as &$s) {
+            $i++;
+            $lineUnit = $s['item']->line_total / $s['item']->quantity;
+            $itemTotal = $lineUnit * $s['qty'];
+            
+            if ($i == $totalItems) {
+                // Item cuối cùng nhận phần tiền hoàn còn lại để khớp chính xác tổng
+                $s['refund_amount'] = max(0, $remainingRefund);
+            } else {
+                $itemDiscount = 0;
+                if ($returnSubtotal > 0) {
+                    $itemDiscount = ($itemTotal / $returnSubtotal) * $allocatedDiscount;
+                }
+                $itemRefund = round($itemTotal - $itemDiscount);
+                $s['refund_amount'] = max(0, $itemRefund);
+                $remainingRefund -= $s['refund_amount'];
+            }
+        }
+        unset($s);
+
+        // Tổng tiền hoàn = (Tổng tiền SP hoàn - Giảm giá phân bổ) - Phí ship
+        $totalRefund = round($totalRefundBeforeShip) - $returnShippingFee;
+        $deductedShippingFee = $returnShippingFee;
         if ($totalRefund < 0) $totalRefund = 0;
 
         // Tạo ReturnRequest
@@ -410,8 +471,8 @@ class OrderController extends Controller
         OrderStatusHistory::create([
             'order_id' => $order->id,
             'user_id'  => Auth::id(),
-            'status'   => '(Hoàn hàng) pending',
-            'note'     => 'Khách gửi yêu cầu hoàn hàng [' . $returnCode . ']: ' . $validated['reason'],
+            'status'   => 'Hoàn trả',
+            'note'     => 'Khách gửi yêu cầu hoàn hàng [' . $returnCode . ']: ' . 'lý do:' . $validated['reason'],
         ]);
 
         // Ghi lịch sử hoạt động: Yêu cầu hoàn hàng
@@ -425,6 +486,14 @@ class OrderController extends Controller
                 'total_refund'  => (int) $totalRefund,
             ])
             ->log('Gửi yêu cầu hoàn hàng [' . $returnCode . '] cho đơn #' . $order->order_code);
+
+        // Ghi lịch sử tạo yêu cầu hoàn trả
+        \App\Models\ReturnRequestHistory::create([
+            'return_request_id' => $returnRequest->id,
+            'user_id'           => Auth::id(),
+            'status'            => \App\Models\ReturnRequest::STATUS_PENDING,
+            'note'              => 'Khách hàng tạo yêu cầu hoàn trả. Lý do: ' . $validated['reason'],
+        ]);
 
         // Thông báo Admin
         try {
@@ -502,7 +571,7 @@ class OrderController extends Controller
         OrderStatusHistory::create([
             'order_id' => $returnRequest->order_id,
             'user_id'  => Auth::id(),
-            'status'   => '(Hoàn hàng) cancelled',
+            'status'   => 'Hoàn trả',
             'note'     => 'Khách hủy yêu cầu hoàn hàng [' . $returnRequest->return_code . '].',
         ]);
 

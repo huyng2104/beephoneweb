@@ -43,7 +43,7 @@
         $isVnpayUnpaidHeader = in_array($order->payment_method, ['vnpay', 'vnp']) && $order->payment_status === 'pending' && $order->status !== \App\Models\Order::STATUS_CANCELLED;
         $terminalStatusesHeader = [\App\Models\Order::STATUS_DELIVERED, \App\Models\Order::STATUS_RECEIVED, \App\Models\Order::STATUS_CANCELLED, \App\Models\Order::STATUS_CANCEL, \App\Models\Order::STATUS_RETURNED, \App\Models\Order::STATUS_RETURN_FAIL, \App\Models\Order::STATUS_EXCEPTION, \App\Models\Order::STATUS_DAMAGE, \App\Models\Order::STATUS_LOST];
         $showApproveBtn = !$isVnpayUnpaidHeader && $order->status === \App\Models\Order::STATUS_PENDING;
-        $showCancelBtn  = !$isVnpayUnpaidHeader && in_array($order->status, [\App\Models\Order::STATUS_PENDING, \App\Models\Order::STATUS_READY_TO_PICK, \App\Models\Order::STATUS_PICKING]);
+        $showCancelBtn  = !$isVnpayUnpaidHeader && in_array($order->status, [\App\Models\Order::STATUS_PENDING, \App\Models\Order::STATUS_READY_TO_PICK, \App\Models\Order::STATUS_PICKING, \App\Models\Order::STATUS_MONEY_COLLECT_PICKING]);
         $showCancelBtnVnpay = $isVnpayUnpaidHeader && $order->status === \App\Models\Order::STATUS_PENDING;
     @endphp
 
@@ -84,10 +84,10 @@
             @endif
 
             {{-- In PDF --}}
-            <a href="{{ route('admin.orders.print.pdf', $order) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all shadow-sm">
+            {{-- <a href="{{ route('admin.orders.print.pdf', $order) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all shadow-sm">
                 <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                 In PDF
-            </a>
+            </a> --}}
 
             @if($order->tracking_number)
             {{-- In GHN --}}
@@ -102,7 +102,7 @@
             <button type="button" onclick="document.getElementById('modal-approve').classList.remove('hidden')"
                     class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 active:scale-95">
                 <span class="material-symbols-outlined text-[18px]">check_circle</span>
-                Duyệt đơn
+                Chuẩn bị hàng
             </button>
             @endif
 
@@ -128,7 +128,7 @@
                     <span class="material-symbols-outlined text-emerald-600 text-[20px]">local_shipping</span>
                 </div>
                 <div>
-                    <h3 class="font-black text-slate-900 dark:text-white text-base">Xác nhận duyệt đơn hàng</h3>
+                    <h3 class="font-black text-slate-900 dark:text-white text-base">Xác nhận</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Đơn hàng #{{ $order->order_code }}</p>
                 </div>
                 <button onclick="document.getElementById('modal-approve').classList.add('hidden')" class="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
@@ -211,6 +211,13 @@
     </div>
     @endif
 
+    @if (session('error'))
+    <div class="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-semibold flex items-center gap-2">
+        <span class="material-symbols-outlined text-[16px]">error</span>
+        {{ session('error') }}
+    </div>
+    @endif
+
     @if ($errors->any())
     <div class="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
         <ul class="list-disc pl-5 space-y-1">
@@ -266,8 +273,8 @@
                 <span class="material-symbols-outlined text-4xl animate-bounce">error</span>
             </div>
             <div class="flex-1">
-                <p class="font-bold text-xl mb-1">{{ in_array($order->status, ['cancel', 'cancelled']) ? 'ĐƠN HÀNG ĐÃ HỦY' : 'GIAO HÀNG THẤT BẠI / HOÀN TRẢ' }}</p>
-                <p class="text-sm font-medium text-red-500/80">Lý do: {{ $order->cancellation_reason ?: ($order->note ?: 'Thông tin chưa được cập nhật cụ thể') }}</p>
+                <p class="font-bold text-xl mb-1">{{ in_array($order->status, ['cancel', 'cancelled']) ? 'ĐƠN HÀNG ĐÃ HỦY' : 'GIAO HÀNG THẤT BẠI / HOÀN HÀNG' }}</p>
+                <p class="text-sm font-medium text-red-500/80">Lý do: {{ $order->cancellation_reason ?: 'Khách hàng không nhận hàng' }}</p>
             </div>
         </div>
 
@@ -646,6 +653,25 @@
                                     </div>
                                     @endforeach
                                     <div class="flex flex-col gap-1 px-3 text-xs text-slate-500 text-right">
+                                        @php
+                                            $rrOriginalTotal = 0;
+                                            $rrRefundTotalItems = 0;
+                                            foreach($rr->items as $ri) {
+                                                // Tính lại giá trị gốc dựa trên line_total / quantity (vì có thể line_total khác unit_price)
+                                                $unitPrice = $ri->orderItem->quantity > 0 ? ($ri->orderItem->line_total / $ri->orderItem->quantity) : 0;
+                                                $rrOriginalTotal += ($unitPrice * $ri->quantity);
+                                                $rrRefundTotalItems += $ri->refund_amount;
+                                            }
+                                            $rrDiscountDeducted = $rrOriginalTotal - $rrRefundTotalItems;
+                                        @endphp
+
+                                        @if($rrDiscountDeducted > 0)
+                                        <div class="flex justify-between">
+                                            <span>Trừ giảm giá phân bổ:</span>
+                                            <span class="font-bold text-red-500">-{{ number_format($rrDiscountDeducted) }} ₫</span>
+                                        </div>
+                                        @endif
+
                                         @if($rr->return_shipping_fee > 0)
                                         <div class="flex justify-between">
                                             <span>Trừ phí ship hoàn:</span>
@@ -954,7 +980,7 @@
                                         </div>
                                         @endif
 
-                                        <form action="{{ route('admin.orders.return.received', $rr->id) }}" method="POST">
+                                        {{-- <form action="{{ route('admin.orders.return.received', $rr->id) }}" method="POST">
                                             @csrf @method('PATCH')
                                             <textarea name="return_admin_note" rows="2" class="w-full text-sm rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white placeholder-slate-400 mb-2 {{ !$isDelivered ? 'opacity-50' : '' }}" placeholder="Tình trạng hàng sau khi nhận..." {{ !$isDelivered ? 'disabled' : '' }}></textarea>
                                             <button type="submit" 
@@ -963,7 +989,7 @@
                                                 <span class="material-symbols-outlined text-[16px]">inventory_2</span> 
                                                 {{ $isDelivered ? 'Xác nhận đã nhận hàng hoàn' : 'Chờ giao hàng hoàn...' }}
                                             </button>
-                                        </form>
+                                        </form> --}}
                                     @elseif($rr->canRefund())
                                         @php $isDelivered = $rr->isGhnDelivered(); @endphp
                                         <form action="{{ route('admin.orders.return.refund', $rr->id) }}" method="POST" onsubmit="return confirm('Hoàn tiền vào ví khách? Không thể hoàn tác.')">

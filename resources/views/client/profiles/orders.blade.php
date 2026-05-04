@@ -193,7 +193,7 @@
                                 @endif
                                
 
-                                @if (in_array($order->status, [\App\Models\Order::STATUS_PENDING, \App\Models\Order::STATUS_READY_TO_PICK, \App\Models\Order::STATUS_PICKING]))
+                                @if (in_array($order->status, [\App\Models\Order::STATUS_PENDING, \App\Models\Order::STATUS_READY_TO_PICK, \App\Models\Order::STATUS_PICKING, \App\Models\Order::STATUS_MONEY_COLLECT_PICKING]))
                                     <button type="button" onclick="openCancelModal('{{ $order->order_code }}', '{{ route('client.orders.cancel', $order->id) }}')" class="px-6 py-2.5 rounded-xl border border-red-200 bg-red-50 text-sm font-semibold text-red-600 transition hover:bg-red-500 hover:text-white dark:border-red-900/50 dark:bg-red-900/20 dark:hover:bg-red-600">
                                         Hủy đơn
                                     </button>
@@ -315,12 +315,12 @@
                 modal.classList.add('flex');
                 
                 // Allow display flex to apply before animating opacity/transform
-                requestAnimationFrame(() => {
+                setTimeout(() => {
                     overlay.classList.remove('opacity-0');
                     overlay.classList.add('opacity-100');
                     content.classList.remove('scale-95', 'opacity-0');
                     content.classList.add('scale-100', 'opacity-100');
-                });
+                }, 10);
             }
 
             function closeCancelModal() {

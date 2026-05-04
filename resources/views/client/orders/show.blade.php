@@ -5,6 +5,41 @@
 @section('profile_content')
     <section class="flex-1" data-purpose="user-main-section">
 
+        {{-- Flash Messages --}}
+        @if(session('success'))
+            <div class="mb-6 p-4 rounded-xl bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 flex items-start gap-3 animate-fade-in-up">
+                <span class="material-symbols-outlined text-green-500 mt-0.5">check_circle</span>
+                <div>
+                    <h4 class="font-bold text-green-800 dark:text-green-400 text-sm">Thành công</h4>
+                    <p class="text-sm text-green-700 dark:text-green-500 mt-0.5">{{ session('success') }}</p>
+                </div>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 flex items-start gap-3 animate-fade-in-up">
+                <span class="material-symbols-outlined text-red-500 mt-0.5">error</span>
+                <div>
+                    <h4 class="font-bold text-red-800 dark:text-red-400 text-sm">Có lỗi xảy ra</h4>
+                    <p class="text-sm text-red-700 dark:text-red-500 mt-0.5">{{ session('error') }}</p>
+                </div>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 flex items-start gap-3 animate-fade-in-up">
+                <span class="material-symbols-outlined text-red-500 mt-0.5">error</span>
+                <div>
+                    <h4 class="font-bold text-red-800 dark:text-red-400 text-sm">Vui lòng kiểm tra lại thông tin</h4>
+                    <ul class="text-sm text-red-700 dark:text-red-500 list-disc list-inside mt-1 space-y-0.5">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        @endif
+
         <div class="mb-6 flex items-center justify-between border-b border-gray-100 dark:border-white/10 pb-4">
             <div class="flex items-center gap-3">
                 <a href="{{ route('client.orders.index') }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-[#f4c025] hover:text-black transition-colors text-gray-600 dark:text-gray-300">
@@ -68,21 +103,6 @@
                 @endif
             </div>
         </div>
-
-        {{-- THÔNG BÁO ALERT --}}
-        @if (session('success'))
-            <div class="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 font-semibold shadow-sm flex items-center gap-2">
-                <span class="material-symbols-outlined text-[20px]">check_circle</span>
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if (session('error') || $errors->any())
-            <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-semibold shadow-sm flex items-center gap-2">
-                <span class="material-symbols-outlined text-[20px]">error</span>
-                {{ session('error') ?? $errors->first() }}
-            </div>
-        @endif
 
         @php
             $step = 0;
@@ -670,6 +690,9 @@
                                             <span class="material-symbols-outlined text-[14px]">local_shipping</span> Đã gửi hàng đi
                                         </button>
                                     </form>
+                                    <div class="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-gray-500 text-[11px] font-bold flex items-center gap-1 cursor-not-allowed" title="Yêu cầu đã được duyệt, không thể hủy">
+                                        <span class="material-symbols-outlined text-[14px]">cancel</span> Không thể hủy (Đã duyệt)
+                                    </div>
                                 @endif
                             </div>
                             @endif
@@ -685,6 +708,25 @@
                             </div>
                             
                             <div class="flex flex-col gap-1 mt-2 text-xs text-gray-500 text-right">
+                                @php
+                                    $rrOriginalTotal = 0;
+                                    $rrRefundTotalItems = 0;
+                                    foreach($rr->items as $ri) {
+                                        // Tính lại giá trị gốc dựa trên line_total / quantity (vì có thể line_total khác unit_price)
+                                        $unitPrice = $ri->orderItem->quantity > 0 ? ($ri->orderItem->line_total / $ri->orderItem->quantity) : 0;
+                                        $rrOriginalTotal += ($unitPrice * $ri->quantity);
+                                        $rrRefundTotalItems += $ri->refund_amount;
+                                    }
+                                    $rrDiscountDeducted = $rrOriginalTotal - $rrRefundTotalItems;
+                                @endphp
+
+                                @if($rrDiscountDeducted > 0)
+                                <div class="flex justify-between">
+                                    <span>Trừ giảm giá phân bổ:</span>
+                                    <span class="font-bold text-red-500">-{{ number_format($rrDiscountDeducted) }} ₫</span>
+                                </div>
+                                @endif
+
                                 @if($rr->return_shipping_fee > 0)
                                 <div class="flex justify-between">
                                     <span>Trừ phí ship hoàn:</span>
@@ -984,7 +1026,15 @@
                                     <option value="Lý do khác">Lý do khác</option>
                                 </select>
                             </div>
-                            <button type="submit" class="w-full bg-red-500 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-red-500/20" onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này? Thao tác này KHÔNG THỂ hoàn tác.')">
+                            
+                            @if(in_array($order->payment_method, ['wallet', 'vnpay', 'vnp']) && $order->payment_status === 'paid')
+                                <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-xl text-amber-700 dark:text-amber-400 text-sm flex gap-3">
+                                    <span class="material-symbols-outlined shrink-0">info</span>
+                                    <p>Số tiền <strong>{{ number_format($order->total_amount) }} ₫</strong> sẽ được hoàn trả tự động vào ví của bạn ngay sau khi hủy đơn thành công.</p>
+                                </div>
+                            @endif
+
+                            <button type="submit" class="w-full bg-red-500 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-red-500/20">
                                 <span class="material-symbols-outlined">cancel</span> Xác nhận hủy đơn
                             </button>
                         </form>

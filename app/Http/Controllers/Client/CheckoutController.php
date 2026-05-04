@@ -291,7 +291,7 @@ class CheckoutController extends Controller
             // Ghi nhận trạng thái ban đầu là "Chờ duyệt" (pending)
             // Không tự động đẩy đơn sang GHN — admin sẽ xử lý thủ công
             // ==========================================
-            $historyNote = 'Đơn hàng được đặt bởi khách hàng. Trạng thái: Chờ duyệt.';
+            $historyNote = 'Khách hàng đã đặt hàng thành công.';
             if (!empty($request->note)) {
                 $historyNote .= ' Ghi chú của khách: ' . $request->note;
             }

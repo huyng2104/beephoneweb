@@ -28,7 +28,7 @@ Schedule::command('returns:expire')->daily()->at('02:00');
 
 // ==========================================
 // ĐỒNG BỘ TRẠNG THÁI ĐƠN HÀNG & ĐƠN HOÀN TỪ GHN API
-// Thay thế Webhook: poll API GHN mỗi 1 phút
+// Thay thế Webhook: poll API GHN mỗi 1 giây
 // ==========================================
 Schedule::command('ghn:sync')->everyMinute()->withoutOverlapping();
 Schedule::command('ghn:sync-returns')->everyMinute()->withoutOverlapping();

@@ -19,6 +19,12 @@
     </div>
     @endif
 
+    @if (session('error'))
+    <div class="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
+        {{ session('error') }}
+    </div>
+    @endif
+
     {{-- THỐNG KÊ NHANH --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {{-- Tổng doanh thu --}}

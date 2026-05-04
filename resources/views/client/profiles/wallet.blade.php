@@ -440,14 +440,18 @@
                         <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Số
                             tiền muốn nạp (VNĐ)</label>
                         <div class="relative">
-                            <input type="number" name="amount" id="amount" min="10000" step="1000" required
-                                class="w-full pl-4 pr-12 py-3 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-[#f4c025] focus:border-[#f4c025] outline-none transition-colors text-lg font-semibold"
+                            <input type="text" name="amount" id="amount" value="{{ old('amount') }}"
+                                class="w-full pl-4 pr-12 py-3 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-[#f4c025] focus:border-[#f4c025] outline-none transition-colors text-lg font-semibold @error('amount', 'deposit') border-red-500 @enderror"
                                 placeholder="VD: 50000">
                             <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                 <span class="text-gray-500 font-medium">VNĐ</span>
                             </div>
                         </div>
-                        <p class="text-xs text-red-500 mt-2 italic">* Số tiền nạp tối thiểu là 10.000đ</p>
+                        @error('amount', 'deposit')
+                            <p class="text-xs text-red-500 mt-2 italic">{{ $message }}</p>
+                        @else
+                            <p class="text-xs text-gray-500 mt-2 italic">* Số tiền nạp tối thiểu là 10.000đ</p>
+                        @enderror
                     </div>
 
                     <div>
@@ -1002,23 +1006,32 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Mã PIN hiện tại</label>
-                        <input type="password" name="old_wallet_pin" required placeholder="Nhập mã PIN hiện tại"
-                            class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 outline-none tracking-[0.5em] text-center font-bold focus:border-[#f4c025] focus:ring-1 focus:ring-[#f4c025]"
+                        <input type="password" name="old_wallet_pin" required 
+                            class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 outline-none tracking-[0.5em] text-center font-bold focus:border-[#f4c025] focus:ring-1 focus:ring-[#f4c025] @error('old_wallet_pin', 'changeWalletPin') border-red-500 @enderror"
                             maxlength="6" pattern="\d{6}">
+                        @error('old_wallet_pin', 'changeWalletPin')
+                            <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
                         <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Mã PIN mới</label>
-                        <input type="password" name="wallet_pin" required placeholder="Nhập mã PIN mới (6 số)"
-                            class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 outline-none tracking-[0.5em] text-center font-bold focus:border-[#f4c025] focus:ring-1 focus:ring-[#f4c025]"
+                        <input type="password" name="wallet_pin" required 
+                            class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 outline-none tracking-[0.5em] text-center font-bold focus:border-[#f4c025] focus:ring-1 focus:ring-[#f4c025] @error('wallet_pin', 'changeWalletPin') border-red-500 @enderror"
                             maxlength="6" pattern="\d{6}">
+                        @error('wallet_pin', 'changeWalletPin')
+                            <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
                         <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Xác nhận mã PIN mới</label>
-                        <input type="password" name="wallet_pin_confirmation" required placeholder="Nhập lại mã PIN mới"
-                            class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 outline-none tracking-[0.5em] text-center font-bold focus:border-[#f4c025] focus:ring-1 focus:ring-[#f4c025]"
+                        <input type="password" name="wallet_pin_confirmation" required 
+                            class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 outline-none tracking-[0.5em] text-center font-bold focus:border-[#f4c025] focus:ring-1 focus:ring-[#f4c025] @error('wallet_pin_confirmation', 'changeWalletPin') border-red-500 @enderror"
                             maxlength="6" pattern="\d{6}">
+                        @error('wallet_pin_confirmation', 'changeWalletPin')
+                            <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
@@ -1092,6 +1105,12 @@
                     }
                 });
             }
+
+            @if ($errors->changeWalletPin->any())
+                if (changeWalletPasswordModal) {
+                    changeWalletPasswordModal.classList.remove('hidden');
+                }
+            @endif
         });
     </script>
     <script>
@@ -1129,6 +1148,12 @@
             // Xóa giá trị đã nhập đi
             document.getElementById('amount').value = '';
         }
+
+        @if ($errors->deposit->any())
+            document.addEventListener('DOMContentLoaded', function() {
+                openDepositModal();
+            });
+        @endif
     </script>
 
 
