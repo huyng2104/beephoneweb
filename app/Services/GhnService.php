@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -16,6 +17,73 @@ class GhnService
         $this->apiUrl = rtrim(config('services.ghn.api_url', env('GHN_API_URL', 'https://dev-online-gateway.ghn.vn/shiip/public-api/v2/')), '/');
         $this->token  = config('services.ghn.token', env('GHN_TOKEN', ''));
         $this->shopId = (int) config('services.ghn.shop_id', env('GHN_SHOP_ID', 0));
+    }
+
+    /**
+     * Lấy thông tin kho gửi từ GHN API (POST /v2/shop/all).
+     * Kết quả được cache 1 giờ để tránh gọi API liên tục.
+     * Fallback về biến môi trường nếu API không phản hồi.
+     *
+     * @return array{name: string, phone: string, address: string, district_id: int, ward_code: string}
+     */
+    public function getShopInfo(): array
+    {
+        $cacheKey = "ghn_shop_info_{$this->shopId}";
+
+        return Cache::remember($cacheKey, now()->addHour(), function () {
+            try {
+                $response = Http::withoutVerifying()->withHeaders([
+                    'Token'        => $this->token,
+                    'Content-Type' => 'application/json',
+                ])->post($this->apiUrl . '/shop/all', [
+                    'offset' => 0,
+                    'limit'  => 50,
+                ]);
+
+                if ($response->successful()) {
+                    $data = $response->json();
+                    if (($data['code'] ?? null) === 200) {
+                        $shops = $data['data']['shops'] ?? [];
+                        // Tìm đúng shop theo shopId
+                        $shop = collect($shops)->firstWhere('_id', $this->shopId)
+                              ?? collect($shops)->first();
+
+                        if ($shop) {
+                            Log::info('[GHN] getShopInfo: Lấy thông tin kho thành công từ API', [
+                                'shop_id'     => $this->shopId,
+                                'name'        => $shop['name'] ?? '',
+                                'district_id' => $shop['district_id'] ?? 0,
+                                'ward_code'   => $shop['ward_code'] ?? '',
+                            ]);
+
+                            return [
+                                'name'        => $shop['name']        ?? env('GHN_FROM_NAME', 'BeePhone Store'),
+                                'phone'       => $shop['phone']       ?? env('GHN_FROM_PHONE', ''),
+                                'address'     => $shop['address']     ?? env('GHN_FROM_ADDRESS', ''),
+                                'district_id' => (int) ($shop['district_id'] ?? env('GHN_FROM_DISTRICT_ID', 0)),
+                                'ward_code'   => (string) ($shop['ward_code'] ?? env('GHN_FROM_WARD_CODE', '')),
+                            ];
+                        }
+                    }
+                    Log::warning('[GHN] getShopInfo: API trả lỗi hoặc không tìm thấy shop', [
+                        'shop_id'  => $this->shopId,
+                        'response' => $data,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                Log::error('[GHN] getShopInfo Exception', ['error' => $e->getMessage()]);
+            }
+
+            // Fallback về env
+            Log::warning('[GHN] getShopInfo: Dùng fallback từ .env');
+            return [
+                'name'        => env('GHN_FROM_NAME', 'BeePhone Store'),
+                'phone'       => env('GHN_FROM_PHONE', ''),
+                'address'     => env('GHN_FROM_ADDRESS', ''),
+                'district_id' => (int) env('GHN_FROM_DISTRICT_ID', 0),
+                'ward_code'   => (string) env('GHN_FROM_WARD_CODE', ''),
+            ];
+        });
     }
 
     /**
@@ -208,16 +276,29 @@ class GhnService
                 'weight'   => 200,
             ])->values()->toArray();
 
+            // Lấy thông tin kho gửi từ GHN API (có cache)
+            $shopInfo = $this->getShopInfo();
+
             $payload = [
                 'payment_type_id'  => 1,           // 1 = người bán trả phí ship
                 'note'             => $order->note ?? 'Không có ghi chú',
                 'required_note'    => 'CHOXEMHANGKHONGTHU',
                 'client_order_code'=> $order->order_code, // Mã đơn hàng nội bộ để map với GHN
+
+                // Địa chỉ kho gửi (lấy từ GHN API)
+                'from_name'        => $shopInfo['name'],
+                'from_phone'       => $shopInfo['phone'],
+                'from_address'     => $shopInfo['address'],
+                'from_district_id' => $shopInfo['district_id'],
+                'from_ward_code'   => $shopInfo['ward_code'],
+
+                // Địa chỉ nhận
                 'to_name'          => $order->customer_name,
                 'to_phone'         => $order->customer_phone,
                 'to_address'       => $order->shipping_address,
                 'to_district_id'   => (int) $order->ghn_district_id,
                 'to_ward_code'     => (string) $order->ghn_ward_code,
+
                 'cod_amount'       => $codAmount,
                 'weight'           => $weight,
                 'length'           => 20,

@@ -341,7 +341,15 @@ class SyncGhnOrders extends Command
     protected function applyStatusChange(Order $order, string $ghnStatus): bool
     {
         $newStatus = $this->ghn->mapStatus($ghnStatus);
+        
+        // Không cập nhật nếu không map được hoặc trạng thái không đổi
         if (!$newStatus || $order->status === $newStatus) {
+            return false;
+        }
+
+        // KHÔNG cho phép đồng bộ ngược nếu đơn đã ở trạng thái cuối (Đã nhận hàng hoặc Đã hủy)
+        // Tránh việc GHN báo 'delivered' đè lên trạng thái 'received' của hệ thống
+        if (in_array($order->status, [Order::STATUS_RECEIVED, Order::STATUS_CANCELLED, Order::STATUS_CANCEL])) {
             return false;
         }
 
