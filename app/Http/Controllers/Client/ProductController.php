@@ -31,7 +31,7 @@ class ProductController extends Controller
             ->values();
 
         $trending = (clone $baseQuery)
-            ->orderByDesc('id')
+            ->orderByDesc('views')
             ->limit(6)
             ->pluck('name')
             ->values();
@@ -41,7 +41,7 @@ class ProductController extends Controller
             ->when($keyword !== '', function ($q) use ($keyword) {
                 $q->where('name', 'like', '%' . $keyword . '%');
             })
-            ->orderByDesc('id')
+            ->orderByDesc('views')
             ->limit(4)
             ->get()
             ->map(function ($product) {
@@ -76,17 +76,49 @@ class ProductController extends Controller
             ->orWhere('id', $slug)
             ->firstOrFail();
 
-        // Lấy sản phẩm liên quan (cùng danh mục đầu tiên)
+        // Tăng lượt xem sản phẩm
+        $product->increment('views');
+
+        // Lấy sản phẩm tương tự (cùng danh mục đầu tiên, load variants để hiển thị giá)
         $firstCatId = $product->categories->first()?->id;
         $relatedProducts = collect();
         if ($firstCatId) {
-            $relatedProducts = Product::whereHas('categories', function($q) use ($firstCatId) {
-                $q->where('category_id', $firstCatId);
-            })
-            ->where('id', '!=', $product->id)
-            ->where('status', 'active')
-            ->take(4)
-            ->get();
+            $relatedProducts = Product::with(['variants'])
+                ->whereHas('categories', function($q) use ($firstCatId) {
+                    $q->where('category_id', $firstCatId);
+                })
+                ->where('id', '!=', $product->id)
+                ->where('status', 'active')
+                ->inRandomOrder()
+                ->take(8)
+                ->get();
+        }
+
+        // Lấy sản phẩm cùng thương hiệu (nếu có)
+        $sameBrandProducts = collect();
+        if ($product->brand_id) {
+            $sameBrandProducts = Product::with(['variants'])
+                ->where('brand_id', $product->brand_id)
+                ->where('id', '!=', $product->id)
+                ->where('status', 'active')
+                ->whereNotIn('id', $relatedProducts->pluck('id'))
+                ->inRandomOrder()
+                ->take(4)
+                ->get();
+        }
+
+        // Fallback: nếu cả 2 đều rỗng → lấy sản phẩm nổi bật / bán chạy ngẫu nhiên
+        $fallbackProducts = collect();
+        if ($relatedProducts->isEmpty() && $sameBrandProducts->isEmpty()) {
+            $fallbackProducts = Product::with(['variants'])
+                ->where('id', '!=', $product->id)
+                ->where('status', 'active')
+                ->where(function ($q) {
+                    $q->where('is_featured', true)->orWhereHas('variants', fn($v) => $v->where('stock', '>', 0));
+                })
+                ->inRandomOrder()
+                ->take(8)
+                ->get();
         }
 
         $reviews = \App\Models\Review::with(['user', 'images', 'repliedBy'])
@@ -133,6 +165,8 @@ class ProductController extends Controller
         return view('client.product-detail', compact(
             'product',
             'relatedProducts',
+            'sameBrandProducts',
+            'fallbackProducts',
             'reviews',
             'userReview',
             'canReview',

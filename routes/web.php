@@ -318,9 +318,9 @@ Route::middleware(['check.verified', 'check.banned'])->group(function () {
 Route::middleware(['auth', 'verified', 'role', 'check.banned'])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
 
-        Route::get('/', function () {
-            return view('admin.dashboard.index');
-        })->name('dashboard');
+        Route::get('/', [App\Http\Controllers\AdminControllers\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/users', [App\Http\Controllers\AdminControllers\DashboardController::class, 'userStats'])->name('dashboard.users');
+        Route::get('/dashboard/orders', [App\Http\Controllers\AdminControllers\DashboardController::class, 'orderStats'])->name('dashboard.orders');
 // chuong
 // Quản lý thông báo (Trang Xem tất cả)
         Route::get('/notifications', function () {

@@ -208,4 +208,9 @@ class Order extends Model
             ->useLogName('order')
             ->logOnlyDirty();
     }
+
+    public function getTotalPriceAttribute()
+    {
+        return $this->items->sum('line_total');
+    }
 }

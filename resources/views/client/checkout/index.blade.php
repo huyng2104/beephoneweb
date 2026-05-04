@@ -159,7 +159,7 @@
                             </p>
                             <p id="address-preview-text" class="text-sm text-gray-700 dark:text-gray-200 font-medium"></p>
                         </div>
-                        <p id="err_shipping_address" class="text-red-500 text-sm mt-2 hidden">Vui lòng cung cấp đầy đủ thông tin địa chỉ giao hàng</p>
+                        <p id="err_shipping_address" class="text-red-500 text-sm mt-2 hidden">Vui lòng cung cấp đầy đủ thông tin địa chỉ giao hàng (Số nhà, Phường/Xã, Quận/Huyện, Tỉnh/Thành)</p>
                     </div>
 
                     <div class="col-span-1 md:col-span-2">
@@ -991,8 +991,11 @@
             }
 
             const addr = document.getElementById('shipping_address_hidden').value.trim();
+            const distId = document.getElementById('to_district_id').value;
+            const wardCode = document.getElementById('to_ward_code').value;
             const errAddress = document.getElementById('err_shipping_address');
-            if (!addr) {
+            
+            if (!addr || !distId || !wardCode) {
                 if (errAddress) errAddress.classList.remove('hidden');
                 isValid = false;
             } else {

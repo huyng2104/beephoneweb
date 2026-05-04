@@ -83,6 +83,8 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
+        Gate::authorize('order.view');
+
         $order->load(['items', 'statusHistories.user', 'returnRequests.items.orderItem', 'returnRequests.histories.user']);
 
         return view('admin.orders.show', [
@@ -613,6 +615,8 @@ class OrderController extends Controller
 
     public function printPdf(Order $order)
     {
+        Gate::authorize('order.view');
+
         $pdf = Pdf::loadView('admin.orders.print', [
             'order' => $order,
             'statusLabels' => Order::statusLabels(),

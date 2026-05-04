@@ -98,15 +98,41 @@
                 </div>
             </div>
 
-            <div class="mb-8 bg-gray-50 dark:bg-white/5 p-4 rounded-lg border border-dashed border-gray-200 dark:border-white/10">
-                <h4 class="font-bold text-[#181611] dark:text-white mb-2 text-sm flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary text-lg">location_on</span>
-                    Địa chỉ nhận hàng:
+            <div class="mb-8 bg-gray-50 dark:bg-white/5 p-5 rounded-xl border border-dashed border-gray-200 dark:border-white/10">
+                <h4 class="font-bold text-[#181611] dark:text-white mb-4 text-sm flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-white/10">
+                    <span class="material-symbols-outlined text-primary text-lg">local_shipping</span>
+                    Thông tin giao hàng
                 </h4>
-                <p class="text-sm text-[#8a8060] dark:text-gray-300 ml-7 leading-relaxed">
-                    {{ $order->shipping_address }}<br/>
-                    SĐT: <span class="font-bold">{{ $order->customer_phone }}</span>
-                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p class="text-[#8a8060] dark:text-gray-400 mb-1">Người nhận:</p>
+                        <p class="font-bold text-[#181611] dark:text-white">{{ $order->recipient_name ?? $order->customer_name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[#8a8060] dark:text-gray-400 mb-1">Số điện thoại:</p>
+                        <p class="font-bold text-[#181611] dark:text-white">{{ $order->recipient_phone ?? $order->customer_phone }}</p>
+                    </div>
+                    @if($order->customer_email)
+                    <div>
+                        <p class="text-[#8a8060] dark:text-gray-400 mb-1">Email:</p>
+                        <p class="font-medium text-[#181611] dark:text-white">{{ $order->customer_email }}</p>
+                    </div>
+                    @endif
+                    <div>
+                        <p class="text-[#8a8060] dark:text-gray-400 mb-1">Thời gian đặt hàng:</p>
+                        <p class="font-medium text-[#181611] dark:text-white">{{ \Carbon\Carbon::parse($order->ordered_at ?? $order->created_at)->format('H:i - d/m/Y') }}</p>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <p class="text-[#8a8060] dark:text-gray-400 mb-1">Địa chỉ giao hàng:</p>
+                        <p class="font-medium text-[#181611] dark:text-white leading-relaxed">{{ $order->shipping_address }}</p>
+                    </div>
+                    @if($order->note)
+                    <div class="sm:col-span-2">
+                        <p class="text-[#8a8060] dark:text-gray-400 mb-1">Ghi chú đơn hàng:</p>
+                        <p class="font-medium text-[#181611] dark:text-white italic bg-white dark:bg-black/20 p-3 rounded-lg border border-gray-100 dark:border-white/5">{{ $order->note }}</p>
+                    </div>
+                    @endif
+                </div>
             </div>
 
             <div class="flex justify-center gap-4">
