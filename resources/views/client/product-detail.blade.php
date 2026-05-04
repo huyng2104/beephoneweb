@@ -129,7 +129,7 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <section class="lg:col-span-8" data-purpose="product-gallery">
+            <section class="lg:col-span-6" data-purpose="product-gallery">
                 <div
                     class="bg-white dark:bg-white/5 rounded-2xl p-4 border border-gray-100 dark:border-white/10 custom-shadow mb-4 sticky top-24">
                     @php
@@ -145,7 +145,7 @@
                     <div class="flex gap-4">
 
                         <!-- Thumbnail dọc -->
-                        <div class="flex flex-col gap-3 max-h-[420px] overflow-y-auto">
+                        <div class="flex flex-col gap-3 max-h-[420px] overflow-y-auto ms-4 me-4">
 
                             <!-- Ảnh chính (thumb đầu) -->
                             <button class="thumb-btn w-16 h-16 border-2 border-primary rounded-lg p-1">
@@ -182,7 +182,7 @@
                 </div>
             </section>
 
-            <section class="lg:col-span-4" data-purpose="product-info-actions">
+            <section class="lg:col-span-6" data-purpose="product-info-actions">
                 <form action="#" method="POST" id="add-to-cart-form" class="flex flex-col gap-4">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
@@ -190,57 +190,41 @@
 
                     <div
                         class="bg-white dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/10 custom-shadow relative overflow-hidden">
-                        {{-- <div class="flex items-center justify-between mb-4">
-                            <div class="text-xs font-bold text-gray-400">
-                                SKU: <span id="display-sku"
-                                    class="text-gray-600 dark:text-gray-300">{{ $product->sku ?? 'N/A' }}</span>
+
+                        <div class="flex gap-4">
+
+                            <!-- BÊN TRÁI -->
+                            <div class="w-1/2 flex flex-col gap-1 text-sm">
+                                @if ($product->brand)
+                                    <div class="flex items-center">
+                                        <span class="text-gray-500 mr-1.5">Thương hiệu:</span>
+                                        <span class="font-bold text-[#181611] dark:text-gray-200">
+                                            {{ $product->brand->name }}
+                                        </span>
+                                    </div>
+                                @endif
+
+                                @if ($product->categories->isNotEmpty())
+                                    <div class="flex items-center">
+                                        <span class="text-gray-500 mr-1.5">Danh mục:</span>
+                                        <span class="font-bold text-[#181611] dark:text-gray-200">
+                                            {{ $product->categories->pluck('name')->join(' | ') }}
+                                        </span>
+                                    </div>
+                                @endif
                             </div>
-                        </div> --}}
 
-                        {{-- <h1 class="text-2xl lg:text-3xl font-bold text-[#181611] dark:text-white mb-1 pr-12">
-                            {{ $product->name }}</h1> --}}
+                            <!-- BÊN PHẢI -->
+                            <div
+                                class="w-1/2 flex items-center justify-center p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
+                                <span id="main-price" class="text-2xl font-bold text-red-500 dark:text-red-400">
+                                    Đang cập nhật...
+                                </span>
+                                <span id="old-price" class="text-lg text-gray-400 line-through ml-2"></span>
+                            </div>
 
-                        <div class="flex flex-col gap-1 text-sm mb-5">
-                            @if ($product->brand)
-                                <div class="flex items-center">
-                                    <span class="text-gray-500 mr-1.5">Thương hiệu:</span>
-                                    <span
-                                        class="font-bold text-[#181611] dark:text-gray-200">{{ $product->brand->name }}</span>
-                                </div>
-                            @endif
-
-                            @if ($product->categories->isNotEmpty())
-                                <div class="flex items-center">
-                                    <span class="text-gray-500 mr-1.5">Danh mục:</span>
-                                    <span class="font-bold text-[#181611] dark:text-gray-200">
-                                        {{ $product->categories->pluck('name')->join(' | ') }}
-                                    </span>
-                                </div>
-                            @endif
                         </div>
 
-                        {{-- <div class="flex items-center gap-2 mb-4">
-                            <div class="flex text-primary">
-                                @for ($i = 0; $i < 5; $i++)
-                                    <span class="material-symbols-outlined text-[16px] ai-sparkle">star</span>
-                                @endfor
-                            </div>
-                            <span class="text-sm text-gray-300 dark:text-gray-600">|</span>
-                            <span id="header-stock-status"
-                                class="text-xs text-green-600 bg-green-100 dark:bg-green-500/20 dark:text-green-400 px-2.5 py-1 rounded-full font-bold transition-all uppercase tracking-wider">
-                                Đang kiểm tra...
-                            </span>
-                        </div> --}}
-
-                        <div
-                            class="flex items-baseline gap-4 p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
-                            <span id="main-price"
-                                class="text-2xl font-bold text-red-500 dark:text-red-400 transition-opacity duration-200">
-                                Đang cập nhật...
-                            </span>
-                            <span id="old-price"
-                                class="text-lg text-gray-400 line-through transition-opacity duration-200"></span>
-                        </div>
                     </div>
 
                     <div
@@ -331,13 +315,13 @@
                         </div>
                     </div>
 
-                    <div class="flex flex-col gap-3 mt-2">
+                    <div class="flex gap-3 mt-2">
                         <button type="button" id="btn-buy-now"
-                            class="w-full bg-primary text-black font-bold py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] flex flex-col items-center justify-center">
+                            class="w-1/2 h-[60px] bg-primary text-black font-bold py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] flex flex-col items-center justify-center">
                             <span class="text-lg uppercase tracking-wider">Mua ngay</span>
                         </button>
                         <button type="button" id="btn-add-cart"
-                            class="w-full bg-[#181611] dark:bg-white dark:text-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-primary hover:text-black dark:hover:bg-primary transition-all shadow-md mt-2 group">
+                            class="w-1/2 h-[60px] bg-[#181611] dark:bg-white dark:text-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-primary hover:text-black dark:hover:bg-primary transition-all shadow-md group">
                             <span
                                 class="material-symbols-outlined group-hover:scale-110 transition-transform">add_shopping_cart</span>
                             THÊM VÀO GIỎ HÀNG
@@ -348,7 +332,7 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-12">
-            <section class="lg:col-span-8 space-y-8">
+            <section class="lg:col-span-6 space-y-8">
                 <div
                     class="bg-white dark:bg-white/5 p-8 rounded-2xl border border-gray-100 dark:border-white/10 custom-shadow relative">
                     <h2
@@ -369,7 +353,7 @@
                 </div>
             </section>
 
-            <section class="lg:col-span-4">
+            <section class="lg:col-span-6">
                 <div
                     class="bg-white dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/10 custom-shadow sticky top-24">
                     <h2
