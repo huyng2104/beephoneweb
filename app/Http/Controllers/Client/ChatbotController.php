@@ -20,9 +20,8 @@ class ChatbotController extends Controller
 
         $userMessage = $request->message;
 
-        // ==========================================
         // 0. KIỂM TRA KHÁCH HỎI VỀ SẢN PHẨM KHÔNG BÁN
-        // ==========================================
+
         $notAllowedResponse = $this->checkNotAllowedProduct($userMessage);
         if ($notAllowedResponse) {
             return response()->json([

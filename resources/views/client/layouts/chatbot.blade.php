@@ -1,8 +1,8 @@
 <div id="chat-bubble" class="fixed bottom-6 right-6 bg-[#f4c025] p-4 rounded-full cursor-pointer shadow-xl hover:scale-110 transition-transform z-50 flex items-center justify-center group">
     <span class="material-symbols-outlined text-[#181611] text-3xl">smart_toy</span>
-    <span class="absolute -top-1 -right-1 flex h-4 w-4">
+    <span id="notification-dot" class="absolute -top-1 -right-1 flex h-4 w-4">
         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-        <span class="relative inline-flex rounded-full h-4 w-4 bg-white border-2 border-[#f4c025]"></span>
+        <span class="notification-dot-inner relative inline-flex rounded-full h-4 w-4 bg-white border-2 border-[#f4c025]"></span>
     </span>
 </div>
 
@@ -42,6 +42,35 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    // Hàm cập nhật chấm thông báo sang đỏ
+    function updateNotificationDotToRed() {
+        const dotInner = document.querySelector('.notification-dot-inner');
+        const dotOuter = document.querySelector('#notification-dot span:first-child');
+        if (dotInner) {
+            dotInner.classList.remove('bg-white');
+            dotInner.classList.add('bg-red-500');
+            dotInner.style.borderColor = '#f4c025';
+        }
+        if (dotOuter) {
+            dotOuter.classList.remove('bg-white');
+            dotOuter.classList.add('bg-red-500');
+        }
+    }
+
+    // Hàm reset chấm thông báo về trắng
+    function resetNotificationDotToWhite() {
+        const dotInner = document.querySelector('.notification-dot-inner');
+        const dotOuter = document.querySelector('#notification-dot span:first-child');
+        if (dotInner) {
+            dotInner.classList.remove('bg-red-500');
+            dotInner.classList.add('bg-white');
+        }
+        if (dotOuter) {
+            dotOuter.classList.remove('bg-red-500');
+            dotOuter.classList.add('bg-white');
+        }
+    }
+
     // Vanilla JS: Click to open/close chat
     document.addEventListener('DOMContentLoaded', function() {
         const chatBubble = document.getElementById('chat-bubble');
@@ -57,6 +86,7 @@
                     chatWindow.classList.add('flex');
                     chatBubble.classList.add('hidden');
                     sessionStorage.setItem('beephone_chat_state', 'open');
+                    resetNotificationDotToWhite();
                 }
             });
         }
@@ -77,6 +107,7 @@
             chatWindow.classList.remove('hidden');
             chatWindow.classList.add('flex');
             chatBubble.classList.add('hidden');
+            resetNotificationDotToWhite();
         }
     });
 
@@ -202,6 +233,8 @@
 
                         if (msg.sender_type === 'admin') {
                             appendAdminReply(msg.sender_name, msg.message, formatTime(msg.created_at));
+                            // Cập nhật chấm thông báo sang đỏ khi có tin nhắn từ nhân viên
+                            updateNotificationDotToRed();
                         }
                     });
 
@@ -362,6 +395,13 @@
                     $('#chat-box').append(replyHtml);
                     scrollToBottom();
                     saveChatHistory();
+
+                    // Cập nhật chấm thông báo sang đỏ nếu chat window bị đóng
+                    const chatWindow = document.getElementById('chat-window');
+                    const chatBubble = document.getElementById('chat-bubble');
+                    if (chatWindow && chatBubble && chatWindow.classList.contains('hidden')) {
+                        updateNotificationDotToRed();
+                    }
 
                     // Enable send button
                     $('#send-chat').prop('disabled', false).css('opacity', '1');
